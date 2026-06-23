@@ -1,1 +1,52 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+
+@theme {
+  /* Colors */
+  --color-background: #fffaf3;
+  --color-dark-background: #e9e3d6;
+  --color-border: #a09583;
+  --color-dark-border: #5e5847;
+  --color-point: #d68200;
+  --color-alert: #b6441d;
+  --color-text: #1b1a12;
+
+  /* Fonts */
+  --font-pretendard: 'Pretendard Variable', sans-serif;
+  --font-noto-serif: 'Noto Serif KR', serif;
+  --font-dm-mono: 'DM Mono', monospace;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-pretendard);
+    color: var(--color-text);
+  }
+
+  #root {
+    max-width: 390px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background-color: var(--color-background);
+  }
+}
+
+@layer components {
+  .text-logo {
+    @apply font-noto-serif font-black text-[80px] leading-[115px] tracking-[-0.02em];
+  }
+  .text-head1 {
+    @apply font-noto-serif font-bold text-[30px] leading-[43px] tracking-[-0.02em];
+  }
+  .text-head2 {
+    @apply font-pretendard font-semibold text-[24px] leading-[29px] tracking-[-0.02em];
+  }
+  .text-body {
+    @apply font-pretendard font-semibold text-[16px] leading-[19px] tracking-[-0.02em];
+  }
+  .text-caption {
+    @apply font-pretendard font-normal text-[14px] leading-[17px] tracking-[-0.02em];
+  }
+  .text-body2 {
+    @apply font-dm-mono font-medium text-[14px] leading-[18px] tracking-[-0.02em];
+  }
+}
