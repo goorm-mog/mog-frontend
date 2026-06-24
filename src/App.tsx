@@ -1,13 +1,13 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import Example from './pages/Example/Example';
-import DesignSystemPage from './pages/Example/DesignSystemPage';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import ExampleRoutes from '@/routes/ExampleRoutes';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Example />} />
-        <Route path="/design-system" element={<DesignSystemPage />} />
+        <Route path="/" element={<Navigate to="/example" replace />} />
+        {/* <Route path="/" element={<Main />} /> */}
+        <Route path="/example/*" element={<ExampleRoutes />} />
       </Routes>
     </BrowserRouter>
   );
