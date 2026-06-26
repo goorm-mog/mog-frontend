@@ -12,6 +12,7 @@ export type ReceiptParticipant = {
 
 export type ReceiptCardData = {
   roundLabel: string;
+  placeName: string;
   placePlaceholder: string;
   menuPlaceholder: string;
   items: ReceiptItem[];

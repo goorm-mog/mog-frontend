@@ -14,6 +14,7 @@ export function mapMeetingRecordToReceipt(
 
   return {
     roundLabel: `${record.seq}차`,
+    placeName: record.placeName,
     placePlaceholder: '장소를 입력하세요',
     menuPlaceholder: 'ex) 음식, 가격(1개당), 수량',
     items: record.menuItems.map(({ menuName, count, price }) => ({
