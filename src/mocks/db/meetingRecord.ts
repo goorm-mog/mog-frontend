@@ -1,14 +1,17 @@
-export const meetingRecordsDb = [
+const calculateTotalPrice = (
+  menuItems: readonly { count: number; price: number }[],
+) => menuItems.reduce((total, { count, price }) => total + count * price, 0);
+
+const rawMeetingRecords = [
   {
     recordId: 1,
     roomId: 45,
     seq: 1,
     placeName: '합정 카페 A',
     memo: '디저트 괜찮았음',
-    totalCost: 28000,
     menuItems: [
-      { menuName: '김치전', price: 14000 },
-      { menuName: '어묵탕', price: 14000 },
+      { menuName: '김치전', count: 1, price: 14000 },
+      { menuName: '어묵탕', count: 1, price: 14000 },
     ],
     payer: {
       roomMemberId: 101,
@@ -30,11 +33,10 @@ export const meetingRecordsDb = [
     seq: 2,
     placeName: '냥냥 룰루',
     memo: '분위기 최고',
-    totalCost: 52000,
     menuItems: [
-      { menuName: '하이볼', price: 24000 },
-      { menuName: '감자튀김', price: 15000 },
-      { menuName: '나쵸', price: 13000 },
+      { menuName: '하이볼', count: 2, price: 12000 },
+      { menuName: '감자튀김', count: 1, price: 15000 },
+      { menuName: '나쵸', count: 1, price: 13000 },
     ],
     payer: {
       roomMemberId: 103,
@@ -51,3 +53,8 @@ export const meetingRecordsDb = [
     createdAt: '2026-06-20T21:00:00',
   },
 ] as const;
+
+export const meetingRecordsDb = rawMeetingRecords.map((record) => ({
+  ...record,
+  totalPrice: calculateTotalPrice(record.menuItems),
+}));
