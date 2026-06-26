@@ -5,11 +5,15 @@ import { typography } from '../../../constants/typography';
 
 type ParticipantPickerProps = {
   participants: ReceiptParticipant[];
+  onParticipantToggle: (participantId: number) => void;
 };
 
-function ParticipantPicker({ participants }: ParticipantPickerProps) {
+function ParticipantPicker({
+  participants,
+  onParticipantToggle,
+}: ParticipantPickerProps) {
   return (
-    <div className="flex items-start gap-3 overflow-x-auto pb-1 promise-scrollbar-hidden">
+    <div className="flex items-start gap-3 overflow-x-auto pb-1 pt-1 promise-scrollbar-hidden">
       <button
         type="button"
         className="grid size-[62px] shrink-0 place-items-center rounded-full border-[3px] border-dashed"
@@ -20,7 +24,13 @@ function ParticipantPicker({ participants }: ParticipantPickerProps) {
       </button>
 
       {participants.map((participant) => (
-        <div key={participant.id} className="w-[64px] shrink-0 text-center">
+        <button
+          key={participant.id}
+          type="button"
+          className="w-[64px] shrink-0 text-center"
+          aria-pressed={participant.selected}
+          onClick={() => onParticipantToggle(participant.id)}
+        >
           <div
             className={`relative mx-auto grid size-[62px] place-items-center rounded-full border-[3px] ${
               participant.selected ? '' : 'border-dashed'
@@ -44,7 +54,7 @@ function ParticipantPicker({ participants }: ParticipantPickerProps) {
           <p className={`${typography.caption} mt-2`} style={{ color: colors.text }}>
             {participant.name}
           </p>
-        </div>
+        </button>
       ))}
     </div>
   );
