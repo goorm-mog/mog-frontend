@@ -4,6 +4,8 @@ import ReceiptCard, {
 } from '@/pages/MeetRecord/components/ReceiptCard';
 import RecordHeader from '@/pages/MeetRecord/components/RecordHeader';
 import SettlementFooter from '@/pages/MeetRecord/components/SettlementFooter';
+import { mapMeetingRecordToReceipt } from '@/pages/MeetRecord/utils/meetRecordMapper';
+import { useCallback, useState } from 'react';
 import { colors } from '../../constants/colors';
 import { mockDb } from '../../mocks/fixtures';
 
@@ -15,32 +17,9 @@ const confirmedSchedule = mockDb.confirmedSchedules.find(
 const roomRecords = mockDb.meetingRecords.filter(({ roomId }) => roomId === room.roomId);
 const roomMembers = mockDb.roomMembers.filter(({ roomId }) => roomId === room.roomId);
 
-const receipts: ReceiptCardData[] = roomRecords.map((record) => {
-  const participantIds = new Set(
-    record.participants.map(({ roomMemberId }) => roomMemberId),
-  );
-
-  return {
-    roundLabel: `${record.seq}차`,
-    placePlaceholder: record.placeName,
-    menuPlaceholder: 'ex) 000(음식) - 8,000(가격)',
-    items: record.menuItems.map(({ menuName, price }) => ({
-      name: menuName,
-      price,
-    })),
-    totalAmount: record.totalPrice,
-    participants: roomMembers.map(({ roomMemberId, nickname }) => ({
-      id: roomMemberId,
-      name: nickname,
-      selected: participantIds.has(roomMemberId),
-    })),
-    payerPlaceholder: `${record.payer.bankName} ${record.payer.accountNumber}`,
-    memoPlaceholder: record.memo,
-    photoCount: record.photoCount,
-  };
-});
-
-const totalAmount = receipts.reduce((sum, receipt) => sum + receipt.totalAmount, 0);
+const receipts: ReceiptCardData[] = roomRecords.map((record) =>
+  mapMeetingRecordToReceipt(record, roomMembers),
+);
 
 function formatMeetDate() {
   if (!confirmedSchedule) {
@@ -64,6 +43,33 @@ function formatMeetDate() {
 }
 
 function MeetRecord() {
+  const [receiptTotals, setReceiptTotals] = useState<Record<string, number>>(() =>
+    Object.fromEntries(
+      receipts.map((receipt) => [receipt.roundLabel, receipt.totalAmount]),
+    ),
+  );
+
+  const handleReceiptTotalChange = useCallback(
+    (receiptId: string, totalAmount: number) => {
+      setReceiptTotals((currentTotals) => {
+        if (currentTotals[receiptId] === totalAmount) {
+          return currentTotals;
+        }
+
+        return {
+          ...currentTotals,
+          [receiptId]: totalAmount,
+        };
+      });
+    },
+    [],
+  );
+
+  const totalAmount = Object.values(receiptTotals).reduce(
+    (sum, receiptTotal) => sum + receiptTotal,
+    0,
+  );
+
   return (
     <main
       className="min-h-dvh"
@@ -81,7 +87,11 @@ function MeetRecord() {
         <section className="min-h-0 flex-1 overflow-y-auto px-[14px] pb-6 promise-scrollbar-hidden">
           <div className="flex flex-col gap-7">
             {receipts.map((receipt) => (
-              <ReceiptCard key={receipt.roundLabel} receipt={receipt} />
+              <ReceiptCard
+                key={receipt.roundLabel}
+                receipt={receipt}
+                onTotalAmountChange={handleReceiptTotalChange}
+              />
             ))}
           </div>
         </section>

@@ -1,48 +1,36 @@
-import {
-  Check,
-  ChevronDown,
-  Cloud,
-  Plus,
-  Search,
-  Sparkles,
-  X,
-} from 'lucide-react';
-import type { ReactNode } from 'react';
+import { Sparkles, X } from 'lucide-react';
+import { useEffect, type ReactNode } from 'react';
+import { usePlaceSearch } from '@/pages/MeetRecord/hooks/usePlaceSearch';
+import { useReceiptMenu } from '@/pages/MeetRecord/hooks/useReceiptMenu';
+import type { ReceiptCardData } from '@/pages/MeetRecord/types';
+import { formatWon } from '@/pages/MeetRecord/utils/receipt';
 import { colors } from '../../../constants/colors';
 import { typography } from '../../../constants/typography';
+import MemoField from './MemoField';
+import MenuEditor from './MenuEditor';
+import ParticipantPicker from './ParticipantPicker';
+import PayerSelect from './PayerSelect';
+import PhotoPicker from './PhotoPicker';
+import PlaceField from './PlaceField';
 
-export type ReceiptItem = {
-  name: string;
-  price: number;
-};
-
-export type ReceiptParticipant = {
-  id: number;
-  name: string;
-  selected?: boolean;
-};
-
-export type ReceiptCardData = {
-  roundLabel: string;
-  placePlaceholder: string;
-  menuPlaceholder: string;
-  items: ReceiptItem[];
-  totalAmount: number;
-  participants: ReceiptParticipant[];
-  payerPlaceholder: string;
-  memoPlaceholder: string;
-  photoCount: number;
-};
+export type { ReceiptCardData } from '@/pages/MeetRecord/types';
 
 type ReceiptCardProps = {
   receipt: ReceiptCardData;
+  onTotalAmountChange: (receiptId: string, totalAmount: number) => void;
 };
 
-function formatWon(amount: number) {
-  return amount.toLocaleString('ko-KR');
-}
+function ReceiptCard({ receipt, onTotalAmountChange }: ReceiptCardProps) {
+  const placeSearch = usePlaceSearch();
+  const receiptMenu = useReceiptMenu({
+    initialItems: receipt.items,
+    receiptId: receipt.roundLabel,
+  });
 
-function ReceiptCard({ receipt }: ReceiptCardProps) {
+  useEffect(() => {
+    onTotalAmountChange(receipt.roundLabel, receiptMenu.totalAmount);
+  }, [onTotalAmountChange, receipt.roundLabel, receiptMenu.totalAmount]);
+
   return (
     <article className="receipt-paper min-h-[590px] px-5 pb-7 pt-10">
       <div
@@ -68,40 +56,29 @@ function ReceiptCard({ receipt }: ReceiptCardProps) {
 
       <div className="space-y-7 py-7">
         <FormRow label="장소" required>
-          <div
-            className="flex h-12 items-center justify-between rounded-[10px] border px-5 shadow-[inset_0_1px_2px_rgba(27,26,18,0.06)]"
-            style={{ borderColor: colors.darkBackground, backgroundColor: colors.background }}
-          >
-            <span className={typography.caption} style={{ color: colors.border }}>
-              {receipt.placePlaceholder}
-            </span>
-            <Search className="size-6" strokeWidth={2.5} color={colors.text} />
-          </div>
+          <PlaceField
+            placeholder={receipt.placePlaceholder}
+            query={placeSearch.query}
+            places={placeSearch.places}
+            isDropdownOpen={placeSearch.isDropdownOpen}
+            onQueryChange={placeSearch.setQuery}
+            onSearch={placeSearch.searchPlaces}
+            onSelectPlace={placeSearch.selectPlace}
+            onKeyDown={placeSearch.handleKeyDown}
+          />
         </FormRow>
 
         <FormRow label="메뉴">
-          <div>
-            <div
-              className="flex h-9 items-center justify-between border-b"
-              style={{ borderColor: colors.darkBorder }}
-            >
-              <span className={`${typography.caption} pl-5`} style={{ color: colors.border }}>
-                {receipt.menuPlaceholder}
-              </span>
-              <Plus className="size-6" strokeWidth={2.8} color={colors.text} />
-            </div>
-            <div
-              className={`${typography.caption} mt-3 space-y-1 px-6`}
-              style={{ color: colors.text }}
-            >
-              {receipt.items.map((item) => (
-                <div key={`${receipt.roundLabel}-${item.name}`} className="flex justify-between">
-                  <span>{item.name}</span>
-                  <span>{formatWon(item.price)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          <MenuEditor
+            placeholder={receipt.menuPlaceholder}
+            input={receiptMenu.input}
+            items={receiptMenu.items}
+            onInputChange={receiptMenu.setInput}
+            onAddItem={receiptMenu.addItem}
+            onKeyDown={receiptMenu.handleKeyDown}
+            onUpdateItemCount={receiptMenu.updateItemCount}
+            onDeleteItem={receiptMenu.deleteItem}
+          />
         </FormRow>
       </div>
 
@@ -110,122 +87,29 @@ function ReceiptCard({ receipt }: ReceiptCardProps) {
       <FormRow label="총액" required className="py-7">
         <p className={`${typography.head1} text-right`} style={{ color: colors.text }}>
           <span className="mr-4">₩</span>
-          {formatWon(receipt.totalAmount)}
+          {formatWon(receiptMenu.totalAmount)}
         </p>
       </FormRow>
 
       <DashedDivider />
 
       <FormRow label="참가자" required className="py-7">
-        <div className="flex items-start gap-3 overflow-x-auto pb-1 promise-scrollbar-hidden">
-          <button
-            type="button"
-            className="grid size-[62px] shrink-0 place-items-center rounded-full border-[3px] border-dashed"
-            style={{ borderColor: colors.border, color: colors.text }}
-            aria-label="참가자 추가"
-          >
-            <Plus className="size-8" strokeWidth={2.2} />
-          </button>
-
-          {receipt.participants.map((participant) => (
-            <div key={participant.id} className="w-[64px] shrink-0 text-center">
-              <div
-                className={`relative mx-auto grid size-[62px] place-items-center rounded-full border-[3px] ${
-                  participant.selected ? '' : 'border-dashed'
-                }`}
-                style={{
-                  borderColor: participant.selected ? colors.text : colors.border,
-                  backgroundColor: participant.selected ? colors.background : 'transparent',
-                  color: colors.text,
-                }}
-              >
-                <Cloud className="size-10" strokeWidth={2.2} />
-                {participant.selected ? (
-                  <span
-                    className="absolute -right-1 -top-1 grid size-6 place-items-center rounded-full"
-                    style={{ backgroundColor: colors.text, color: colors.background }}
-                  >
-                    <Check className="size-4" strokeWidth={3} />
-                  </span>
-                ) : null}
-              </div>
-              <p className={`${typography.caption} mt-2`} style={{ color: colors.text }}>
-                {participant.name}
-              </p>
-            </div>
-          ))}
-        </div>
+        <ParticipantPicker participants={receipt.participants} />
       </FormRow>
 
       <FormRow label="계좌">
-        <div
-          className="flex h-10 items-center justify-between border-b px-3"
-          style={{ borderColor: colors.darkBorder }}
-        >
-          <span className={typography.caption} style={{ color: colors.border }}>
-            {receipt.payerPlaceholder}
-          </span>
-          <ChevronDown className="size-6" strokeWidth={2.5} color={colors.text} />
-        </div>
+        <PayerSelect payerText={receipt.payerPlaceholder} />
       </FormRow>
 
       <div className="my-7 border-t" style={{ borderColor: colors.border }} />
 
       <FormRow label="메모">
-        <div
-          className="flex h-11 items-center rounded-[10px] border px-5"
-          style={{ borderColor: colors.darkBackground, backgroundColor: colors.background }}
-        >
-          <span className={typography.caption} style={{ color: colors.border }}>
-            {receipt.memoPlaceholder}
-          </span>
-        </div>
+        <MemoField initialMemo={receipt.memoPlaceholder} />
       </FormRow>
 
       <DashedDivider className="my-7" />
 
-      <div className="px-2">
-        <div className="flex items-center justify-between">
-          <h3 className={typography.body} style={{ color: colors.text }}>
-            사진 선택
-          </h3>
-          <p className={typography.caption} style={{ color: colors.border }}>
-            최대 5장
-          </p>
-        </div>
-
-        <div className="mt-7 flex gap-4 overflow-x-auto pb-1 promise-scrollbar-hidden">
-          <button
-            type="button"
-            className="grid h-[60px] w-[72px] shrink-0 place-items-center rounded-[5px] border"
-            style={{
-              borderColor: colors.border,
-              backgroundColor: colors.darkBackground,
-              color: colors.border,
-            }}
-            aria-label="사진 추가"
-          >
-            <Plus className="size-8" strokeWidth={2.2} />
-          </button>
-
-          {Array.from({ length: receipt.photoCount }).map((_, index) => (
-            <div
-              key={`${receipt.roundLabel}-photo-${index}`}
-              className="photo-checker relative h-[60px] w-[72px] shrink-0 rounded-[5px] border"
-              style={{ borderColor: index === 0 ? colors.point : colors.border }}
-            >
-              <button
-                type="button"
-                className="absolute -right-2 -top-2 grid size-6 place-items-center rounded-full"
-                style={{ backgroundColor: colors.border, color: colors.darkBackground }}
-                aria-label="사진 제거"
-              >
-                <X className="size-4" strokeWidth={2.1} />
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
+      <PhotoPicker photoCount={receipt.photoCount} receiptId={receipt.roundLabel} />
     </article>
   );
 }
