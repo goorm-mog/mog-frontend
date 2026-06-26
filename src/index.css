@@ -22,24 +22,186 @@
 }
 
 @layer base {
+  html {
+    min-width: 390px;
+    background-color: var(--color-background);
+    @apply font-sans;
+  }
+
   body {
+    margin: 0;
+    min-width: 390px;
+    background-color: var(--color-background);
     font-family: var(--font-pretendard);
     color: var(--color-text);
     @apply text-foreground;
   }
 
   #root {
-    max-width: 390px;
+    max-width: 430px;
     margin: 0 auto;
-    min-height: 100vh;
+    min-width: 390px;
+    min-height: 844px;
     background-color: var(--color-background);
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
   }
   * {
     @apply border-border outline-ring/50;
   }
-  html {
-    @apply font-sans;
+}
+
+@layer utilities {
+  .receipt-paper {
+    background:
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--color-text) 2.5%, transparent),
+        transparent 12%,
+        transparent 88%,
+        color-mix(in srgb, var(--color-text) 2.5%, transparent)
+      ),
+      linear-gradient(
+        color-mix(in srgb, var(--color-point) 3.5%, transparent),
+        color-mix(in srgb, var(--color-point) 3.5%, transparent)
+      ),
+      var(--color-dark-background);
+    clip-path: polygon(
+      0 10px,
+      1.8% 0,
+      3.6% 10px,
+      5.4% 0,
+      7.2% 10px,
+      9% 0,
+      10.8% 10px,
+      12.6% 0,
+      14.4% 10px,
+      16.2% 0,
+      18% 10px,
+      19.8% 0,
+      21.6% 10px,
+      23.4% 0,
+      25.2% 10px,
+      27% 0,
+      28.8% 10px,
+      30.6% 0,
+      32.4% 10px,
+      34.2% 0,
+      36% 10px,
+      37.8% 0,
+      39.6% 10px,
+      41.4% 0,
+      43.2% 10px,
+      45% 0,
+      46.8% 10px,
+      48.6% 0,
+      50.4% 10px,
+      52.2% 0,
+      54% 10px,
+      55.8% 0,
+      57.6% 10px,
+      59.4% 0,
+      61.2% 10px,
+      63% 0,
+      64.8% 10px,
+      66.6% 0,
+      68.4% 10px,
+      70.2% 0,
+      72% 10px,
+      73.8% 0,
+      75.6% 10px,
+      77.4% 0,
+      79.2% 10px,
+      81% 0,
+      82.8% 10px,
+      84.6% 0,
+      86.4% 10px,
+      88.2% 0,
+      90% 10px,
+      91.8% 0,
+      93.6% 10px,
+      95.4% 0,
+      97.2% 10px,
+      100% 0,
+      100% calc(100% - 10px),
+      98.2% 100%,
+      96.4% calc(100% - 10px),
+      94.6% 100%,
+      92.8% calc(100% - 10px),
+      91% 100%,
+      89.2% calc(100% - 10px),
+      87.4% 100%,
+      85.6% calc(100% - 10px),
+      83.8% 100%,
+      82% calc(100% - 10px),
+      80.2% 100%,
+      78.4% calc(100% - 10px),
+      76.6% 100%,
+      74.8% calc(100% - 10px),
+      73% 100%,
+      71.2% calc(100% - 10px),
+      69.4% 100%,
+      67.6% calc(100% - 10px),
+      65.8% 100%,
+      64% calc(100% - 10px),
+      62.2% 100%,
+      60.4% calc(100% - 10px),
+      58.6% 100%,
+      56.8% calc(100% - 10px),
+      55% 100%,
+      53.2% calc(100% - 10px),
+      51.4% 100%,
+      49.6% calc(100% - 10px),
+      47.8% 100%,
+      46% calc(100% - 10px),
+      44.2% 100%,
+      42.4% calc(100% - 10px),
+      40.6% 100%,
+      38.8% calc(100% - 10px),
+      37% 100%,
+      35.2% calc(100% - 10px),
+      33.4% 100%,
+      31.6% calc(100% - 10px),
+      29.8% 100%,
+      28% calc(100% - 10px),
+      26.2% 100%,
+      24.4% calc(100% - 10px),
+      22.6% 100%,
+      20.8% calc(100% - 10px),
+      19% 100%,
+      17.2% calc(100% - 10px),
+      15.4% 100%,
+      13.6% calc(100% - 10px),
+      11.8% 100%,
+      10% calc(100% - 10px),
+      8.2% 100%,
+      6.4% calc(100% - 10px),
+      4.6% 100%,
+      2.8% calc(100% - 10px),
+      0 100%
+    );
+    filter: drop-shadow(1px 2px 6px rgb(27 26 18 / 20%));
+  }
+
+  .promise-scrollbar-hidden {
+    scrollbar-width: none;
+  }
+
+  .promise-scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
+
+  .photo-checker {
+    background-color: var(--color-background);
+    background-image:
+      linear-gradient(45deg, var(--color-dark-background) 25%, transparent 25%),
+      linear-gradient(-45deg, var(--color-dark-background) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, var(--color-dark-background) 75%),
+      linear-gradient(-45deg, transparent 75%, var(--color-dark-background) 75%);
+    background-position:
+      0 0,
+      0 8px,
+      8px -8px,
+      -8px 0;
+    background-size: 16px 16px;
   }
 }
 
