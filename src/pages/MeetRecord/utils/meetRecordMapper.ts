@@ -29,7 +29,8 @@ export function mapMeetingRecordToReceipt(
       selected: participantIds.has(roomMemberId),
     })),
     payerPlaceholder: `${record.payer.bankName} ${record.payer.accountNumber}`,
-    memoPlaceholder: record.memo,
+    memo: record.memo,
+    memoPlaceholder: '메모를 입력하세요',
     photoCount: record.photoCount,
   };
 }

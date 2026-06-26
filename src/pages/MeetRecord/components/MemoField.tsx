@@ -5,9 +5,10 @@ import { typography } from '../../../constants/typography';
 
 type MemoFieldProps = {
   initialMemo: string;
+  placeholder: string;
 };
 
-function MemoField({ initialMemo }: MemoFieldProps) {
+function MemoField({ initialMemo, placeholder }: MemoFieldProps) {
   const memoRef = useRef<HTMLTextAreaElement>(null);
   const [memo, setMemo] = useState(initialMemo);
 
@@ -22,8 +23,9 @@ function MemoField({ initialMemo }: MemoFieldProps) {
         ref={memoRef}
         value={memo}
         onChange={(event) => setMemo(event.target.value)}
+        placeholder={placeholder}
         className={`${typography.caption} min-h-[17px] w-full resize-none overflow-hidden bg-transparent outline-none placeholder:text-[#a09583]`}
-        style={{ color: colors.border }}
+        style={{ color: memo ? colors.text : colors.border }}
         aria-label="메모"
         spellCheck={false}
         rows={1}

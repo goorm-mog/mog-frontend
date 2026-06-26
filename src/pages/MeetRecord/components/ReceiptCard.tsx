@@ -120,7 +120,7 @@ function ReceiptCard({ receipt, onTotalAmountChange }: ReceiptCardProps) {
       <div className="my-7 border-t" style={{ borderColor: colors.border }} />
 
       <FormRow label="메모">
-        <MemoField initialMemo={receipt.memoPlaceholder} />
+        <MemoField initialMemo={receipt.memo} placeholder={receipt.memoPlaceholder} />
       </FormRow>
 
       <DashedDivider className="my-7" />
