@@ -6,6 +6,10 @@ export const meetingRecordsDb = [
     placeName: '합정 카페 A',
     memo: '디저트 괜찮았음',
     totalCost: 28000,
+    menuItems: [
+      { menuName: '김치전', price: 14000 },
+      { menuName: '어묵탕', price: 14000 },
+    ],
     payer: {
       roomMemberId: 101,
       nickname: '김구름',
@@ -17,6 +21,7 @@ export const meetingRecordsDb = [
       { roomMemberId: 102, nickname: '박구름', amount: 8000 },
       { roomMemberId: 103, nickname: '최구름', amount: 10000 },
     ],
+    photoCount: 3,
     createdAt: '2026-06-20T19:30:00',
   },
   {
@@ -26,6 +31,11 @@ export const meetingRecordsDb = [
     placeName: '냥냥 룰루',
     memo: '분위기 최고',
     totalCost: 52000,
+    menuItems: [
+      { menuName: '하이볼', price: 24000 },
+      { menuName: '감자튀김', price: 15000 },
+      { menuName: '나쵸', price: 13000 },
+    ],
     payer: {
       roomMemberId: 103,
       nickname: '최구름',
@@ -37,6 +47,7 @@ export const meetingRecordsDb = [
       { roomMemberId: 102, nickname: '박구름', amount: 15000 },
       { roomMemberId: 104, nickname: '이구름', amount: 22000 },
     ],
+    photoCount: 2,
     createdAt: '2026-06-20T21:00:00',
   },
 ] as const;
