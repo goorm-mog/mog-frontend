@@ -19,7 +19,7 @@ function PhotoPicker({ photoCount, receiptId }: PhotoPickerProps) {
         </p>
       </div>
 
-      <div className="mt-7 flex gap-4 overflow-x-auto pb-1 promise-scrollbar-hidden">
+      <div className="mt-5 flex gap-4 overflow-x-auto pb-1 pt-2 promise-scrollbar-hidden">
         <button
           type="button"
           className="grid h-[60px] w-[72px] shrink-0 place-items-center rounded-[5px] border"
