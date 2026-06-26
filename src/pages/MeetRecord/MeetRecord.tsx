@@ -28,7 +28,7 @@ const receipts: ReceiptCardData[] = roomRecords.map((record) => {
       name: menuName,
       price,
     })),
-    totalAmount: record.totalCost,
+    totalAmount: record.totalPrice,
     participants: roomMembers.map(({ roomMemberId, nickname }) => ({
       id: roomMemberId,
       name: nickname,
