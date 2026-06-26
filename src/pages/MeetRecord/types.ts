@@ -19,6 +19,7 @@ export type ReceiptCardData = {
   totalAmount: number;
   participants: ReceiptParticipant[];
   payerPlaceholder: string;
+  memo: string;
   memoPlaceholder: string;
   photoCount: number;
 };
