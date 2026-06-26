@@ -1,0 +1,45 @@
+import {
+  confirmedPlacesDb,
+  confirmedSchedulesDb,
+  currentUser,
+  departuresDb,
+  groupsDb,
+  meetingPhotosDb,
+  meetingRecordsDb,
+  middlePointsDb,
+  notificationsDb,
+  receiptOcrSamplesDb,
+  recommendedPlacesDb,
+  roomMembersDb,
+  roomsDb,
+  scheduleSlotsDb,
+  settlementsDb,
+  summaryCardsDb,
+  usersDb,
+} from '../db';
+
+export const mockDb = {
+  auth: {
+    currentUser,
+    accessToken: 'mock-access-token',
+    refreshToken: 'mock-refresh-token',
+  },
+  users: usersDb,
+  groups: groupsDb,
+  rooms: roomsDb,
+  roomMembers: roomMembersDb,
+  scheduleSlots: scheduleSlotsDb,
+  confirmedSchedules: confirmedSchedulesDb,
+  departures: departuresDb,
+  middlePoints: middlePointsDb,
+  recommendedPlaces: recommendedPlacesDb,
+  confirmedPlaces: confirmedPlacesDb,
+  meetingPhotos: meetingPhotosDb,
+  meetingRecords: meetingRecordsDb,
+  receiptOcrSamples: receiptOcrSamplesDb,
+  settlements: settlementsDb,
+  summaryCards: summaryCardsDb,
+  notifications: notificationsDb,
+} as const;
+
+export type MockDb = typeof mockDb;
