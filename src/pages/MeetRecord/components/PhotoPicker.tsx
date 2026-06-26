@@ -1,4 +1,5 @@
 import { Plus, X } from 'lucide-react';
+import useWheelScrollSensitivity from '@/pages/MeetRecord/hooks/useWheelScrollSensitivity';
 import { colors } from '../../../constants/colors';
 import { typography } from '../../../constants/typography';
 
@@ -8,6 +9,8 @@ type PhotoPickerProps = {
 };
 
 function PhotoPicker({ photoCount, receiptId }: PhotoPickerProps) {
+  const photoScrollRef = useWheelScrollSensitivity<HTMLDivElement>('x');
+
   return (
     <div className="px-2">
       <div className="flex items-center justify-between">
@@ -19,7 +22,10 @@ function PhotoPicker({ photoCount, receiptId }: PhotoPickerProps) {
         </p>
       </div>
 
-      <div className="mt-5 flex gap-4 overflow-x-auto pb-1 pt-2 promise-scrollbar-hidden">
+      <div
+        ref={photoScrollRef}
+        className="mt-5 flex gap-4 overflow-x-auto pb-1 pt-2 promise-scrollbar-hidden"
+      >
         <button
           type="button"
           className="grid h-[60px] w-[72px] shrink-0 place-items-center rounded-[5px] border"
