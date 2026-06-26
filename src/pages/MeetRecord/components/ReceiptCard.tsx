@@ -1,5 +1,5 @@
 import { Sparkles, X } from 'lucide-react';
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { usePlaceSearch } from '@/pages/MeetRecord/hooks/usePlaceSearch';
 import { useReceiptMenu } from '@/pages/MeetRecord/hooks/useReceiptMenu';
 import type { ReceiptCardData } from '@/pages/MeetRecord/types';
@@ -21,7 +21,8 @@ type ReceiptCardProps = {
 };
 
 function ReceiptCard({ receipt, onTotalAmountChange }: ReceiptCardProps) {
-  const placeSearch = usePlaceSearch();
+  const [participants, setParticipants] = useState(receipt.participants);
+  const placeSearch = usePlaceSearch(receipt.placeName);
   const receiptMenu = useReceiptMenu({
     initialItems: receipt.items,
     receiptId: receipt.roundLabel,
@@ -30,6 +31,16 @@ function ReceiptCard({ receipt, onTotalAmountChange }: ReceiptCardProps) {
   useEffect(() => {
     onTotalAmountChange(receipt.roundLabel, receiptMenu.totalAmount);
   }, [onTotalAmountChange, receipt.roundLabel, receiptMenu.totalAmount]);
+
+  const handleParticipantToggle = (participantId: number) => {
+    setParticipants((currentParticipants) =>
+      currentParticipants.map((participant) =>
+        participant.id === participantId
+          ? { ...participant, selected: !participant.selected }
+          : participant,
+      ),
+    );
+  };
 
   return (
     <article className="receipt-paper min-h-[590px] px-5 pb-7 pt-10">
@@ -61,8 +72,10 @@ function ReceiptCard({ receipt, onTotalAmountChange }: ReceiptCardProps) {
             query={placeSearch.query}
             places={placeSearch.places}
             isDropdownOpen={placeSearch.isDropdownOpen}
+            hasSelectedPlace={placeSearch.hasSelectedPlace}
             onQueryChange={placeSearch.setQuery}
             onSearch={placeSearch.searchPlaces}
+            onEditPlace={placeSearch.editPlace}
             onSelectPlace={placeSearch.selectPlace}
             onKeyDown={placeSearch.handleKeyDown}
           />
@@ -94,7 +107,10 @@ function ReceiptCard({ receipt, onTotalAmountChange }: ReceiptCardProps) {
       <DashedDivider />
 
       <FormRow label="참가자" required className="py-7">
-        <ParticipantPicker participants={receipt.participants} />
+        <ParticipantPicker
+          participants={participants}
+          onParticipantToggle={handleParticipantToggle}
+        />
       </FormRow>
 
       <FormRow label="계좌">
