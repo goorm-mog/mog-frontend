@@ -4,6 +4,7 @@ import ReceiptCard, {
 } from '@/pages/MeetRecord/components/ReceiptCard';
 import RecordHeader from '@/pages/MeetRecord/components/RecordHeader';
 import SettlementFooter from '@/pages/MeetRecord/components/SettlementFooter';
+import useWheelScrollSensitivity from '@/pages/MeetRecord/hooks/useWheelScrollSensitivity';
 import { mapMeetingRecordToReceipt } from '@/pages/MeetRecord/utils/meetRecordMapper';
 import { useCallback, useState } from 'react';
 import { colors } from '../../constants/colors';
@@ -43,6 +44,7 @@ function formatMeetDate() {
 }
 
 function MeetRecord() {
+  const contentScrollRef = useWheelScrollSensitivity<HTMLElement>();
   const [receiptTotals, setReceiptTotals] = useState<Record<string, number>>(() =>
     Object.fromEntries(
       receipts.map((receipt) => [receipt.roundLabel, receipt.totalAmount]),
@@ -84,7 +86,10 @@ function MeetRecord() {
         <RecordHeader groupName={group?.groupName ?? '그룹 이름'} />
         <MeetSummary title={room.roomName} dateText={formatMeetDate()} />
 
-        <section className="min-h-0 flex-1 overflow-y-auto px-[14px] pb-6 promise-scrollbar-hidden">
+        <section
+          ref={contentScrollRef}
+          className="min-h-0 flex-1 overflow-y-auto px-[14px] pb-6 promise-scrollbar-hidden"
+        >
           <div className="flex flex-col gap-7">
             {receipts.map((receipt) => (
               <ReceiptCard

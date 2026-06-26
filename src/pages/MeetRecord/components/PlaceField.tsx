@@ -1,5 +1,6 @@
 import { Pencil, Search } from 'lucide-react';
 import type { KeyboardEvent } from 'react';
+import useWheelScrollSensitivity from '@/pages/MeetRecord/hooks/useWheelScrollSensitivity';
 import type { PlaceSearchResult } from '@/pages/MeetRecord/types';
 import { colors } from '../../../constants/colors';
 import { typography } from '../../../constants/typography';
@@ -29,6 +30,8 @@ function PlaceField({
   onSelectPlace,
   onKeyDown,
 }: PlaceFieldProps) {
+  const placeDropdownScrollRef = useWheelScrollSensitivity<HTMLDivElement>();
+
   return (
     <div className="relative">
       {hasSelectedPlace ? (
@@ -73,6 +76,7 @@ function PlaceField({
 
       {isDropdownOpen ? (
         <div
+          ref={placeDropdownScrollRef}
           className={`absolute left-0 right-0 z-20 max-h-[168px] overflow-y-auto rounded-[10px] border py-1 shadow-[0_8px_18px_rgba(27,26,18,0.14)] ${
             hasSelectedPlace ? 'top-[42px]' : 'top-[54px]'
           }`}

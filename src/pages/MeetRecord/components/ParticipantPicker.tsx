@@ -1,4 +1,5 @@
 import { Check, Cloud, Plus } from 'lucide-react';
+import useWheelScrollSensitivity from '@/pages/MeetRecord/hooks/useWheelScrollSensitivity';
 import type { ReceiptParticipant } from '@/pages/MeetRecord/types';
 import { colors } from '../../../constants/colors';
 import { typography } from '../../../constants/typography';
@@ -12,8 +13,13 @@ function ParticipantPicker({
   participants,
   onParticipantToggle,
 }: ParticipantPickerProps) {
+  const participantScrollRef = useWheelScrollSensitivity<HTMLDivElement>('x');
+
   return (
-    <div className="flex items-start gap-3 overflow-x-auto pb-1 pt-1 promise-scrollbar-hidden">
+    <div
+      ref={participantScrollRef}
+      className="flex items-start gap-3 overflow-x-auto pb-1 pt-1 promise-scrollbar-hidden"
+    >
       <button
         type="button"
         className="grid size-[62px] shrink-0 place-items-center rounded-full border-[3px] border-dashed"
