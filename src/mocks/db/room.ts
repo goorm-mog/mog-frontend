@@ -1,0 +1,51 @@
+export const roomMembersDb = [
+  {
+    roomMemberId: 101,
+    roomId: 45,
+    userId: 1,
+    nickname: '김구름',
+    role: 'HOST',
+    bankName: '신한은행',
+    accountNumber: '110-1234-1234',
+  },
+  {
+    roomMemberId: 102,
+    roomId: 45,
+    userId: 2,
+    nickname: '박구름',
+    role: 'MEMBER',
+    bankName: '국민은행',
+    accountNumber: '004-21-098765',
+  },
+  {
+    roomMemberId: 103,
+    roomId: 45,
+    userId: 3,
+    nickname: '최구름',
+    role: 'MEMBER',
+    bankName: '카카오뱅크',
+    accountNumber: '3333-1234-5678',
+  },
+  {
+    roomMemberId: 104,
+    roomId: 45,
+    userId: 4,
+    nickname: '이구름',
+    role: 'MEMBER',
+    bankName: '토스뱅크',
+    accountNumber: '1000-9988-7766',
+  },
+] as const;
+
+export const roomsDb = [
+  {
+    roomId: 45,
+    groupId: 12,
+    roomName: '강남역 삼겹살 모임',
+    status: 'PROCEEDING',
+    creatorId: 1,
+    promiseDate: '2026-06-20T18:30:00',
+    createdAt: '2026-06-16T14:30:00',
+    members: roomMembersDb,
+  },
+] as const;
