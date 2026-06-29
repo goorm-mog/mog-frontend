@@ -1,12 +1,15 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import ExampleRoutes from '@/routes/ExampleRoutes';
+import HomePage from '@/pages/Home/HomePage';
+import LoginPage from '@/pages/Login/LoginPage';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/example" replace />} />
-        {/* <Route path="/" element={<Main />} /> */}
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/home" element={<HomePage />} />
         <Route path="/example/*" element={<ExampleRoutes />} />
       </Routes>
     </BrowserRouter>
