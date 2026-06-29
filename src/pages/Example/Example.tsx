@@ -12,6 +12,13 @@ function Example() {
       >
         디자인 시스템
       </Link>
+
+      <Link
+        to="/example/calendar-component"
+        className="text-caption bg-point px-4 py-2 w-fit rounded-md text-background"
+      >
+        캘린더 컴포넌트
+      </Link>
     </div>
   );
 }
