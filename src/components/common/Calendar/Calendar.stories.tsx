@@ -23,6 +23,11 @@ type Story = StoryObj<typeof meta>;
 
 // 기본 상태 — 헤더와 요일 행이 렌더링되는지 확인
 export const Default: Story = {
+  args: {
+    hintText: '',
+    className: '',
+  },
+
   play: async ({ canvas }) => {
     await expect(canvas.getByText('2025.06')).toBeVisible();
     await expect(canvas.getByText('MON')).toBeVisible();
