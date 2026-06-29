@@ -14,7 +14,7 @@ interface RoughBorderProps {
 function RoughBorder({
   children,
   scale = 2.5,
-  cornerSize = 20,
+  cornerSize = 8,
   color = '#a09583',
   fill = 'transparent',
   className,
