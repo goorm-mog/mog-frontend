@@ -46,6 +46,9 @@ export const PointSmall: Story = {
 };
 
 export const AllSizes: Story = {
+  args: {
+    children: '버튼',
+  },
   render: () => (
     <div className="flex w-[320px] flex-col gap-3">
       <Button size="lg">Large</Button>
