@@ -44,7 +44,7 @@ function formatMeetDate() {
 }
 
 function MeetRecord() {
-  const contentScrollRef = useWheelScrollSensitivity<HTMLElement>();
+  const [receiptCards, setReceiptCards] = useState<ReceiptCardData[]>(receipts);
   const [receiptTotals, setReceiptTotals] = useState<Record<string, number>>(() =>
     Object.fromEntries(
       receipts.map((receipt) => [receipt.roundLabel, receipt.totalAmount]),
@@ -66,6 +66,19 @@ function MeetRecord() {
     },
     [],
   );
+
+  const handleDeleteReceipt = useCallback((receiptId: string) => {
+    setReceiptCards((currentReceipts) =>
+      currentReceipts.filter((receipt) => receipt.roundLabel !== receiptId),
+    );
+    setReceiptTotals((currentTotals) => {
+      const { [receiptId]: _deletedReceiptTotal, ...nextTotals } = currentTotals;
+
+      return nextTotals;
+    });
+  }, []);
+
+  const contentScrollRef = useWheelScrollSensitivity<HTMLElement>();
 
   const totalAmount = Object.values(receiptTotals).reduce(
     (sum, receiptTotal) => sum + receiptTotal,
@@ -91,11 +104,12 @@ function MeetRecord() {
           className="min-h-0 flex-1 overflow-y-auto px-[14px] pb-6 promise-scrollbar-hidden"
         >
           <div className="flex flex-col gap-7">
-            {receipts.map((receipt) => (
+            {receiptCards.map((receipt) => (
               <ReceiptCard
                 key={receipt.roundLabel}
                 receipt={receipt}
                 onTotalAmountChange={handleReceiptTotalChange}
+                onDelete={handleDeleteReceipt}
               />
             ))}
           </div>
