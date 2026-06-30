@@ -64,9 +64,9 @@ function ReceiptCard({ receipt, onTotalAmountChange, onDelete }: ReceiptCardProp
           {receipt.roundLabel}
         </span>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3">
           <button type="button" style={{ color: colors.text }} aria-label="자동 채우기">
-            <Sparkles className="size-[30px]" strokeWidth={2.1} />
+            <Sparkles className="size-[25px]" strokeWidth={1.8} />
           </button>
           <button
             type="button"
