@@ -18,10 +18,12 @@ export type { ReceiptCardData } from '@/pages/MeetRecord/types';
 type ReceiptCardProps = {
   receipt: ReceiptCardData;
   onTotalAmountChange: (receiptId: string, totalAmount: number) => void;
+  onDelete: (receiptId: string) => void;
 };
 
-function ReceiptCard({ receipt, onTotalAmountChange }: ReceiptCardProps) {
+function ReceiptCard({ receipt, onTotalAmountChange, onDelete }: ReceiptCardProps) {
   const [participants, setParticipants] = useState(receipt.participants);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const placeSearch = usePlaceSearch(receipt.placeName);
   const receiptMenu = useReceiptMenu({
     initialItems: receipt.items,
@@ -42,8 +44,12 @@ function ReceiptCard({ receipt, onTotalAmountChange }: ReceiptCardProps) {
     );
   };
 
+  const handleDeleteConfirm = () => {
+    onDelete(receipt.roundLabel);
+  };
+
   return (
-    <article className="receipt-paper min-h-[590px] px-5 pb-7 pt-10">
+    <article className="receipt-paper relative min-h-[590px] px-5 pb-7 pt-10">
       <div
         className="flex items-center justify-between border-b pb-5"
         style={{ borderColor: colors.border }}
@@ -59,11 +65,50 @@ function ReceiptCard({ receipt, onTotalAmountChange }: ReceiptCardProps) {
           <button type="button" style={{ color: colors.text }} aria-label="자동 채우기">
             <Sparkles className="size-[30px]" strokeWidth={2.1} />
           </button>
-          <button type="button" style={{ color: colors.alert }} aria-label="삭제">
+          <button
+            type="button"
+            style={{ color: colors.alert }}
+            aria-label={`${receipt.roundLabel} 삭제`}
+            aria-expanded={isDeleteConfirmOpen}
+            onClick={() => setIsDeleteConfirmOpen(true)}
+          >
             <X className="size-[32px]" strokeWidth={2.1} />
           </button>
         </div>
       </div>
+
+      {isDeleteConfirmOpen ? (
+        <div
+          className="absolute right-5 top-[84px] z-10 w-[210px] rounded-[8px] border px-4 py-3 shadow-[0_8px_18px_rgba(27,26,18,0.18)]"
+          style={{
+            borderColor: colors.darkBackground,
+            backgroundColor: colors.background,
+            color: colors.text,
+          }}
+          role="dialog"
+          aria-label={`${receipt.roundLabel} 삭제 확인`}
+        >
+          <p className={typography.caption}>해당 차수를 삭제하시겠습니까?</p>
+          <div className="mt-3 flex justify-end gap-2">
+            <button
+              type="button"
+              className={`${typography.caption} rounded-[6px] px-3 py-1.5`}
+              style={{ color: colors.border }}
+              onClick={() => setIsDeleteConfirmOpen(false)}
+            >
+              취소
+            </button>
+            <button
+              type="button"
+              className={`${typography.caption} rounded-[6px] px-3 py-1.5`}
+              style={{ backgroundColor: colors.alert, color: colors.background }}
+              onClick={handleDeleteConfirm}
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       <div className="space-y-7 py-7">
         <FormRow label="장소" required>
