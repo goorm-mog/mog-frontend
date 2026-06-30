@@ -18,27 +18,27 @@ function ParticipantPicker({
   return (
     <div
       ref={participantScrollRef}
-      className="flex items-start gap-3 overflow-x-auto pb-1 pt-1 promise-scrollbar-hidden"
+      className="flex items-start gap-3 overflow-x-auto pb-1 pt-2 promise-scrollbar-hidden"
     >
       <button
         type="button"
-        className="grid size-[62px] shrink-0 place-items-center rounded-full border-[3px] border-dashed"
+        className="grid size-[45px] shrink-0 place-items-center rounded-full border-[3px] border-dashed"
         style={{ borderColor: colors.border, color: colors.text }}
         aria-label="참가자 추가"
       >
-        <Plus className="size-8" strokeWidth={2.2} />
+        <Plus className="size-6" strokeWidth={2.2} />
       </button>
 
       {participants.map((participant) => (
         <button
           key={participant.id}
           type="button"
-          className="w-[64px] shrink-0 text-center"
+          className="w-[45px] shrink-0 text-center"
           aria-pressed={participant.selected}
           onClick={() => onParticipantToggle(participant.id)}
         >
           <div
-            className={`relative mx-auto grid size-[62px] place-items-center rounded-full border-[3px] ${
+            className={`relative mx-auto grid size-[45px] place-items-center rounded-full border-[2.5px] ${
               participant.selected ? '' : 'border-dashed'
             }`}
             style={{
@@ -47,13 +47,13 @@ function ParticipantPicker({
               color: colors.text,
             }}
           >
-            <Cloud className="size-10" strokeWidth={2.2} />
+            <Cloud className="size-7" strokeWidth={2.2} />
             {participant.selected ? (
               <span
-                className="absolute -right-1 -top-1 grid size-6 place-items-center rounded-full"
+                className="absolute -right-1 -top-2 grid size-5 place-items-center rounded-full"
                 style={{ backgroundColor: colors.text, color: colors.background }}
               >
-                <Check className="size-4" strokeWidth={3} />
+                <Check className="size-3" strokeWidth={3} />
               </span>
             ) : null}
           </div>

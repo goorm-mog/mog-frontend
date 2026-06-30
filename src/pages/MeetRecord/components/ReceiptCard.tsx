@@ -49,7 +49,10 @@ function ReceiptCard({ receipt, onTotalAmountChange, onDelete }: ReceiptCardProp
   };
 
   return (
-    <article className="receipt-paper relative min-h-[590px] px-5 pb-7 pt-10">
+    <article
+      className="receipt-paper relative min-h-[590px] px-5 pb-7 pt-10"
+      data-receipt-id={receipt.roundLabel}
+    >
       <div
         className="flex items-center justify-between border-b pb-5"
         style={{ borderColor: colors.border }}
