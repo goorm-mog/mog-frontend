@@ -43,7 +43,7 @@ function MenuEditor({
           aria-label="메뉴 입력"
         />
         <button type="button" onClick={onAddItem} aria-label="메뉴 추가">
-          <Plus className="size-6" strokeWidth={2.8} color={colors.text} />
+          <Plus className="size-6" strokeWidth={2.2} color={colors.text} />
         </button>
       </div>
       <div
