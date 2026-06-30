@@ -30,6 +30,7 @@ function ParticipantPicker({
           name={participant.name}
           size="md"
           borderWeight="thin"
+          borderStyle="solid"
           selected={Boolean(participant.selected)}
           showCheck
           tone="default"
