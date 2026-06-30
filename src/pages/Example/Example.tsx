@@ -19,6 +19,13 @@ function Example() {
       >
         캘린더 컴포넌트
       </Link>
+
+      <Link
+        to="/example/title-component"
+        className="text-caption bg-point px-4 py-2 w-fit rounded-md text-background"
+      >
+        Title 컴포넌트
+      </Link>
     </div>
   );
 }
