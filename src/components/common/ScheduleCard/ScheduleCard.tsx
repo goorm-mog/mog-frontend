@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import { Camera } from 'lucide-react';
+import Title from '@/components/common/Title/Title';
 import { cn } from '@/lib/utils';
 import { type ComponentSize, resolveComponentSize } from '@/utils/componentSize';
 
@@ -16,8 +17,6 @@ type ScheduleCardProps = {
 
 const paddingMap = { sm: 10, md: 12, lg: 14 } as const;
 const iconBoxMap = { sm: 40, md: 48, lg: 56 } as const;
-const titleSizeMap = { sm: 13, md: 14, lg: 15 } as const;
-const metaSizeMap = { sm: 11, md: 12, lg: 13 } as const;
 
 function ScheduleCard({
   title,
@@ -31,8 +30,6 @@ function ScheduleCard({
 }: ScheduleCardProps) {
   const padding = resolveComponentSize(size, paddingMap);
   const iconBox = resolveComponentSize(size, iconBoxMap);
-  const titleSize = resolveComponentSize(size, titleSizeMap);
-  const metaSize = resolveComponentSize(size, metaSizeMap);
   const iconInner = iconBox * 0.42;
 
   return (
@@ -50,21 +47,15 @@ function ScheduleCard({
           {Icon ? <Icon size={iconInner} strokeWidth={1.75} /> : null}
         </div>
         <div className="min-w-0 flex-1">
-          <p
-            className="truncate font-pretendard text-text"
-            style={{ fontSize: titleSize, lineHeight: `${titleSize * 1.6}px` }}
-          >
-            {title}
-          </p>
-          <div className="mt-1 flex items-center gap-1 text-dark-border">
-            <LocationIcon size={metaSize + 1} strokeWidth={1.75} />
-            <span
-              className="truncate font-pretendard"
-              style={{ fontSize: metaSize, lineHeight: `${metaSize * 1.5}px` }}
-            >
-              {location}
-            </span>
-          </div>
+          <Title
+            title={title}
+            subtitle={{
+              text: location,
+              icon: LocationIcon,
+              iconStrokeWidth: 1.75,
+              className: 'truncate',
+            }}
+          />
         </div>
       </div>
 
