@@ -1,5 +1,12 @@
 import { Plus, X } from 'lucide-react';
-import { useEffect, useId, useRef, useState, type ChangeEvent } from 'react';
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type SyntheticEvent,
+} from 'react';
 import useWheelScrollSensitivity from '@/pages/MeetRecord/hooks/useWheelScrollSensitivity';
 import { colors } from '../../../constants/colors';
 import { typography } from '../../../constants/typography';
@@ -9,6 +16,7 @@ const MAX_PHOTO_COUNT = 5;
 type SelectedPhoto = {
   id: string;
   name: string;
+  isWidthCapped?: boolean;
   url?: string;
 };
 
@@ -79,6 +87,23 @@ function PhotoPicker({ photoCount, receiptId }: PhotoPickerProps) {
     });
   };
 
+  const handlePhotoLoad = (
+    photoId: string,
+    event: SyntheticEvent<HTMLImageElement>,
+  ) => {
+    const image = event.currentTarget;
+    const renderedWidth = (image.naturalWidth / image.naturalHeight) * 60;
+    const shouldCapWidth = renderedWidth > 72;
+
+    setPhotos((currentPhotos) =>
+      currentPhotos.map((photo) =>
+        photo.id === photoId && photo.isWidthCapped !== shouldCapWidth
+          ? { ...photo, isWidthCapped: shouldCapWidth }
+          : photo,
+      ),
+    );
+  };
+
   return (
     <div className="px-2">
       <div className="flex items-center justify-between">
@@ -123,15 +148,26 @@ function PhotoPicker({ photoCount, receiptId }: PhotoPickerProps) {
         {photos.map((photo, index) => (
           <div
             key={photo.id}
-            className="photo-checker relative h-[60px] w-[72px] shrink-0 overflow-visible rounded-[5px] border"
+            className={`photo-checker relative h-[60px] shrink-0 overflow-visible rounded-[5px] border ${
+              photo.url && !photo.isWidthCapped ? '' : 'w-[72px]'
+            }`}
             style={{ borderColor: index === 0 ? colors.point : colors.border }}
           >
             {photo.url ? (
-              <img
-                src={photo.url}
-                alt={photo.name}
-                className="size-full rounded-[4px] object-cover"
-              />
+              <div
+                className={`h-[60px] overflow-hidden rounded-[4px] ${
+                  photo.isWidthCapped ? 'w-[72px]' : 'inline-block'
+                }`}
+              >
+                <img
+                  src={photo.url}
+                  alt={photo.name}
+                  className={`h-[60px] w-auto max-w-none object-contain ${
+                    photo.isWidthCapped ? 'relative left-1/2 -translate-x-1/2' : ''
+                  }`}
+                  onLoad={(event) => handlePhotoLoad(photo.id, event)}
+                />
+              </div>
             ) : null}
             <button
               type="button"
