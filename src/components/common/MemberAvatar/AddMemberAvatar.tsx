@@ -12,12 +12,12 @@ function AddMemberAvatar({
   return (
     <button
       type="button"
-      className={`grid size-[62px] shrink-0 place-items-center rounded-full border-[3px] border-dashed ${className}`}
+      className={`grid size-[45px] shrink-0 place-items-center rounded-full border-[3px] border-dashed ${className}`}
       style={{ borderColor: colors.border, color: colors.text }}
       aria-label={ariaLabel}
       {...buttonProps}
     >
-      <Plus className="size-8" strokeWidth={2.2} />
+      <Plus className="size-6" strokeWidth={2.2} />
     </button>
   );
 }

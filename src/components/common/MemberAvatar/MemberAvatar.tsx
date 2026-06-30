@@ -10,6 +10,7 @@ type MemberAvatarProps = {
   selected?: boolean;
   disabled?: boolean;
   tone?: MemberAvatarTone;
+  unselectedTone?: MemberAvatarTone;
 } & Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children' | 'disabled'>;
 
 const toneColor: Record<MemberAvatarTone, string> = {
@@ -22,23 +23,26 @@ function MemberAvatar({
   name,
   selected = false,
   disabled = false,
-  tone = selected ? 'point' : 'default',
+  tone = 'point',
+  unselectedTone = 'muted',
   className = '',
   ...buttonProps
 }: MemberAvatarProps) {
-  const avatarColor = disabled ? colors.border : toneColor[tone];
+  const avatarColor = disabled
+    ? colors.border
+    : toneColor[selected ? tone : unselectedTone];
   const isDashed = !selected || disabled;
 
   return (
     <button
       type="button"
-      className={`w-[64px] shrink-0 text-center disabled:cursor-not-allowed ${className}`}
+      className={`w-[45px] shrink-0 text-center disabled:cursor-not-allowed ${className}`}
       aria-pressed={selected}
       disabled={disabled}
       {...buttonProps}
     >
       <span
-        className={`relative mx-auto grid size-[62px] place-items-center rounded-full border-[3px] ${
+        className={`relative mx-auto grid size-[45px] place-items-center rounded-full border-[2.5px] ${
           isDashed ? 'border-dashed' : ''
         }`}
         style={{
@@ -47,13 +51,13 @@ function MemberAvatar({
           color: avatarColor,
         }}
       >
-        <Cloud className="size-10" strokeWidth={2.2} />
+        <Cloud className="size-7" strokeWidth={2.2} />
         {selected ? (
           <span
-            className="absolute -right-1 -top-1 grid size-6 place-items-center rounded-full"
+            className="absolute -right-1 -top-2 grid size-5 place-items-center rounded-full"
             style={{ backgroundColor: avatarColor, color: colors.background }}
           >
-            <Check className="size-4" strokeWidth={3} />
+            <Check className="size-3" strokeWidth={3} />
           </span>
         ) : null}
       </span>
