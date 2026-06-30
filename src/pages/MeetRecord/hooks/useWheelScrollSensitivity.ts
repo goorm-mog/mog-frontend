@@ -81,13 +81,14 @@ function useWheelScrollSensitivity<T extends HTMLElement>(axis: ScrollAxis = 'y'
       }
 
       event.preventDefault();
+      const adjustedDistance = distance * WHEEL_SCROLL_SENSITIVITY;
 
       if (axis === 'x') {
-        element.scrollLeft += distance * WHEEL_SCROLL_SENSITIVITY;
+        element.scrollLeft += adjustedDistance;
         return;
       }
 
-      element.scrollTop += distance * WHEEL_SCROLL_SENSITIVITY;
+      element.scrollTop += adjustedDistance;
     };
 
     element.addEventListener('wheel', handleWheel, { passive: false });
