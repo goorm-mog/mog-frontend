@@ -1,9 +1,10 @@
 import { cn } from '@/lib/utils';
 import { getVisualDow } from '@/utils/dateUtils';
-import type { CalendarDay } from '@/types/calendar';
+import type { CalendarAppearance, CalendarDay } from '@/types/calendar';
 
 interface DayCellProps {
   day: CalendarDay;
+  appearance?: CalendarAppearance;
   isSelected: boolean;
   prevSelected: boolean;
   nextSelected: boolean;
@@ -12,6 +13,7 @@ interface DayCellProps {
   nextInDragRange: boolean;
   isDisabled?: boolean;
   hasDot?: boolean;
+  isMarked?: boolean;
   onMouseDown: (shiftKey: boolean) => void;
   onMouseEnter: (shiftKey: boolean) => void;
   onClick: (metaKey: boolean) => void;
@@ -19,6 +21,7 @@ interface DayCellProps {
 
 function DayCell({
   day,
+  appearance = 'default',
   isSelected,
   prevSelected,
   nextSelected,
@@ -27,10 +30,12 @@ function DayCell({
   nextInDragRange,
   isDisabled = false,
   hasDot = false,
+  isMarked = false,
   onMouseDown,
   onMouseEnter,
   onClick,
 }: DayCellProps) {
+  const isHome = appearance === 'home';
   const visualDow = getVisualDow(day.date);
 
   // 드래그 중 range — 인접 날짜 여부로 모서리 결정 (비연속 범위 지원)
@@ -66,7 +71,8 @@ function DayCell({
       {isInDragRange && (
         <div
           className={cn(
-            'absolute top-1/2 -translate-y-1/2 h-[70%] bg-point',
+            'absolute top-1/2 -translate-y-1/2 h-[70%]',
+            isHome ? 'bg-text' : 'bg-point',
             dragRoundedLeft ? 'left-0 rounded-l-full' : 'left-0',
             dragRoundedRight ? 'right-0 rounded-r-full' : 'right-0',
           )}
@@ -76,25 +82,33 @@ function DayCell({
       {isSelected &&
         !isInDragRange &&
         (isIsolated ? (
-          // 고립 날짜 → 원
-          <div className="absolute size-[70%] rounded-full bg-point" />
-        ) : (
-          // 범위 내 → bar
           <div
             className={cn(
-              'absolute top-1/2 -translate-y-1/2 h-[70%] bg-point',
+              'absolute size-[70%]',
+              isHome ? 'rounded-xl bg-text' : 'rounded-full bg-point',
+            )}
+          />
+        ) : (
+          <div
+            className={cn(
+              'absolute top-1/2 -translate-y-1/2 h-[70%]',
+              isHome ? 'bg-text' : 'bg-point',
               selRoundedLeft ? 'left-0 rounded-l-full' : 'left-0',
               selRoundedRight ? 'right-0 rounded-r-full' : 'right-0',
             )}
           />
         ))}
 
-      <span className={cn('relative z-10 font-dm-mono text-sm', textColor)}>
+      <span className={cn('relative z-10 font-dm-mono', isHome ? 'text-xs' : 'text-sm', textColor)}>
         {day.date.getDate()}
       </span>
 
       {hasDot && !isSelected && !isInDragRange && (
         <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-point z-10" />
+      )}
+
+      {isMarked && !isSelected && !isInDragRange && (
+        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#865300] z-10" />
       )}
     </div>
   );

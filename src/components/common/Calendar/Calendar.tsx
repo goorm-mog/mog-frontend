@@ -4,13 +4,17 @@ import { Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCalendarSelection } from '@/hooks/useCalendarSelection';
 import { getCalendarDays, isSameDay } from '@/utils/dateUtils';
-import type { CalendarMode } from '@/types/calendar';
+import type { CalendarAppearance, CalendarMode } from '@/types/calendar';
 import CalendarHeader from './CalendarHeader';
 import WeekdayRow from './WeekdayRow';
 import DayCell from './DayCell';
 
 interface CalendarProps {
   mode?: CalendarMode;
+  appearance?: CalendarAppearance;
+  initialMonth?: Date;
+  defaultSelected?: Date[];
+  markedDates?: Date[];
   availableDates?: Date[];
   dotDates?: Date[];
   onSelectionChange?: (dates: Date[]) => void;
@@ -18,8 +22,22 @@ interface CalendarProps {
   className?: string;
 }
 
-function Calendar({ mode = 'single', availableDates, dotDates, onSelectionChange, hintText, className }: CalendarProps) {
+function Calendar({
+  mode = 'single',
+  appearance = 'default',
+  initialMonth,
+  defaultSelected,
+  markedDates,
+  availableDates,
+  dotDates,
+  onSelectionChange,
+  hintText,
+  className,
+}: CalendarProps) {
+  const isHome = appearance === 'home';
+
   const [currentDate, setCurrentDate] = useState(() => {
+    if (initialMonth) return new Date(initialMonth.getFullYear(), initialMonth.getMonth(), 1);
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
@@ -31,7 +49,7 @@ function Calendar({ mode = 'single', availableDates, dotDates, onSelectionChange
     handleMouseDown,
     handleMouseEnter,
     handleClick,
-  } = useCalendarSelection(mode, availableDates);
+  } = useCalendarSelection(mode, availableDates, defaultSelected);
 
   const days = getCalendarDays(currentDate.getFullYear(), currentDate.getMonth());
 
@@ -50,9 +68,10 @@ function Calendar({ mode = 'single', availableDates, dotDates, onSelectionChange
   }, [selectedDates]);
 
   return (
-    <div className={cn('w-full select-none bg-dark-background/50 p-4 rounded-xl', className)}>
+    <div className={cn('w-full select-none p-4 rounded-xl', !isHome && 'bg-dark-background/50', className)}>
       <CalendarHeader
         currentDate={currentDate}
+        appearance={appearance}
         onPrev={() => setCurrentDate((prev) => subMonths(prev, 1))}
         onNext={() => setCurrentDate((prev) => addMonths(prev, 1))}
       />
@@ -62,6 +81,7 @@ function Calendar({ mode = 'single', availableDates, dotDates, onSelectionChange
           <DayCell
             key={day.date.toISOString()}
             day={day}
+            appearance={appearance}
             isSelected={isClickSelected(day.date)}
             prevSelected={isClickSelected(addDays(day.date, -1))}
             nextSelected={isClickSelected(addDays(day.date, 1))}
@@ -70,6 +90,7 @@ function Calendar({ mode = 'single', availableDates, dotDates, onSelectionChange
             nextInDragRange={isInDragRange(addDays(day.date, 1))}
             isDisabled={availableDates !== undefined && !availableDates.some((d) => isSameDay(d, day.date))}
             hasDot={dotDates?.some((d) => isSameDay(d, day.date)) ?? false}
+            isMarked={markedDates?.some((d) => isSameDay(d, day.date)) ?? false}
             onMouseDown={(shiftKey) => handleMouseDown(day.date, shiftKey)}
             onMouseEnter={(shiftKey) => handleMouseEnter(day.date, shiftKey)}
             onClick={(metaKey) => handleClick(day.date, metaKey)}
