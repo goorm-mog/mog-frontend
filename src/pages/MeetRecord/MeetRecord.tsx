@@ -22,6 +22,27 @@ const roomMembers = mockDb.roomMembers.filter(({ roomId }) => roomId === room.ro
 const receipts: ReceiptCardData[] = roomRecords.map((record) =>
   mapMeetingRecordToReceipt(record, roomMembers),
 );
+const meetRecordStorageKey = `meet-record:${room.roomId}`;
+
+function readSavedReceipts() {
+  const savedMeetRecord = window.localStorage.getItem(meetRecordStorageKey);
+
+  if (!savedMeetRecord) {
+    return receipts;
+  }
+
+  try {
+    const parsedMeetRecord = JSON.parse(savedMeetRecord) as {
+      receipts?: ReceiptCardData[];
+    };
+
+    return Array.isArray(parsedMeetRecord.receipts)
+      ? parsedMeetRecord.receipts
+      : receipts;
+  } catch {
+    return receipts;
+  }
+}
 
 function getReceiptSeq(receipt: ReceiptCardData) {
   return Number.parseInt(receipt.roundLabel, 10) || 0;
@@ -73,29 +94,25 @@ function formatMeetDate() {
 }
 
 function MeetRecord() {
-  const [receiptCards, setReceiptCards] = useState<ReceiptCardData[]>(receipts);
+  const [receiptCards, setReceiptCards] =
+    useState<ReceiptCardData[]>(readSavedReceipts);
   const [pendingScrollReceiptId, setPendingScrollReceiptId] = useState<string | null>(
     null,
   );
-  const nextReceiptSeqRef = useRef(getNextReceiptSeq(receipts));
-  const [receiptTotals, setReceiptTotals] = useState<Record<string, number>>(() =>
-    Object.fromEntries(
-      receipts.map((receipt) => [receipt.roundLabel, receipt.totalAmount]),
-    ),
+  const nextReceiptSeqRef = useRef(getNextReceiptSeq(receiptCards));
+
+  const totalAmount = receiptCards.reduce(
+    (sum, receipt) => sum + receipt.totalAmount,
+    0,
   );
 
-  const handleReceiptTotalChange = useCallback(
-    (receiptId: string, totalAmount: number) => {
-      setReceiptTotals((currentTotals) => {
-        if (currentTotals[receiptId] === totalAmount) {
-          return currentTotals;
-        }
-
-        return {
-          ...currentTotals,
-          [receiptId]: totalAmount,
-        };
-      });
+  const handleReceiptChange = useCallback(
+    (receiptId: string, receiptUpdate: Partial<ReceiptCardData>) => {
+      setReceiptCards((currentReceipts) =>
+        currentReceipts.map((receipt) =>
+          receipt.roundLabel === receiptId ? { ...receipt, ...receiptUpdate } : receipt,
+        ),
+      );
     },
     [],
   );
@@ -104,11 +121,6 @@ function MeetRecord() {
     setReceiptCards((currentReceipts) =>
       currentReceipts.filter((receipt) => receipt.roundLabel !== receiptId),
     );
-    setReceiptTotals((currentTotals) => {
-      const { [receiptId]: _deletedReceiptTotal, ...nextTotals } = currentTotals;
-
-      return nextTotals;
-    });
   }, []);
 
   const handleAddReceipt = useCallback(() => {
@@ -117,11 +129,20 @@ function MeetRecord() {
 
     setReceiptCards((currentReceipts) => [...currentReceipts, nextReceipt]);
     setPendingScrollReceiptId(nextReceipt.roundLabel);
-    setReceiptTotals((currentTotals) => ({
-      ...currentTotals,
-      [nextReceipt.roundLabel]: nextReceipt.totalAmount,
-    }));
   }, []);
+
+  const handleSave = useCallback(() => {
+    window.localStorage.setItem(
+      meetRecordStorageKey,
+      JSON.stringify({
+        roomId: room.roomId,
+        savedAt: new Date().toISOString(),
+        receipts: receiptCards,
+        totalAmount,
+      }),
+    );
+    window.alert('저장되었습니다');
+  }, [receiptCards, totalAmount]);
 
   const contentScrollRef = useWheelScrollSensitivity<HTMLElement>();
 
@@ -153,11 +174,6 @@ function MeetRecord() {
     });
   }, [contentScrollRef, pendingScrollReceiptId, receiptCards.length]);
 
-  const totalAmount = Object.values(receiptTotals).reduce(
-    (sum, receiptTotal) => sum + receiptTotal,
-    0,
-  );
-
   return (
     <main
       className="min-h-dvh"
@@ -181,7 +197,7 @@ function MeetRecord() {
               <ReceiptCard
                 key={receipt.roundLabel}
                 receipt={receipt}
-                onTotalAmountChange={handleReceiptTotalChange}
+                onReceiptChange={handleReceiptChange}
                 onDelete={handleDeleteReceipt}
               />
             ))}
@@ -201,7 +217,7 @@ function MeetRecord() {
           </div>
         </section>
 
-        <SettlementFooter totalAmount={totalAmount} />
+        <SettlementFooter totalAmount={totalAmount} onSave={handleSave} />
       </div>
     </main>
   );

@@ -17,11 +17,15 @@ export type { ReceiptCardData } from '@/pages/MeetRecord/types';
 
 type ReceiptCardProps = {
   receipt: ReceiptCardData;
-  onTotalAmountChange: (receiptId: string, totalAmount: number) => void;
+  onReceiptChange: (receiptId: string, receipt: Partial<ReceiptCardData>) => void;
   onDelete: (receiptId: string) => void;
 };
 
-function ReceiptCard({ receipt, onTotalAmountChange, onDelete }: ReceiptCardProps) {
+function ReceiptCard({
+  receipt,
+  onReceiptChange,
+  onDelete,
+}: ReceiptCardProps) {
   const [participants, setParticipants] = useState(receipt.participants);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const placeSearch = usePlaceSearch(receipt.placeName);
@@ -31,17 +35,33 @@ function ReceiptCard({ receipt, onTotalAmountChange, onDelete }: ReceiptCardProp
   });
 
   useEffect(() => {
-    onTotalAmountChange(receipt.roundLabel, receiptMenu.totalAmount);
-  }, [onTotalAmountChange, receipt.roundLabel, receiptMenu.totalAmount]);
+    onReceiptChange(receipt.roundLabel, {
+      items: receiptMenu.items.map(({ id: _id, ...item }) => item),
+      totalAmount: receiptMenu.totalAmount,
+    });
+  }, [
+    onReceiptChange,
+    receipt.roundLabel,
+    receiptMenu.items,
+    receiptMenu.totalAmount,
+  ]);
+
+  useEffect(() => {
+    onReceiptChange(receipt.roundLabel, { placeName: placeSearch.query });
+  }, [onReceiptChange, placeSearch.query, receipt.roundLabel]);
 
   const handleParticipantToggle = (participantId: number) => {
-    setParticipants((currentParticipants) =>
-      currentParticipants.map((participant) =>
+    setParticipants((currentParticipants) => {
+      const nextParticipants = currentParticipants.map((participant) =>
         participant.id === participantId
           ? { ...participant, selected: !participant.selected }
           : participant,
-      ),
-    );
+      );
+
+      onReceiptChange(receipt.roundLabel, { participants: nextParticipants });
+
+      return nextParticipants;
+    });
   };
 
   const handleDeleteConfirm = () => {
@@ -168,7 +188,11 @@ function ReceiptCard({ receipt, onTotalAmountChange, onDelete }: ReceiptCardProp
       <div className="my-7 border-t" style={{ borderColor: colors.border }} />
 
       <FormRow label="메모">
-        <MemoField initialMemo={receipt.memo} placeholder={receipt.memoPlaceholder} />
+        <MemoField
+          initialMemo={receipt.memo}
+          placeholder={receipt.memoPlaceholder}
+          onMemoChange={(memo) => onReceiptChange(receipt.roundLabel, { memo })}
+        />
       </FormRow>
 
       <DashedDivider className="my-7" />
