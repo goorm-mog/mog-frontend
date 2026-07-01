@@ -2,8 +2,11 @@ import { useState, useRef, useEffect } from 'react';
 import { isSameDay, getDatesInRange } from '@/utils/dateUtils';
 import type { CalendarMode } from '@/types/calendar';
 
-export function useCalendarSelection(mode: CalendarMode = 'single') {
-  const [selectedDates, setSelectedDates] = useState<Date[]>([]);
+export function useCalendarSelection(
+  mode: CalendarMode = 'single',
+  defaultSelected: Date[] = [],
+) {
+  const [selectedDates, setSelectedDates] = useState<Date[]>(defaultSelected);
   const [dragRange, setDragRange] = useState<Date[]>([]);
 
   const dragStartRef = useRef<Date | null>(null);
