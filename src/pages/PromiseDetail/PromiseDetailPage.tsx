@@ -22,7 +22,7 @@ function PromiseDetailPage() {
         onBack={() => navigate(-1)}
       />
 
-      <main className="flex h-screen flex-col overflow-hidden bg-background pt-[50px] pb-[19px]">
+      <main className="flex h-screen flex-col overflow-hidden bg-background pt-[50px]">
         <StepHeader
           showStep={false}
           wrapperClassName="px-[14px] pt-[19px] pb-0"
@@ -60,7 +60,7 @@ function PromiseDetailPage() {
           </div>
         </StepHeader>
 
-        <section className="mt-[22px] flex min-h-0 flex-1 flex-col gap-[23px] overflow-y-auto px-[14px]">
+        <section className="mt-[22px] flex min-h-0 flex-1 flex-col gap-[23px] overflow-y-auto px-[14px] pb-[19px]">
           {SETTLEMENT_ROUNDS.map((round) => (
             <SettlementCard key={round.id} round={round} />
           ))}
