@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { addDays, addMonths, subMonths } from 'date-fns';
 import { Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -36,7 +36,9 @@ function Calendar({ mode = 'single', availableDates, dotDates, onSelectionChange
   const days = getCalendarDays(currentDate.getFullYear(), currentDate.getMonth());
 
   const onSelectionChangeRef = useRef(onSelectionChange);
-  onSelectionChangeRef.current = onSelectionChange;
+  useLayoutEffect(() => {
+    onSelectionChangeRef.current = onSelectionChange;
+  });
 
   const isFirstRender = useRef(true);
   useEffect(() => {

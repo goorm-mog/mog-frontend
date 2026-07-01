@@ -93,7 +93,7 @@ function ParticipantReschedule() {
       }
     };
     init();
-  }, [roomId]);
+  }, [roomId, showToast]);
 
   const handleSubmit = async () => {
     const slotIds = getVotedSlotIds();

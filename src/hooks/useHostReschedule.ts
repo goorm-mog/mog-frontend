@@ -64,7 +64,7 @@ export function useHostReschedule(roomId: number) {
       }
     };
     init();
-  }, [roomId]);
+  }, [roomId, showToast]);
 
   const handleDateChange = (dates: Date[]) => {
     setSelectedDates(dates);
