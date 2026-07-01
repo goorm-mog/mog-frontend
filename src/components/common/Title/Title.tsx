@@ -21,7 +21,7 @@ function Title({ title, subtitle, subtitle2, icon: Icon, iconStrokeWidth }: Titl
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-1.5">
         {Icon && <Icon size={16} strokeWidth={iconStrokeWidth} />}
-        <div className="text-body text-text">{title}</div>
+        <div className="truncate text-body text-text">{title}</div>
       </div>
       {subtitle && (
         <div

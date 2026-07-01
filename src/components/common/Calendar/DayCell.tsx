@@ -56,7 +56,10 @@ function DayCell({
         'relative aspect-square flex items-center justify-center cursor-default',
         isDisabled && 'pointer-events-none',
       )}
-      onMouseDown={(e) => { e.preventDefault(); onMouseDown(e.shiftKey); }}
+      onMouseDown={(e) => {
+        e.preventDefault();
+        onMouseDown(e.shiftKey);
+      }}
       onMouseEnter={(e) => onMouseEnter(e.shiftKey)}
       onClick={(e) => onClick(e.metaKey || e.ctrlKey)}
     >
@@ -70,8 +73,9 @@ function DayCell({
         />
       )}
 
-      {isSelected && !isInDragRange && (
-        isIsolated ? (
+      {isSelected &&
+        !isInDragRange &&
+        (isIsolated ? (
           // 고립 날짜 → 원
           <div className="absolute size-[70%] rounded-full bg-point" />
         ) : (
@@ -83,8 +87,7 @@ function DayCell({
               selRoundedRight ? 'right-0 rounded-r-full' : 'right-0',
             )}
           />
-        )
-      )}
+        ))}
 
       <span className={cn('relative z-10 font-dm-mono text-sm', textColor)}>
         {day.date.getDate()}

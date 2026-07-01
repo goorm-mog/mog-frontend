@@ -5,3 +5,5 @@ export type CalendarDay = {
 };
 
 export type CalendarMode = 'single' | 'multiple';
+
+export type CalendarAppearance = 'default' | 'home';

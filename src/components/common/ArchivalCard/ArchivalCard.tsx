@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Calendar, MapPin } from 'lucide-react';
+import Title from '@/components/common/Title/Title';
 import { cn } from '@/lib/utils';
 import { type ComponentSize, resolveComponentSize } from '@/utils/componentSize';
 
@@ -20,7 +21,6 @@ type ArchivalCardProps = {
 };
 
 const paddingMap = { sm: 12, md: 16, lg: 20 } as const;
-const titleSizeMap = { sm: 14, md: 16, lg: 18 } as const;
 const metaSizeMap = { sm: 9, md: 10, lg: 11 } as const;
 const amountSizeMap = { sm: 14, md: 16, lg: 18 } as const;
 
@@ -46,7 +46,6 @@ function ArchivalCard({
   footer,
 }: ArchivalCardProps) {
   const padding = resolveComponentSize(size, paddingMap);
-  const titleSize = resolveComponentSize(size, titleSizeMap);
   const metaSize = resolveComponentSize(size, metaSizeMap);
   const amountSize = resolveComponentSize(size, amountSizeMap);
   const bodySize = metaSize + 2;
@@ -60,24 +59,21 @@ function ArchivalCard({
     >
       <div className="flex border-b border-dashed border-border">
         <div className="min-w-0 flex-1" style={{ padding }}>
-          <h3
-            className="font-pretendard font-bold text-text"
-            style={{ fontSize: titleSize, lineHeight: `${titleSize * 1.4}px` }}
-          >
-            {title}
-          </h3>
-          <div className="mt-1 flex items-center gap-1 text-dark-border">
-            <Calendar size={bodySize} strokeWidth={1.75} />
-            <span className="font-dm-mono" style={{ fontSize: metaSize, lineHeight: `${metaSize * 2}px` }}>
-              {datetime}
-            </span>
-          </div>
-          <div className="mt-1 flex items-center gap-1 text-dark-border">
-            <MapPin size={bodySize} strokeWidth={1.75} />
-            <span className="font-dm-mono" style={{ fontSize: bodySize, lineHeight: `${bodySize * 1.5}px` }}>
-              {location}
-            </span>
-          </div>
+          <Title
+            title={title}
+            subtitle={{
+              text: datetime,
+              icon: Calendar,
+              iconStrokeWidth: 2.5,
+              className: 'font-dm-mono text-[11px] font-regular',
+            }}
+            subtitle2={{
+              text: location,
+              icon: MapPin,
+              iconStrokeWidth: 2.5,
+              className: 'font-dm-mono text-[11px] font-regular',
+            }}
+          />
         </div>
 
         <div
