@@ -79,28 +79,4 @@ export const SETTLEMENT_ROUNDS: SettlementRound[] = [
       imageCount: record.photoCount,
     };
   }),
-  {
-    id: 999,
-    seq: 3,
-    placeName: '스크롤 확인용 장소',
-    address: '서울시 마포구 연남동 33',
-    menu: '아메리카노 3, 디저트 2',
-    totalCost: formatWon(32000),
-    payer: '임시 | 토스뱅크 1000-0000-0000',
-    participants: '김구름, 박구름, 최구름',
-    memo: '스크롤 확인용 임시 차수입니다.',
-    imageCount: 4,
-  },
-  {
-    id: 1000,
-    seq: 4,
-    placeName: '스크롤 확인용 장소 2',
-    address: '서울시 마포구 동교동 21',
-    menu: '파스타 2, 샐러드 1, 음료 3',
-    totalCost: formatWon(58000),
-    payer: '임시2 | 카카오뱅크 3333-00-0000000',
-    participants: '김구름, 최구름, 이구름',
-    memo: '목록 스크롤 범위 확인을 위한 임시 차수입니다.',
-    imageCount: 5,
-  },
 ];
