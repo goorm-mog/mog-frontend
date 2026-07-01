@@ -65,7 +65,7 @@ function ReceiptCard({ receipt, onTotalAmountChange, onDelete }: ReceiptCardProp
         </span>
 
         <div className="flex items-center gap-3">
-          <button type="button" style={{ color: colors.text }} aria-label="자동 채우기">
+          <button type="button" style={{ color: colors.darkBorder }} aria-label="자동 채우기">
             <Sparkles className="size-[25px]" strokeWidth={1.8} />
           </button>
           <button
