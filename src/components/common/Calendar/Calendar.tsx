@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { addMonths, subMonths } from 'date-fns';
+import { useState, useEffect, useRef } from 'react';
+import { addDays, addMonths, subMonths } from 'date-fns';
 import { Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCalendarSelection } from '@/hooks/useCalendarSelection';
@@ -11,12 +11,14 @@ import DayCell from './DayCell';
 
 interface CalendarProps {
   mode?: CalendarMode;
+  availableDates?: Date[];
+  dotDates?: Date[];
   onSelectionChange?: (dates: Date[]) => void;
   hintText?: string;
   className?: string;
 }
 
-function Calendar({ mode = 'single', onSelectionChange, hintText, className }: CalendarProps) {
+function Calendar({ mode = 'single', availableDates, dotDates, onSelectionChange, hintText, className }: CalendarProps) {
   const [currentDate, setCurrentDate] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -24,26 +26,26 @@ function Calendar({ mode = 'single', onSelectionChange, hintText, className }: C
 
   const {
     selectedDates,
-    dragRange,
     isClickSelected,
     isInDragRange,
     handleMouseDown,
     handleMouseEnter,
     handleClick,
-  } = useCalendarSelection(mode);
+  } = useCalendarSelection(mode, availableDates);
 
   const days = getCalendarDays(currentDate.getFullYear(), currentDate.getMonth());
 
-  const handleDayClick = (date: Date, metaKey: boolean) => {
-    handleClick(date, metaKey);
-    const isMulti = mode === 'multiple' && metaKey;
-    const next = isMulti
-      ? selectedDates.some((d) => isSameDay(d, date))
-        ? selectedDates.filter((d) => !isSameDay(d, date))
-        : [...selectedDates, date]
-      : [date];
-    onSelectionChange?.(next);
-  };
+  const onSelectionChangeRef = useRef(onSelectionChange);
+  onSelectionChangeRef.current = onSelectionChange;
+
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    onSelectionChangeRef.current?.(selectedDates);
+  }, [selectedDates]);
 
   return (
     <div className={cn('w-full select-none bg-dark-background/50 p-4 rounded-xl', className)}>
@@ -58,20 +60,27 @@ function Calendar({ mode = 'single', onSelectionChange, hintText, className }: C
           <DayCell
             key={day.date.toISOString()}
             day={day}
-            isClickSelected={isClickSelected(day.date)}
+            isSelected={isClickSelected(day.date)}
+            prevSelected={isClickSelected(addDays(day.date, -1))}
+            nextSelected={isClickSelected(addDays(day.date, 1))}
             isInDragRange={isInDragRange(day.date)}
-            dragRange={dragRange}
-            onMouseDown={() => handleMouseDown(day.date)}
-            onMouseEnter={() => handleMouseEnter(day.date)}
-            onClick={(metaKey) => handleDayClick(day.date, metaKey)}
+            prevInDragRange={isInDragRange(addDays(day.date, -1))}
+            nextInDragRange={isInDragRange(addDays(day.date, 1))}
+            isDisabled={availableDates !== undefined && !availableDates.some((d) => isSameDay(d, day.date))}
+            hasDot={dotDates?.some((d) => isSameDay(d, day.date)) ?? false}
+            onMouseDown={(shiftKey) => handleMouseDown(day.date, shiftKey)}
+            onMouseEnter={(shiftKey) => handleMouseEnter(day.date, shiftKey)}
+            onClick={(metaKey) => handleClick(day.date, metaKey)}
           />
         ))}
       </div>
       {hintText && (
-        <p className="flex items-center gap-2 mt-3 px-1 font-dm-mono text-[11px] text-dark-border">
-          <Info size={12} />
-          {hintText}
-        </p>
+        <div className="flex items-start gap-1.5 mt-3 px-1">
+          <Info size={12} className="shrink-0 mt-0.5 text-dark-border" />
+          <span className="font-dm-mono text-[11px] text-dark-border whitespace-pre-line">
+            {hintText}
+          </span>
+        </div>
       )}
     </div>
   );
