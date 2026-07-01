@@ -3,7 +3,7 @@ import Toast from './Toast';
 
 const meta = {
   component: Toast,
-  args: { message: '알림 메시지입니다.' },
+  args: { type: 'error', message: '알림 메시지입니다.' },
 } satisfies Meta<typeof Toast>;
 
 export default meta;
@@ -31,6 +31,7 @@ export const Info: Story = {
 };
 
 export const AllTypes: Story = {
+  args: { type: 'error' },
   render: () => (
     <div className="flex flex-col gap-3">
       <Toast type="error" message="요청한 리소스를 찾을 수 없습니다." />

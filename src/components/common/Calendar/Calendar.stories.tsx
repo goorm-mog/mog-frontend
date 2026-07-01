@@ -13,11 +13,12 @@ const JUNE_AVAILABLE = [
   new Date('2025-06-12'),
   new Date('2025-06-13'),
 ];
-const JUNE_DOT = [
-  new Date('2025-06-05'),
-  new Date('2025-06-10'),
-  new Date('2025-06-13'),
-];
+const JUNE_DOT = [new Date('2025-06-05'), new Date('2025-06-10'), new Date('2025-06-13')];
+
+// 홈 화면 기준: 2026-07
+const JULY_MARKED = [1, 3, 4, 6, 7, 9, 11, 12, 14, 17, 20, 23, 27, 29].map(
+  (day) => new Date(2026, 6, day),
+);
 
 const meta = {
   component: Calendar,
@@ -25,6 +26,10 @@ const meta = {
     mode: {
       control: 'radio',
       options: ['single', 'multiple'],
+    },
+    appearance: {
+      control: 'radio',
+      options: ['default', 'home'],
     },
     hintText: { control: 'text' },
   },
@@ -66,6 +71,25 @@ export const WithDotDates: Story = {
     availableDates: JUNE_AVAILABLE,
     dotDates: JUNE_DOT,
     hintText: '날짜를 탭하면 투표 현황을 확인할 수 있어요',
+  },
+};
+
+// 홈 화면 스타일 — 배경 없음, 작은 화살표, rounded-xl 선택
+export const HomeAppearance: Story = {
+  args: {
+    appearance: 'home',
+    initialMonth: new Date(2026, 6, 1),
+    defaultSelected: [new Date(2026, 6, 1)],
+  },
+};
+
+// 홈 화면 — 일정 있는 날짜에 갈색 점 표시
+export const HomeWithMarkedDates: Story = {
+  args: {
+    appearance: 'home',
+    initialMonth: new Date(2026, 6, 1),
+    defaultSelected: [new Date(2026, 6, 1)],
+    markedDates: JULY_MARKED,
   },
 };
 
