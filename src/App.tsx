@@ -5,6 +5,7 @@ import HomePage from '@/pages/Home/HomePage';
 import LoginPage from '@/pages/Login/LoginPage';
 import HostReschedule from '@/pages/Reschedule/HostReschedule';
 import ParticipantReschedule from '@/pages/Reschedule/ParticipantReschedule';
+import PromiseDetailPage from '@/pages/PromiseDetail/PromiseDetailPage';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <Route path="/home" element={<HomePage />} />
           <Route path="/reschedule/host/:roomId" element={<HostReschedule />} />
           <Route path="/reschedule/participant/:roomId" element={<ParticipantReschedule />} />
+                  <Route path="/promise-detail" element={<PromiseDetailPage />} />
           <Route path="/example/*" element={<ExampleRoutes />} />
         </Routes>
       </ToastProvider>

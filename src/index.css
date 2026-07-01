@@ -25,6 +25,7 @@
   body {
     font-family: var(--font-pretendard);
     color: var(--color-text);
+    background-color: var(--color-background);
     @apply text-foreground;
   }
 
@@ -33,7 +34,6 @@
     margin: 0 auto;
     min-height: 100vh;
     background-color: var(--color-background);
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.1);
   }
   * {
     @apply border-border outline-ring/50;
