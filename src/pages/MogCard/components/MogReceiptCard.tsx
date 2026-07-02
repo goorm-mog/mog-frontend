@@ -87,7 +87,7 @@ function ReceiptPlace({
         </strong>
       </div>
 
-      <dl className="mt-6 flex flex-col gap-5">
+      <dl className="mt-6 flex flex-col gap-2">
         {place.items.map((item) => (
           <div
             key={`${place.id}-${item.name}`}
@@ -132,7 +132,7 @@ function MogStamp() {
     <img
       src="/assets/mog-stamp.svg"
       alt=""
-      className="pointer-events-none absolute top-[-82px] right-[-36px] h-[84px] w-[153px]"
+      className="pointer-events-none absolute top-[-90px] right-[-50px] h-[84px] w-[153px] origin-center rotate-[30deg]"
       aria-hidden="true"
     />
   );
