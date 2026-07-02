@@ -7,6 +7,7 @@ import MogReceiptCard from '@/pages/MogCard/components/MogReceiptCard';
 import {
   createReceiptImageFallbackWindow,
   downloadReceiptImage,
+  shareReceiptImage,
 } from '@/pages/MogCard/utils/downloadReceiptImage';
 import { getMogReceiptByRoomId } from '@/pages/MogCard/utils/mogReceipt';
 
@@ -16,11 +17,13 @@ function MogCardPage() {
   const { roomId } = useParams<{ roomId: string }>();
   const receiptRef = useRef<HTMLElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
   const numericRoomId = Number(roomId);
   const receipt = Number.isFinite(numericRoomId)
     ? getMogReceiptByRoomId(numericRoomId)
     : null;
-  const canDownload = Boolean(receipt) && !isDownloading;
+  const isProcessing = isDownloading || isSharing;
+  const canUseReceiptAction = Boolean(receipt) && !isProcessing;
 
   const handleDownload = async () => {
     if (!receiptRef.current || !receipt || isDownloading) {
@@ -33,7 +36,7 @@ function MogCardPage() {
     try {
       await downloadReceiptImage(
         receiptRef.current,
-        createSafeFileName(receipt.downloadFileName),
+        getReceiptFileName(receipt.downloadFileName),
         fallbackWindow,
       );
     } catch (error) {
@@ -42,6 +45,30 @@ function MogCardPage() {
       showToast('영수증 이미지를 저장하지 못했어요.');
     } finally {
       setIsDownloading(false);
+    }
+  };
+
+  const handleShare = async () => {
+    if (!receiptRef.current || !receipt || isProcessing) {
+      return;
+    }
+
+    setIsSharing(true);
+
+    try {
+      const result = await shareReceiptImage(
+        receiptRef.current,
+        getReceiptFileName(receipt.downloadFileName),
+      );
+
+      if (result === 'downloaded') {
+        showToast('공유를 지원하지 않아 이미지로 저장했어요.', 'info');
+      }
+    } catch (error) {
+      console.error(error);
+      showToast('영수증 이미지를 공유하지 못했어요.');
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -57,11 +84,15 @@ function MogCardPage() {
             <ActionButton
               label="다운로드"
               onClick={handleDownload}
-              disabled={!canDownload}
+              disabled={!canUseReceiptAction}
             >
               <Download size={21} strokeWidth={2.1} />
             </ActionButton>
-            <ActionButton label="공유">
+            <ActionButton
+              label="공유"
+              onClick={handleShare}
+              disabled={!canUseReceiptAction}
+            >
               <Share2 size={20} strokeWidth={2.1} />
             </ActionButton>
           </div>
@@ -109,7 +140,7 @@ function ActionButton({
   );
 }
 
-function createSafeFileName(value: string) {
+function getReceiptFileName(value: string) {
   const fileName = value.trim().replace(/[\\/:*?"<>|]/g, '-');
 
   return fileName || 'mog';

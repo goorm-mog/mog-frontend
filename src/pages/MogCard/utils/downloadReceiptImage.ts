@@ -1,10 +1,49 @@
 import { toBlob } from 'html-to-image';
 
+type ShareReceiptImageResult = 'shared' | 'downloaded' | 'cancelled';
+
 export async function downloadReceiptImage(
   receiptElement: HTMLElement,
   fileName: string,
   fallbackWindow: Window | null = null,
 ) {
+  const blob = await createReceiptImageBlob(receiptElement);
+
+  await saveImageBlob(blob, fileName, fallbackWindow);
+}
+
+export async function shareReceiptImage(
+  receiptElement: HTMLElement,
+  fileName: string,
+): Promise<ShareReceiptImageResult> {
+  const blob = await createReceiptImageBlob(receiptElement);
+  const file = new File([blob], fileName, { type: 'image/png' });
+  const canShareFile =
+    typeof navigator.canShare === 'function' &&
+    navigator.canShare({ files: [file] });
+
+  if (!canShareFile || typeof navigator.share !== 'function') {
+    triggerDownload(blob, fileName);
+    return 'downloaded';
+  }
+
+  try {
+    await navigator.share({
+      files: [file],
+      title: fileName,
+    });
+
+    return 'shared';
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      return 'cancelled';
+    }
+
+    throw error;
+  }
+}
+
+async function createReceiptImageBlob(receiptElement: HTMLElement) {
   await document.fonts?.ready;
 
   const blob = await toBlob(receiptElement, {
@@ -16,7 +55,7 @@ export async function downloadReceiptImage(
     throw new Error('영수증 이미지 파일을 만들 수 없습니다.');
   }
 
-  await saveImageBlob(blob, fileName, fallbackWindow);
+  return blob;
 }
 
 export function createReceiptImageFallbackWindow() {
