@@ -6,6 +6,7 @@ import LoginPage from '@/pages/Login/LoginPage';
 import HostReschedule from '@/pages/Reschedule/HostReschedule';
 import ParticipantReschedule from '@/pages/Reschedule/ParticipantReschedule';
 import MeetDetailPage from '@/pages/MeetDetail/MeetDetailPage';
+import MeetRecord from '@/pages/MeetRecord/MeetRecord';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="/reschedule/host/:roomId" element={<HostReschedule />} />
           <Route path="/reschedule/participant/:roomId" element={<ParticipantReschedule />} />
           <Route path="/meet-detail" element={<MeetDetailPage />} />
+          <Route path="/meet-record" element={<MeetRecord />} />
           <Route path="/example/*" element={<ExampleRoutes />} />
         </Routes>
       </ToastProvider>
