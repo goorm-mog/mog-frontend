@@ -37,13 +37,13 @@ function ReceiptList({
       className="min-h-0 flex-1 overflow-y-auto px-[14px] pb-6 promise-scrollbar-hidden"
     >
       <div
-        className="pointer-events-none sticky top-0 z-20 -mx-[14px] -mb-16 h-16"
+        className="pointer-events-none sticky top-0 z-20 -mx-[14px] -mb-5 h-5"
         style={{
-          background: `linear-gradient(180deg, ${colors.background} 0%, rgb(255 250 243 / 92%) 45%, rgb(255 250 243 / 0%) 100%)`,
+          background: `linear-gradient(180deg, ${colors.background} 0%, rgb(255 250 243 / 88%) 35%, rgb(255 250 243 / 0%) 100%)`,
         }}
         aria-hidden="true"
       />
-      <div className="flex flex-col gap-7">
+      <div className="flex flex-col gap-7 mt-5">
         {receipts.map((receipt) => (
           <ReceiptCard
             key={receipt.roundLabel}

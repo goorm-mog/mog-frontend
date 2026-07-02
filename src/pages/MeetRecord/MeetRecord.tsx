@@ -1,6 +1,7 @@
+import { useNavigate } from 'react-router-dom';
+import TopAppBar from '@/components/common/TopAppBar/TopAppBar';
 import MeetSummary from '@/pages/MeetRecord/components/MeetSummary';
 import ReceiptList from '@/pages/MeetRecord/components/ReceiptList';
-import RecordHeader from '@/pages/MeetRecord/components/RecordHeader';
 import SettlementFooter from '@/pages/MeetRecord/components/SettlementFooter';
 import {
   initialMeetRecordReceipts,
@@ -14,6 +15,7 @@ import { formatMeetDate } from '@/pages/MeetRecord/utils/date';
 import { colors } from '../../constants/colors';
 
 function MeetRecord() {
+  const navigate = useNavigate();
   const {
     receiptCards,
     totalAmount,
@@ -40,7 +42,11 @@ function MeetRecord() {
         className="mx-auto flex h-dvh min-h-[844px] w-full min-w-[390px] max-w-[430px] flex-col overflow-hidden"
         style={{ backgroundColor: colors.background }}
       >
-        <RecordHeader groupName={meetRecordGroup?.groupName ?? '그룹 이름'} />
+        <TopAppBar
+          title={meetRecordGroup?.groupName ?? '그룹 이름'}
+          showBack
+          onBack={() => navigate(-1)}
+        />
         <MeetSummary
           title={meetRecordRoom.roomName}
           dateText={formatMeetDate(meetRecordSchedule)}
