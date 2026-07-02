@@ -1,11 +1,58 @@
-const RECEIPT_PAPER_PATH =
-  'M0 0H3.92857C4.91071 5.89 10.8036 5.89 11.7857 0H15.7143H19.6429C20.625 5.89 26.5179 5.89 27.5 0H31.4286H35.3571C36.3393 5.89 42.2321 5.89 43.2143 0H47.1429H51.0714C52.0536 5.89 57.9464 5.89 58.9286 0H62.8571H66.7857C67.7679 5.89 73.6607 5.89 74.6429 0H78.5714H82.5C83.4821 5.89 89.375 5.89 90.3571 0H94.2857H98.2143C99.1964 5.89 105.089 5.89 106.071 0H110H113.929C114.911 5.89 120.804 5.89 121.786 0H125.714H129.643C130.625 5.89 136.518 5.89 137.5 0H141.429H145.357C146.339 5.89 152.232 5.89 153.214 0H157.143H161.071C162.054 5.89 167.946 5.89 168.929 0H172.857H176.786C177.768 5.89 183.661 5.89 184.643 0H188.571H192.5C193.482 5.89 199.375 5.89 200.357 0H204.286H208.214C209.196 5.89 215.089 5.89 216.071 0H220H233.095V541.88H229.167C228.185 535.99 222.292 535.99 221.31 541.88H217.381H213.452C212.47 535.99 206.577 535.99 205.595 541.88H201.667H197.738C196.756 535.99 190.863 535.99 189.881 541.88H185.952H182.024C181.042 535.99 175.149 535.99 174.167 541.88H170.238H166.31C165.327 535.99 159.435 535.99 158.452 541.88H154.524H150.595C149.613 535.99 143.72 535.99 142.738 541.88H138.81H134.881C133.899 535.99 128.006 535.99 127.024 541.88H123.095H119.167C118.185 535.99 112.292 535.99 111.31 541.88H107.381H103.452C102.47 535.99 96.5774 535.99 95.5952 541.88H91.6667H87.7381C86.756 535.99 80.8631 535.99 79.881 541.88H75.9524H72.0238C71.0417 535.99 65.1488 535.99 64.1667 541.88H60.2381H56.3095C55.3274 535.99 49.4345 535.99 48.4524 541.88H44.5238H40.5952C39.6131 535.99 33.7202 535.99 32.7381 541.88H28.8095H24.881C23.8988 535.99 18.006 535.99 17.0238 541.88H13.0952H0V0Z';
+const PAPER_WIDTH = 234;
+const PAPER_HEIGHT = 542;
+const NOTCH_COUNT = 15;
+const NOTCH_WIDTH = 7.8;
+const NOTCH_DEPTH = 5.9;
+const NOTCH_GAP =
+  (PAPER_WIDTH - NOTCH_COUNT * NOTCH_WIDTH) / (NOTCH_COUNT + 1);
+
+const toPathNumber = (value: number) => Number(value.toFixed(3));
+
+const createTopEdgePath = () => {
+  const commands = ['M0 0'];
+
+  for (let index = 0; index < NOTCH_COUNT; index += 1) {
+    const startX = NOTCH_GAP + index * (NOTCH_WIDTH + NOTCH_GAP);
+    const middleX = startX + NOTCH_WIDTH / 2;
+    const endX = startX + NOTCH_WIDTH;
+
+    commands.push(
+      `H${toPathNumber(startX)}`,
+      `Q${toPathNumber(middleX)} ${NOTCH_DEPTH} ${toPathNumber(endX)} 0`,
+    );
+  }
+
+  commands.push(`H${PAPER_WIDTH}`);
+
+  return commands.join(' ');
+};
+
+const createBottomEdgePath = () => {
+  const commands = [];
+
+  for (let index = NOTCH_COUNT - 1; index >= 0; index -= 1) {
+    const startX = NOTCH_GAP + index * (NOTCH_WIDTH + NOTCH_GAP);
+    const middleX = startX + NOTCH_WIDTH / 2;
+    const endX = startX + NOTCH_WIDTH;
+
+    commands.push(
+      `H${toPathNumber(endX)}`,
+      `Q${toPathNumber(middleX)} ${PAPER_HEIGHT - NOTCH_DEPTH} ${toPathNumber(startX)} ${PAPER_HEIGHT}`,
+    );
+  }
+
+  commands.push('H0');
+
+  return commands.join(' ');
+};
+
+const RECEIPT_PAPER_PATH = `${createTopEdgePath()} V${PAPER_HEIGHT} ${createBottomEdgePath()} Z`;
 
 function ReceiptPaperBackground() {
   return (
     <svg
       className="absolute inset-0 h-full w-full"
-      viewBox="0 0 234 542"
+      viewBox={`0 0 ${PAPER_WIDTH} ${PAPER_HEIGHT}`}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       preserveAspectRatio="none"
@@ -18,15 +65,23 @@ function ReceiptPaperBackground() {
         maskUnits="userSpaceOnUse"
         x="0"
         y="0"
-        width="234"
-        height="542"
+        width={PAPER_WIDTH}
+        height={PAPER_HEIGHT}
       >
         <path d={RECEIPT_PAPER_PATH} fill="white" />
       </mask>
       <g mask="url(#mog-card-receipt-mask)">
-        <path opacity="0.025" d="M233.095 0H0V541.88H233.095V0Z" fill="#C8852A" />
-        <path opacity="0.018" d="M5.2381 0H0V541.88H5.2381V0Z" fill="#1C1A14" />
-        <path opacity="0.018" d="M233.095 0H227.857V541.88H233.095V0Z" fill="#1C1A14" />
+        <path
+          opacity="0.025"
+          d={`M${PAPER_WIDTH} 0H0V${PAPER_HEIGHT}H${PAPER_WIDTH}V0Z`}
+          fill="#C8852A"
+        />
+        <path opacity="0.018" d={`M5.25 0H0V${PAPER_HEIGHT}H5.25V0Z`} fill="#1C1A14" />
+        <path
+          opacity="0.018"
+          d={`M${PAPER_WIDTH} 0H${PAPER_WIDTH - 5.25}V${PAPER_HEIGHT}H${PAPER_WIDTH}V0Z`}
+          fill="#1C1A14"
+        />
       </g>
     </svg>
   );
