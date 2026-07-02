@@ -75,7 +75,7 @@ function MogCardPage() {
   return (
     <main className="fixed inset-0 overflow-y-auto bg-[rgb(0_0_0_/_70%)] px-[31px] pt-[40px] pb-20">
       <div className="mx-auto w-full max-w-[390px]">
-        <div className="flex items-center justify-between">
+        <div className="mx-auto flex w-full max-w-[370px] items-center justify-between">
           <ActionButton label="닫기" onClick={() => navigate(-1)}>
             <X size={22} strokeWidth={2.2} />
           </ActionButton>
