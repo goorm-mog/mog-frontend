@@ -1,5 +1,6 @@
 import type { ReceiptCardData } from '@/pages/MeetRecord/types';
 import type { MockDb } from '@/mocks/fixtures';
+import { receiptCopy } from '@/pages/MeetRecord/constants/receiptCopy';
 
 type MeetingRecord = MockDb['meetingRecords'][number];
 type RoomMember = MockDb['roomMembers'][number];
@@ -15,8 +16,8 @@ export function mapMeetingRecordToReceipt(
   return {
     roundLabel: `${record.seq}차`,
     placeName: record.placeName,
-    placePlaceholder: '장소를 입력하세요',
-    menuPlaceholder: 'ex) 음식, 가격(1개당), 수량',
+    placePlaceholder: receiptCopy.placePlaceholder,
+    menuPlaceholder: receiptCopy.menuPlaceholder,
     items: record.menuItems.map(({ menuName, count, price }) => ({
       name: menuName,
       count,
@@ -30,7 +31,7 @@ export function mapMeetingRecordToReceipt(
     })),
     payerPlaceholder: `${record.payer.bankName} ${record.payer.accountNumber}`,
     memo: record.memo,
-    memoPlaceholder: '메모를 입력하세요',
+    memoPlaceholder: receiptCopy.memoPlaceholder,
     photoCount: record.photoCount,
   };
 }

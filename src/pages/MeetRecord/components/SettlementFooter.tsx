@@ -1,4 +1,5 @@
 import { Button } from '@/components/common/Button';
+import { formatWon } from '@/pages/MeetRecord/utils/receipt';
 import { colors } from '../../../constants/colors';
 import { typography } from '../../../constants/typography';
 
@@ -6,10 +7,6 @@ type SettlementFooterProps = {
   totalAmount: number;
   onSave: () => void;
 };
-
-function formatWon(amount: number) {
-  return amount.toLocaleString('ko-KR');
-}
 
 function SettlementFooter({ totalAmount, onSave }: SettlementFooterProps) {
   return (
