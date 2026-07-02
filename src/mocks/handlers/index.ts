@@ -1,1 +1,4 @@
-export { handlers } from './handlers';
+import { authHandlers } from './auth';
+import { scheduleHandlers } from './schedule';
+
+export const handlers = [...authHandlers, ...scheduleHandlers];
