@@ -1,3 +1,4 @@
+import { groupsDb } from '@/mocks/db/group';
 import { meetingRecordsDb } from '@/mocks/db/meetingRecord';
 import { roomsDb } from '@/mocks/db/room';
 import type { MogReceipt, MogReceiptPlace } from '@/pages/MogCard/types';
@@ -11,6 +12,7 @@ const RECEIPT_FOOTER = '세상의 모든 추억을 모읍니다. mog';
 
 const formatWon = (amount: number) => `₩ ${WON_FORMATTER.format(amount)}`;
 const formatAmount = (amount: number) => WON_FORMATTER.format(amount);
+const formatFileDate = (dateString: string) => dateString.slice(0, 10);
 
 const formatReceiptDate = (dateString: string) => {
   const date = new Date(dateString);
@@ -69,9 +71,10 @@ const mapReceiptPlaces = (
 
 export function getMogReceiptByRoomId(roomId: number): MogReceipt | null {
   const room = roomsDb.find((item) => item.roomId === roomId);
+  const group = groupsDb.find((item) => item.groupId === room?.groupId);
   const meetingRecords = meetingRecordsDb.filter((record) => record.roomId === roomId);
 
-  if (!room || meetingRecords.length === 0) {
+  if (!room || !group || meetingRecords.length === 0) {
     return null;
   }
 
@@ -81,6 +84,7 @@ export function getMogReceiptByRoomId(roomId: number): MogReceipt | null {
 
   return {
     title: RECEIPT_TITLE,
+    downloadFileName: `[MOG]${group.groupName}_${formatFileDate(room.promiseDate)}.png`,
     participantCount: participants.length,
     participants: participants.join(', '),
     datetime: formatReceiptDate(room.promiseDate),

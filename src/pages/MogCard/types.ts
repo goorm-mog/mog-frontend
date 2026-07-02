@@ -13,6 +13,7 @@ export type MogReceiptPlace = {
 
 export type MogReceipt = {
   title: string;
+  downloadFileName: string;
   participantCount: number;
   participants: string;
   datetime: string;

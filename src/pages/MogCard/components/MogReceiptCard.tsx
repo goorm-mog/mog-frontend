@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import { typography } from '@/constants/typography';
 import type { MogReceipt, MogReceiptPlace } from '@/pages/MogCard/types';
 import PolaroidFrame from './PolaroidFrame';
@@ -7,24 +8,29 @@ type MogReceiptCardProps = {
   receipt: MogReceipt;
 };
 
-function MogReceiptCard({ receipt }: MogReceiptCardProps) {
-  return (
-    <article className="relative mx-auto min-h-[980px] w-full max-w-[370px] overflow-hidden px-[34px] pt-[104px] pb-[88px] text-text drop-shadow-[1px_2px_6px_rgb(0_0_0_/_25%)]">
-      <ReceiptPaperBackground />
+const MogReceiptCard = forwardRef<HTMLElement, MogReceiptCardProps>(
+  function MogReceiptCard({ receipt }, ref) {
+    return (
+      <article
+        ref={ref}
+        className="relative mx-auto min-h-[980px] w-full max-w-[370px] overflow-hidden px-[34px] pt-[104px] pb-[88px] text-text drop-shadow-[1px_2px_6px_rgb(0_0_0_/_25%)]"
+      >
+        <ReceiptPaperBackground />
 
-      <div className="relative z-10">
-        <MogStamp />
-        <ReceiptHeader receipt={receipt} />
-        <Divider />
-        <ReceiptPlaces places={receipt.places} />
-        <Divider />
-        <ReceiptTotal totalCost={receipt.totalCost} />
-        <DoubleDivider />
-        <ReceiptFooter receipt={receipt} />
-      </div>
-    </article>
-  );
-}
+        <div className="relative z-10">
+          <MogStamp />
+          <ReceiptHeader receipt={receipt} />
+          <Divider />
+          <ReceiptPlaces places={receipt.places} />
+          <Divider />
+          <ReceiptTotal totalCost={receipt.totalCost} />
+          <DoubleDivider />
+          <ReceiptFooter receipt={receipt} />
+        </div>
+      </article>
+    );
+  },
+);
 
 function ReceiptHeader({ receipt }: MogReceiptCardProps) {
   return (
