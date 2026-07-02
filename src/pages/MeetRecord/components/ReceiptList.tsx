@@ -2,11 +2,15 @@ import { Plus } from 'lucide-react';
 import ReceiptCard from '@/pages/MeetRecord/components/ReceiptCard';
 import { useReceiptAutoScroll } from '@/pages/MeetRecord/hooks/useReceiptAutoScroll';
 import useWheelScrollSensitivity from '@/pages/MeetRecord/hooks/useWheelScrollSensitivity';
-import type { ReceiptCardData } from '@/pages/MeetRecord/types';
+import type {
+  ReceiptCardData,
+  ReceiptPayerOption,
+} from '@/pages/MeetRecord/types';
 import { colors } from '../../../constants/colors';
 
 type ReceiptListProps = {
   receipts: ReceiptCardData[];
+  payerOptions: readonly ReceiptPayerOption[];
   pendingScrollReceiptId: string | null;
   onAddReceipt: () => void;
   onReceiptChange: (receiptId: string, receipt: Partial<ReceiptCardData>) => void;
@@ -16,6 +20,7 @@ type ReceiptListProps = {
 
 function ReceiptList({
   receipts,
+  payerOptions,
   pendingScrollReceiptId,
   onAddReceipt,
   onReceiptChange,
@@ -48,6 +53,7 @@ function ReceiptList({
           <ReceiptCard
             key={receipt.roundLabel}
             receipt={receipt}
+            payerOptions={payerOptions}
             onReceiptChange={onReceiptChange}
             onDelete={onDeleteReceipt}
           />

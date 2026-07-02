@@ -10,6 +10,11 @@ export type ReceiptParticipant = {
   selected?: boolean;
 };
 
+export type ReceiptPayerOption = {
+  id: number;
+  label: string;
+};
+
 export type ReceiptCardData = {
   roundLabel: string;
   placeName: string;

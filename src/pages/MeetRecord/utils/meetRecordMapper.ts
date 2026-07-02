@@ -29,7 +29,7 @@ export function mapMeetingRecordToReceipt(
       name: nickname,
       selected: participantIds.has(roomMemberId),
     })),
-    payerPlaceholder: `${record.payer.bankName} ${record.payer.accountNumber}`,
+    payerPlaceholder: `${record.payer.nickname}(${record.payer.bankName} : ${record.payer.accountNumber})`,
     memo: record.memo,
     memoPlaceholder: receiptCopy.memoPlaceholder,
     photoCount: record.photoCount,

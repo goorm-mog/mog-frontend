@@ -30,6 +30,12 @@ function MeetRecord() {
     roomMembers: meetRecordMembers,
     initialReceipts: initialMeetRecordReceipts,
   });
+  const payerOptions = meetRecordMembers.map(
+    ({ roomMemberId, nickname, bankName, accountNumber }) => ({
+      id: roomMemberId,
+      label: `${nickname}(${bankName} : ${accountNumber})`,
+    }),
+  );
 
   return (
     <main
@@ -54,6 +60,7 @@ function MeetRecord() {
 
         <ReceiptList
           receipts={receiptCards}
+          payerOptions={payerOptions}
           pendingScrollReceiptId={pendingScrollReceiptId}
           onAddReceipt={addReceipt}
           onReceiptChange={updateReceipt}

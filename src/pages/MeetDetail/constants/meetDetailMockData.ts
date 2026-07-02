@@ -73,7 +73,7 @@ export const SETTLEMENT_ROUNDS: SettlementRound[] = [
       address: placeMeta?.address ?? '-',
       menu,
       totalCost: formatWon(getSettlementAmountBySeq(record.seq)),
-      payer: `${record.payer.nickname} | ${record.payer.bankName} ${record.payer.accountNumber}`,
+      payer: `${record.payer.nickname}(${record.payer.bankName} : ${record.payer.accountNumber})`,
       participants: record.participants.map((participant) => participant.nickname).join(', '),
       memo: record.memo || '-',
       imageCount: record.photoCount,

@@ -2,7 +2,10 @@ import { Sparkles, X } from 'lucide-react';
 import { useEffect, useState, type ReactNode } from 'react';
 import { usePlaceSearch } from '@/pages/MeetRecord/hooks/usePlaceSearch';
 import { useReceiptMenu } from '@/pages/MeetRecord/hooks/useReceiptMenu';
-import type { ReceiptCardData } from '@/pages/MeetRecord/types';
+import type {
+  ReceiptCardData,
+  ReceiptPayerOption,
+} from '@/pages/MeetRecord/types';
 import { formatWon } from '@/pages/MeetRecord/utils/receipt';
 import { colors } from '../../../constants/colors';
 import { typography } from '../../../constants/typography';
@@ -17,12 +20,14 @@ export type { ReceiptCardData } from '@/pages/MeetRecord/types';
 
 type ReceiptCardProps = {
   receipt: ReceiptCardData;
+  payerOptions: readonly ReceiptPayerOption[];
   onReceiptChange: (receiptId: string, receipt: Partial<ReceiptCardData>) => void;
   onDelete: (receiptId: string) => void;
 };
 
 function ReceiptCard({
   receipt,
+  payerOptions,
   onReceiptChange,
   onDelete,
 }: ReceiptCardProps) {
@@ -182,7 +187,13 @@ function ReceiptCard({
       </FormRow>
 
       <FormRow label="계좌">
-        <PayerSelect payerText={receipt.payerPlaceholder} />
+        <PayerSelect
+          payerText={receipt.payerPlaceholder}
+          options={payerOptions}
+          onSelectPayer={(payerPlaceholder) =>
+            onReceiptChange(receipt.roundLabel, { payerPlaceholder })
+          }
+        />
       </FormRow>
 
       <div className="my-7 border-t" style={{ borderColor: colors.border }} />
