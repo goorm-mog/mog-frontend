@@ -7,6 +7,7 @@ import ScheduleCard from '@/components/common/ScheduleCard/ScheduleCard';
 import ArchivalCard from '@/components/common/ArchivalCard/ArchivalCard';
 import DividerWithStar from '@/components/common/DividerWithStar';
 import HomeTabNav from '@/pages/Home/components/HomeTabNav';
+import CreateAppointmentSheet from '@/pages/Home/components/CreateAppointmentSheet';
 import {
   HOME_ARCHIVAL_ITEMS,
   HOME_DEFAULT_SELECTED,
@@ -20,6 +21,7 @@ function HomePage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<HomeTab>('all');
   const [selectedDate, setSelectedDate] = useState(HOME_DEFAULT_SELECTED);
+  const [isCreateAppointmentOpen, setIsCreateAppointmentOpen] = useState(false);
 
   const selectedDateKey = format(selectedDate, 'yyyy-MM-dd');
 
@@ -36,7 +38,15 @@ function HomePage() {
         onBack={() => navigate('/login')}
       />
 
-      <HomeTabNav activeTab={activeTab} onTabChange={setActiveTab} />
+      <HomeTabNav
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        onAddClick={() => {
+          if (activeTab === 'list') {
+            setIsCreateAppointmentOpen(true);
+          }
+        }}
+      />
 
       <main className="flex-1 px-4 pb-10">
         {(activeTab === 'all' || activeTab === 'calendar') && (
@@ -92,6 +102,13 @@ function HomePage() {
           </section>
         )}
       </main>
+
+      {isCreateAppointmentOpen ? (
+        <CreateAppointmentSheet
+          onClose={() => setIsCreateAppointmentOpen(false)}
+          onSubmit={() => setIsCreateAppointmentOpen(false)}
+        />
+      ) : null}
     </div>
   );
 }
