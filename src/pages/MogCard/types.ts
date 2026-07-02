@@ -20,6 +20,7 @@ export type MogReceipt = {
   places: MogReceiptPlace[];
   totalCost: string;
   photoCount: number;
+  representativePhotoUrl?: string;
   barcodeValue: string;
   footer: string;
 };

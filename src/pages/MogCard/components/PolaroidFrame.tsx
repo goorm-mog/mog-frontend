@@ -1,8 +1,12 @@
 type PolaroidFrameProps = {
   photoCount: number;
+  photoUrl?: string;
 };
 
-function PolaroidFrame({ photoCount }: PolaroidFrameProps) {
+const POLAROID_PHOTO_PATH =
+  'M203.108 26.7579L20.1106 32.1238C19.8711 32.1309 19.6822 32.3956 19.6887 32.7153L21.912 141.901C21.9185 142.221 22.1179 142.474 22.3574 142.467L205.355 137.102C205.595 137.094 205.784 136.83 205.777 136.51L203.554 27.3239C203.547 27.0043 203.348 26.7509 203.108 26.7579Z';
+
+function PolaroidFrame({ photoCount, photoUrl }: PolaroidFrameProps) {
   return (
     <div
       className="relative mx-auto w-[246px] rotate-[-1deg]"
@@ -22,8 +26,22 @@ function PolaroidFrame({ photoCount }: PolaroidFrameProps) {
             stroke="#9C9484"
             strokeWidth="1.4"
           />
+          {photoUrl ? (
+            <image
+              href={photoUrl}
+              x="19.6887"
+              y="26.7579"
+              width="186.088"
+              height="115.709"
+              preserveAspectRatio="xMidYMid slice"
+              clipPath="url(#mog-card-polaroid-photo-clip)"
+            />
+          ) : (
+            <path d={POLAROID_PHOTO_PATH} fill="url(#mog-card-polaroid-placeholder)" />
+          )}
           <path
-            d="M203.108 26.7579L20.1106 32.1238C19.8711 32.1309 19.6822 32.3956 19.6887 32.7153L21.912 141.901C21.9185 142.221 22.1179 142.474 22.3574 142.467L205.355 137.102C205.595 137.094 205.784 136.83 205.777 136.51L203.554 27.3239C203.547 27.0043 203.348 26.7509 203.108 26.7579Z"
+            d={POLAROID_PHOTO_PATH}
+            fill="transparent"
             stroke="#1C1A14"
             strokeOpacity="0.22"
             strokeWidth="1.4"
@@ -51,6 +69,21 @@ function PolaroidFrame({ photoCount }: PolaroidFrameProps) {
           />
         </g>
         <defs>
+          <clipPath id="mog-card-polaroid-photo-clip">
+            <path d={POLAROID_PHOTO_PATH} />
+          </clipPath>
+          <linearGradient
+            id="mog-card-polaroid-placeholder"
+            x1="29"
+            y1="36"
+            x2="195"
+            y2="135"
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop stopColor="#E8E2D6" />
+            <stop offset="0.48" stopColor="#FDF7F4" />
+            <stop offset="1" stopColor="#D8CDBB" />
+          </linearGradient>
           <filter
             id="mog-card-polaroid-shadow"
             x="0"

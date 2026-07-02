@@ -8,7 +8,7 @@ type MeetingRecord = (typeof meetingRecordsDb)[number];
 const WON_FORMATTER = new Intl.NumberFormat('ko-KR');
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const;
 const RECEIPT_TITLE = 'MOG';
-const RECEIPT_FOOTER = '세상의 모든 추억을 모읍니다. mog';
+const RECEIPT_FOOTER = '세상의 모든 추억을 모읍니다 • 모그';
 
 const formatWon = (amount: number) => `₩ ${WON_FORMATTER.format(amount)}`;
 const formatAmount = (amount: number) => WON_FORMATTER.format(amount);

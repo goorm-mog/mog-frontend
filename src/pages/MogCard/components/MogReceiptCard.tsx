@@ -13,7 +13,7 @@ const MogReceiptCard = forwardRef<HTMLElement, MogReceiptCardProps>(
     return (
       <article
         ref={ref}
-        className="relative mx-auto min-h-[980px] w-full max-w-[370px] overflow-hidden px-[34px] pt-[104px] pb-[88px] text-text drop-shadow-[1px_2px_6px_rgb(0_0_0_/_25%)]"
+        className="relative mx-auto min-h-[980px] w-full max-w-[370px] overflow-hidden px-[34px] pt-[124px] pb-[132px] text-text drop-shadow-[1px_2px_6px_rgb(0_0_0_/_25%)]"
       >
         <ReceiptPaperBackground />
 
@@ -118,7 +118,10 @@ function ReceiptTotal({ totalCost }: { totalCost: string }) {
 function ReceiptFooter({ receipt }: MogReceiptCardProps) {
   return (
     <section className="mt-14">
-      <PolaroidFrame photoCount={receipt.photoCount} />
+      <PolaroidFrame
+        photoCount={receipt.photoCount}
+        photoUrl={receipt.representativePhotoUrl}
+      />
       <BrandFooter barcodeValue={receipt.barcodeValue} footer={receipt.footer} />
     </section>
   );
