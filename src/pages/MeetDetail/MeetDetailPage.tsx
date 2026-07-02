@@ -42,6 +42,7 @@ function MeetDetailPage() {
                 size="md"
                 fullWidth={false}
                 className="gap-2 text-[16px] font-semibold"
+                onClick={() => navigate(`/${MEET_DETAIL.roomId}/mog-card`)}
               >
                 <ClipboardList size={18} strokeWidth={2.2} />
                 로그

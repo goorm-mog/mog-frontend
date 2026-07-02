@@ -52,6 +52,7 @@ const meetRoom = roomsDb[0];
 const meetSettlement = settlementsDb[0];
 
 export const MEET_DETAIL = {
+  roomId: meetRoom.roomId,
   title: meetRoom.roomName,
   datetime: formatMeetDate(meetRoom.promiseDate),
   perPersonCost: formatWon(
