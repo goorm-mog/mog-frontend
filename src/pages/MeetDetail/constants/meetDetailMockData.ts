@@ -28,7 +28,7 @@ export type SettlementRound = {
 
 const formatWon = (amount: number) => `₩ ${WON_FORMATTER.format(amount)}`;
 
-const formatPromiseDate = (dateString: string) => {
+const formatMeetDate = (dateString: string) => {
   const date = new Date(dateString);
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -48,14 +48,14 @@ const getSettlementAmountBySeq = (seq: number) =>
     return total + (detail?.amount ?? 0);
   }, 0) ?? 0;
 
-const promiseRoom = roomsDb[0];
-const promiseSettlement = settlementsDb[0];
+const meetRoom = roomsDb[0];
+const meetSettlement = settlementsDb[0];
 
-export const PROMISE_DETAIL = {
-  title: promiseRoom.roomName,
-  datetime: formatPromiseDate(promiseRoom.promiseDate),
+export const MEET_DETAIL = {
+  title: meetRoom.roomName,
+  datetime: formatMeetDate(meetRoom.promiseDate),
   perPersonCost: formatWon(
-    Math.round(promiseSettlement.totalCost / promiseRoom.members.length),
+    Math.round(meetSettlement.totalCost / meetRoom.members.length),
   ),
 };
 

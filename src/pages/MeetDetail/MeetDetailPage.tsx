@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import Button from '@/components/common/Button/Button';
 import StepHeader from '@/components/common/Header/StepHeader/StepHeader';
 import TopAppBar from '@/components/common/TopAppBar/TopAppBar';
-import SettlementCard from '@/pages/PromiseDetail/components/SettlementCard';
+import SettlementCard from '@/pages/MeetDetail/components/SettlementCard';
 import {
-  PROMISE_DETAIL,
+  MEET_DETAIL,
   SETTLEMENT_ROUNDS,
-} from '@/pages/PromiseDetail/constants/promiseDetailMockData';
+} from '@/pages/MeetDetail/constants/meetDetailMockData';
 
-function PromiseDetailPage() {
+function MeetDetailPage() {
   const navigate = useNavigate();
 
   return (
@@ -31,9 +31,9 @@ function PromiseDetailPage() {
           <div className="grid min-h-[112px] grid-cols-[1fr_130px]">
             <div className="flex flex-col justify-center gap-2 px-6">
               <h1 className="text-[23px] leading-[28px] font-semibold text-text">
-                {PROMISE_DETAIL.title}
+                {MEET_DETAIL.title}
               </h1>
-              <p className="text-caption text-dark-border">{PROMISE_DETAIL.datetime}</p>
+              <p className="text-caption text-dark-border">{MEET_DETAIL.datetime}</p>
             </div>
 
             <div className="flex items-center justify-center border-l border-dashed border-border">
@@ -54,7 +54,7 @@ function PromiseDetailPage() {
             <div className="flex items-center gap-4">
               <span className="text-[14px] leading-[17px] font-medium text-text">1인당</span>
               <span className="text-[22px] leading-[27px] font-semibold text-text">
-                {PROMISE_DETAIL.perPersonCost}
+                {MEET_DETAIL.perPersonCost}
               </span>
             </div>
           </div>
@@ -70,4 +70,4 @@ function PromiseDetailPage() {
   );
 }
 
-export default PromiseDetailPage;
+export default MeetDetailPage;
