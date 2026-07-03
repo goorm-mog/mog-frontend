@@ -44,6 +44,7 @@
     min-width: 390px;
     min-height: 844px;
     background-color: var(--color-background);
+    box-shadow: 0 0 12px rgba(94, 88, 71, 0.2);
   }
   * {
     @apply border-border outline-ring/50;
@@ -59,11 +60,7 @@
         transparent 10px calc(100% - 10px),
         rgb(27 26 18 / 2.5%) calc(100% - 10px) 100%
       ),
-      linear-gradient(
-        rgb(214 130 0 / 3.5%),
-        rgb(214 130 0 / 3.5%)
-      ),
-      #f5f0e8;
+      linear-gradient(rgb(214 130 0 / 3.5%), rgb(214 130 0 / 3.5%)), #f5f0e8;
     clip-path: polygon(
       0 7px,
       1.8% 0,

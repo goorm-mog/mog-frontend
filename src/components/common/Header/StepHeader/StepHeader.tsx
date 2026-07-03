@@ -10,6 +10,7 @@ interface StepHeaderProps {
   contentClassName?: string;
   showStep?: boolean;
   children?: ReactNode;
+  currentStep?: number;
 }
 
 function StepHeader({
@@ -18,6 +19,7 @@ function StepHeader({
   contentClassName,
   showStep = true,
   children,
+  currentStep,
 }: StepHeaderProps) {
   return (
     <div className={cn('p-4', wrapperClassName)}>
@@ -27,7 +29,7 @@ function StepHeader({
         className={contentClassName ?? 'flex flex-col justify-center items-center gap-2'}
       >
         {children ?? <TextLogo />}
-        {showStep ? <Step /> : null}
+        {showStep ? <Step currentStep={currentStep} /> : null}
       </RoughBorder>
     </div>
   );

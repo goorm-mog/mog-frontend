@@ -4,12 +4,12 @@ import { CalendarClock, Clock } from 'lucide-react';
 import StepHeader from '@/components/common/Header/StepHeader/StepHeader';
 import Calendar from '@/components/common/Calendar/Calendar';
 import Title from '@/components/common/Title/Title';
-import DateTabs from '@/components/Reschedule/DateTabs';
-import TimeTable from '@/components/Reschedule/TimeTable';
-import VoteResultTimeList from '@/components/Reschedule/VoteResultTimeList';
-import VoteCountBadge from '@/components/Reschedule/VoteCountBadge';
-import TimeSectionHeader from '@/components/Reschedule/TimeSectionHeader';
-import TopSlotsContent from '@/components/Reschedule/TopSlotsContent';
+import DateTabs from '@/pages/Reschedule/components/Time/DateTabs';
+import TimeTable from '@/pages/Reschedule/components/Time/TimeTable';
+import VoteResultTimeList from '@/pages/Reschedule/components/Time/VoteResultTimeList';
+import VoteCountBadge from '@/pages/Reschedule/components/Time/VoteCountBadge';
+import TimeSectionHeader from '@/pages/Reschedule/components/Time/TimeSectionHeader';
+import TopSlotsContent from '@/pages/Reschedule/components/Time/TopSlotsContent';
 import BottomSheet from '@/components/common/BottomSheet/BottomSheet';
 import Skeleton from '@/components/ui/Skeleton';
 import { fetchRoomMembers, fetchSlots, fetchSlotsIfExists, submitVotes } from '@/api/schedule';
@@ -87,7 +87,10 @@ function ParticipantReschedule() {
           setHasVoted(true);
         }
       } catch (e) {
-        showToast(e instanceof Error ? e.message : '초기 데이터를 불러오는 데 실패했습니다.', 'error');
+        showToast(
+          e instanceof Error ? e.message : '초기 데이터를 불러오는 데 실패했습니다.',
+          'error',
+        );
       } finally {
         setIsLoading(false);
       }
@@ -182,7 +185,9 @@ function ParticipantReschedule() {
                   mode="multiple"
                   availableDates={availableDates}
                   onSelectionChange={handleVoteDateChange}
-                  hintText={'드래그: 기간 · Shift + 드래그: 기간 추가\n클릭: 날짜 · ⌘ + 클릭: 날짜 추가'}
+                  hintText={
+                    '드래그: 기간 · Shift + 드래그: 기간 추가\n클릭: 날짜 · ⌘ + 클릭: 날짜 추가'
+                  }
                 />
                 {voteSelectedDates.length > 0 && (
                   <>

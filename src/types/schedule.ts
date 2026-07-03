@@ -26,6 +26,7 @@ export interface VoteResponse {
 export interface RoomMember {
   userId: number;
   nickname: string;
+  role: 'HOST' | 'MEMBER';
   profileImageUrl?: string;
 }
 
