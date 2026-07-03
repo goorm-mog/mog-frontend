@@ -8,6 +8,7 @@ const rawMeetingRecords = [
     roomId: 45,
     seq: 1,
     placeName: '합정 카페 A',
+    address: '서울시 마포구 합정동 45',
     memo: '디저트 괜찮았음',
     menuItems: [
       { menuName: '김치전', count: 1, price: 14000 },
@@ -32,6 +33,7 @@ const rawMeetingRecords = [
     roomId: 45,
     seq: 2,
     placeName: '냥냥 룰루',
+    address: '서울시 마포구 서교동 12',
     memo: '분위기 최고',
     menuItems: [
       { menuName: '하이볼', count: 2, price: 12000 },
