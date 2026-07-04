@@ -9,14 +9,12 @@ import { cn } from '@/lib/utils';
 
 type MySettlementSectionProps = {
   rows: SettlementTransferRow[];
-  copiedTransferId: string | null;
-  onCopyTransfer: (transferId: string) => void;
+  onCopyAccount: (accountText: string) => void;
 };
 
 function MySettlementSection({
   rows,
-  copiedTransferId,
-  onCopyTransfer,
+  onCopyAccount,
 }: MySettlementSectionProps) {
   return (
     <>
@@ -30,7 +28,6 @@ function MySettlementSection({
 
       <div className="flex flex-col gap-3">
         {rows.map(({ transfer, originalAmount, amountDelta, isRemoved }, index) => {
-          const isCopied = copiedTransferId === transfer.id;
           const isSend = transfer.direction === 'send';
 
           return (
@@ -96,9 +93,9 @@ function MySettlementSection({
                     <button
                       type="button"
                       className="w-fit bg-transparent p-0 text-left text-dark-border underline decoration-dashed underline-offset-3"
-                      onClick={() => onCopyTransfer(transfer.id)}
+                      onClick={() => onCopyAccount(transfer.accountText)}
                     >
-                      {isCopied ? '복사 완료' : transfer.accountText}
+                      {transfer.accountText}
                     </button>
                   )}
                 </div>

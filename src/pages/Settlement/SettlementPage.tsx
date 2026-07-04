@@ -1,6 +1,7 @@
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '@/components/common/Button/Button';
+import { useToast } from '@/hooks/useToast';
 import MemberBurdenSection from '@/pages/Settlement/components/MemberBurdenSection';
 import MySettlementSection from '@/pages/Settlement/components/MySettlementSection';
 import PlaceAdjustmentSection from '@/pages/Settlement/components/PlaceAdjustmentSection';
@@ -13,12 +14,45 @@ import useSettlementCompletion from '@/pages/Settlement/hooks/useSettlementCompl
 import useSettlementEditor from '@/pages/Settlement/hooks/useSettlementEditor';
 import { formatSettlementWon } from '@/pages/Settlement/utils/format';
 
+async function copyTextToClipboard(text: string) {
+  if (navigator.clipboard) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  textarea.select();
+
+  try {
+    if (!document.execCommand('copy')) {
+      throw new Error('Copy command failed');
+    }
+  } finally {
+    document.body.removeChild(textarea);
+  }
+}
+
 function SettlementPage() {
   const navigate = useNavigate();
-  const [copiedTransferId, setCopiedTransferId] = useState<string | null>(null);
+  const { showToast } = useToast();
   const navigateToMeetDetail = useCallback(() => {
     navigate('/meet-detail');
   }, [navigate]);
+  const copyAccountToClipboard = useCallback(
+    async (accountText: string) => {
+      try {
+        await copyTextToClipboard(accountText);
+        showToast('복사완료', 'success');
+      } catch {
+        showToast('계좌 복사에 실패했습니다.', 'error');
+      }
+    },
+    [showToast],
+  );
   const {
     isConfirmOpen,
     isCompletionOpen,
@@ -82,8 +116,7 @@ function SettlementPage() {
 
           <MySettlementSection
             rows={mySettlementTransferRows}
-            copiedTransferId={copiedTransferId}
-            onCopyTransfer={setCopiedTransferId}
+            onCopyAccount={copyAccountToClipboard}
           />
         </div>
       </section>
