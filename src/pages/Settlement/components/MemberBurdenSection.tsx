@@ -1,6 +1,5 @@
 import { ReceiptText } from 'lucide-react';
 import MemberAvatar from '@/components/common/MemberAvatar/MemberAvatar';
-import { SETTLEMENT_SUMMARY } from '@/pages/Settlement/constants/settlementMockData';
 import SectionTitle from '@/pages/Settlement/components/SectionTitle';
 import type { SettlementMemberBurden } from '@/pages/Settlement/types';
 import { formatTransferWon } from '@/pages/Settlement/utils/format';
@@ -8,16 +7,22 @@ import { calculateMemberTotalAmount } from '@/pages/Settlement/utils/settlementC
 
 type MemberBurdenSectionProps = {
   members: SettlementMemberBurden[];
+  memberCount: number;
+  currentRoomMemberId?: number;
 };
 
-function MemberBurdenSection({ members }: MemberBurdenSectionProps) {
+function MemberBurdenSection({
+  members,
+  memberCount,
+  currentRoomMemberId,
+}: MemberBurdenSectionProps) {
   return (
     <>
       <div className="mt-10 mb-4 flex items-center justify-between px-1">
         <SectionTitle
           icon={<ReceiptText size={17} strokeWidth={2.1} />}
           title="멤버별 부담금"
-          meta={`${SETTLEMENT_SUMMARY.memberCount}인`}
+          meta={`${memberCount}인`}
         />
       </div>
 
@@ -34,7 +39,7 @@ function MemberBurdenSection({ members }: MemberBurdenSectionProps) {
                 <MemberAvatar
                   name={member.name}
                   size="sm"
-                  selected={member.id === SETTLEMENT_SUMMARY.currentRoomMemberId}
+                  selected={member.id === currentRoomMemberId}
                   showCheck={false}
                   borderStyle="solid"
                   tone="point"

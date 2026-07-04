@@ -12,6 +12,19 @@ export type SettlementMemberBurden = {
   details: SettlementMemberDetail[];
 };
 
+export type SettlementSummary = {
+  groupName: string;
+  roomName: string;
+  datetime: string;
+  statusText: string;
+  totalCost: number;
+  totalCostText: string;
+  perPersonCostText: string;
+  receiptCount: number;
+  memberCount: number;
+  currentRoomMemberId?: number;
+};
+
 export type PlaceParticipant = {
   memberId: number;
   name: string;
@@ -26,6 +39,12 @@ export type PlaceSettlement = {
   targetAmount: number;
   included: boolean;
   participants: PlaceParticipant[];
+};
+
+export type SettlementPlacePayer = {
+  placeName: string;
+  payerId: number;
+  payerName: string;
 };
 
 export type SettlementTransfer = {

@@ -1,19 +1,38 @@
 import { useMemo, useState } from 'react';
 import {
+  SETTLEMENT_MEMBERS,
+  SETTLEMENT_PLACE_PAYERS,
+  SETTLEMENT_SUMMARY,
+} from '@/pages/Settlement/constants/settlementMockData';
+import {
   buildMySettlementTransferRows,
   calculateIncludedTargetAmount,
   calculateMemberTotalAmount,
   calculateMembersFromPlaces,
+  calculateMySettlementTransfers,
   calculatePlaceAllocatedAmount,
   createInitialPlaceSettlements,
 } from '@/pages/Settlement/utils/settlementCalculator';
 
 function useSettlementEditor() {
-  const [placeSettlements, setPlaceSettlements] = useState(createInitialPlaceSettlements);
+  const initialPlaceSettlements = useMemo(
+    () => createInitialPlaceSettlements(SETTLEMENT_MEMBERS, SETTLEMENT_PLACE_PAYERS),
+    [],
+  );
+  const originalMySettlementTransfers = useMemo(
+    () =>
+      calculateMySettlementTransfers(
+        initialPlaceSettlements,
+        SETTLEMENT_MEMBERS,
+        SETTLEMENT_SUMMARY.currentRoomMemberId,
+      ),
+    [initialPlaceSettlements],
+  );
+  const [placeSettlements, setPlaceSettlements] = useState(initialPlaceSettlements);
   const [expandedPlaceIds, setExpandedPlaceIds] = useState<Set<string>>(() => new Set());
 
   const settlementMembers = useMemo(
-    () => calculateMembersFromPlaces(placeSettlements),
+    () => calculateMembersFromPlaces(placeSettlements, SETTLEMENT_MEMBERS),
     [placeSettlements],
   );
   const allocatedTotalAmount = useMemo(
@@ -33,9 +52,22 @@ function useSettlementEditor() {
     [placeSettlements],
   );
   const remainingAmount = includedTargetAmount - allocatedTotalAmount;
-  const mySettlementTransferRows = useMemo(
-    () => buildMySettlementTransferRows(placeSettlements),
+  const currentMySettlementTransfers = useMemo(
+    () =>
+      calculateMySettlementTransfers(
+        placeSettlements,
+        SETTLEMENT_MEMBERS,
+        SETTLEMENT_SUMMARY.currentRoomMemberId,
+      ),
     [placeSettlements],
+  );
+  const mySettlementTransferRows = useMemo(
+    () =>
+      buildMySettlementTransferRows(
+        currentMySettlementTransfers,
+        originalMySettlementTransfers,
+      ),
+    [currentMySettlementTransfers, originalMySettlementTransfers],
   );
 
   const togglePlaceExpanded = (placeId: string) => {

@@ -1,8 +1,8 @@
 import SummaryMetric from '@/pages/Settlement/components/SummaryMetric';
-import type { SETTLEMENT_SUMMARY } from '@/pages/Settlement/constants/settlementMockData';
+import type { SettlementSummary } from '@/pages/Settlement/types';
 
 type SettlementHeroProps = {
-  summary: typeof SETTLEMENT_SUMMARY;
+  summary: SettlementSummary;
   allocatedTotalText: string;
   remainingText: string;
   hasRemainingAmount: boolean;

@@ -1,5 +1,9 @@
 import { currentUser, groupsDb, meetingRecordsDb, roomsDb, settlementsDb } from '@/mocks/db';
-import type { SettlementMemberBurden } from '@/pages/Settlement/types';
+import type {
+  SettlementMemberBurden,
+  SettlementPlacePayer,
+  SettlementSummary,
+} from '@/pages/Settlement/types';
 
 const WON_FORMATTER = new Intl.NumberFormat('ko-KR');
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const;
@@ -26,13 +30,13 @@ const currentRoomMember = room.members.find(
   ({ userId }) => userId === currentUser.userId,
 );
 
-export const SETTLEMENT_PLACE_PAYERS = records.map((record) => ({
+export const SETTLEMENT_PLACE_PAYERS: SettlementPlacePayer[] = records.map((record) => ({
   placeName: record.placeName,
   payerId: record.payer.roomMemberId,
   payerName: record.payer.nickname,
 }));
 
-export const SETTLEMENT_SUMMARY = {
+export const SETTLEMENT_SUMMARY: SettlementSummary = {
   groupName: group?.groupName ?? '그룹 이름',
   roomName: room.roomName,
   datetime: formatMeetDate(room.promiseDate),

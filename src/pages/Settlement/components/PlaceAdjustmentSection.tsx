@@ -1,6 +1,5 @@
 import { Check, ChevronDown, ReceiptText, X } from 'lucide-react';
 import MemberAvatar from '@/components/common/MemberAvatar/MemberAvatar';
-import { SETTLEMENT_SUMMARY } from '@/pages/Settlement/constants/settlementMockData';
 import SectionTitle from '@/pages/Settlement/components/SectionTitle';
 import type { PlaceSettlement } from '@/pages/Settlement/types';
 import { formatTransferWon } from '@/pages/Settlement/utils/format';
@@ -10,6 +9,7 @@ import { cn } from '@/lib/utils';
 type PlaceAdjustmentSectionProps = {
   places: PlaceSettlement[];
   includedPlaceCount: number;
+  currentRoomMemberId?: number;
   expandedPlaceIds: Set<string>;
   onTogglePlace: (placeId: string) => void;
   onTogglePlaceIncluded: (placeId: string) => void;
@@ -20,6 +20,7 @@ type PlaceAdjustmentSectionProps = {
 function PlaceAdjustmentSection({
   places,
   includedPlaceCount,
+  currentRoomMemberId,
   expandedPlaceIds,
   onTogglePlace,
   onTogglePlaceIncluded,
@@ -131,9 +132,7 @@ function PlaceAdjustmentSection({
                           <MemberAvatar
                             name={participant.name}
                             size="sm"
-                            selected={
-                              participant.memberId === SETTLEMENT_SUMMARY.currentRoomMemberId
-                            }
+                            selected={participant.memberId === currentRoomMemberId}
                             showCheck={false}
                             borderStyle="solid"
                             tone="point"

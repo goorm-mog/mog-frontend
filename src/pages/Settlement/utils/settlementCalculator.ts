@@ -1,11 +1,7 @@
-import {
-  SETTLEMENT_MEMBERS,
-  SETTLEMENT_PLACE_PAYERS,
-  SETTLEMENT_SUMMARY,
-} from '@/pages/Settlement/constants/settlementMockData';
 import type {
   PlaceSettlement,
   SettlementMemberBurden,
+  SettlementPlacePayer,
   SettlementTransfer,
   SettlementTransferRow,
 } from '@/pages/Settlement/types';
@@ -24,13 +20,16 @@ export const calculateEvenShareAmounts = (
   return Array.from({ length: participantCount }, () => baseAmount);
 };
 
-export const createInitialPlaceSettlements = (): PlaceSettlement[] => {
+export const createInitialPlaceSettlements = (
+  members: SettlementMemberBurden[],
+  placePayers: SettlementPlacePayer[],
+): PlaceSettlement[] => {
   const placesByName = new Map<string, PlaceSettlement>();
-  const payerByPlaceName = new Map<string, (typeof SETTLEMENT_PLACE_PAYERS)[number]>(
-    SETTLEMENT_PLACE_PAYERS.map((payer) => [payer.placeName, payer]),
+  const payerByPlaceName = new Map<string, SettlementPlacePayer>(
+    placePayers.map((payer) => [payer.placeName, payer]),
   );
 
-  for (const member of SETTLEMENT_MEMBERS) {
+  for (const member of members) {
     for (const detail of member.details) {
       const payer = payerByPlaceName.get(detail.placeName);
       const place =
@@ -82,8 +81,9 @@ export const calculateIncludedTargetAmount = (places: PlaceSettlement[]) =>
 
 export const calculateMembersFromPlaces = (
   places: PlaceSettlement[],
+  members: SettlementMemberBurden[],
 ): SettlementMemberBurden[] =>
-  SETTLEMENT_MEMBERS.map((member) => ({
+  members.map((member) => ({
     ...member,
     details: filterIncludedPlaces(places)
       .filter((place) =>
@@ -104,9 +104,10 @@ export const calculateMembersFromPlaces = (
 
 export const calculateMySettlementTransfers = (
   places: PlaceSettlement[],
+  members: SettlementMemberBurden[],
+  currentMemberId: number | undefined,
 ): SettlementTransfer[] => {
-  const memberById = new Map(SETTLEMENT_MEMBERS.map((member) => [member.id, member]));
-  const currentMemberId = SETTLEMENT_SUMMARY.currentRoomMemberId;
+  const memberById = new Map(members.map((member) => [member.id, member]));
   const currentMember = currentMemberId ? memberById.get(currentMemberId) : undefined;
   const balancesByCounterparty = new Map<
     number,
@@ -181,19 +182,15 @@ export const calculateMySettlementTransfers = (
     .filter((transfer) => transfer.amount > 0);
 };
 
-const ORIGINAL_MY_SETTLEMENT_TRANSFERS = calculateMySettlementTransfers(
-  createInitialPlaceSettlements(),
-);
-
 export const buildMySettlementTransferRows = (
-  places: PlaceSettlement[],
+  currentTransfers: SettlementTransfer[],
+  originalTransfers: SettlementTransfer[],
 ): SettlementTransferRow[] => {
-  const currentTransfers = calculateMySettlementTransfers(places);
   const currentTransferByKey = new Map(
     currentTransfers.map((transfer) => [transfer.transferKey, transfer]),
   );
   const originalTransferByKey = new Map(
-    ORIGINAL_MY_SETTLEMENT_TRANSFERS.map((transfer) => [transfer.transferKey, transfer]),
+    originalTransfers.map((transfer) => [transfer.transferKey, transfer]),
   );
 
   return [
@@ -207,7 +204,7 @@ export const buildMySettlementTransferRows = (
         isRemoved: false,
       };
     }),
-    ...ORIGINAL_MY_SETTLEMENT_TRANSFERS
+    ...originalTransfers
       .filter((transfer) => !currentTransferByKey.has(transfer.transferKey))
       .map((transfer) => ({
         transfer: {
