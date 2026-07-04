@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   SETTLEMENT_MEMBERS,
   SETTLEMENT_PLACE_PAYERS,
@@ -13,6 +13,11 @@ import {
   calculatePlaceAllocatedAmount,
   createInitialPlaceSettlements,
 } from '@/pages/Settlement/utils/settlementCalculator';
+import {
+  getSettlementDraftStorageKey,
+  readSavedSettlementDraft,
+  saveSettlementDraft,
+} from '@/pages/Settlement/utils/settlementDraftStorage';
 
 function useSettlementEditor() {
   const initialPlaceSettlements = useMemo(
@@ -28,7 +33,13 @@ function useSettlementEditor() {
       ),
     [initialPlaceSettlements],
   );
-  const [placeSettlements, setPlaceSettlements] = useState(initialPlaceSettlements);
+  const draftStorageKey = useMemo(
+    () => getSettlementDraftStorageKey(SETTLEMENT_SUMMARY.roomName),
+    [],
+  );
+  const [placeSettlements, setPlaceSettlements] = useState(() =>
+    readSavedSettlementDraft(draftStorageKey, initialPlaceSettlements),
+  );
   const [expandedPlaceIds, setExpandedPlaceIds] = useState<Set<string>>(() => new Set());
 
   const settlementMembers = useMemo(
@@ -138,6 +149,14 @@ function useSettlementEditor() {
     );
   };
 
+  const saveCurrentDraft = useCallback(() => {
+    saveSettlementDraft({
+      roomName: SETTLEMENT_SUMMARY.roomName,
+      savedAt: new Date().toISOString(),
+      places: placeSettlements,
+    });
+  }, [placeSettlements]);
+
   return {
     placeSettlements,
     expandedPlaceIds,
@@ -150,6 +169,7 @@ function useSettlementEditor() {
     togglePlaceIncluded,
     updatePlaceParticipantAmount,
     applyPlaceRemainderToMember,
+    saveCurrentDraft,
   };
 }
 

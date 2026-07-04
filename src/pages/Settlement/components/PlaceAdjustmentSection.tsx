@@ -1,4 +1,4 @@
-import { Check, ChevronDown, ReceiptText, X } from 'lucide-react';
+import { ChevronDown, ReceiptText } from 'lucide-react';
 import MemberAvatar from '@/components/common/MemberAvatar/MemberAvatar';
 import SectionTitle from '@/pages/Settlement/components/SectionTitle';
 import type { PlaceSettlement } from '@/pages/Settlement/types';
@@ -55,7 +55,7 @@ function PlaceAdjustmentSection({
                   : 'border-border text-dark-border',
               )}
             >
-              <div className="grid grid-cols-[1fr_auto_36px] items-start gap-3">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
                 <div className="min-w-0">
                   <h3 className="truncate text-[18px] leading-[22px] font-semibold">
                     {place.placeName}
@@ -65,59 +65,64 @@ function PlaceAdjustmentSection({
                     <span className="text-border">|</span>
                     <span>결제자 {place.payerName}</span>
                   </div>
+                </div>
+
+                <div className="flex shrink-0 flex-col items-end gap-4">
                   <button
                     type="button"
                     role="switch"
                     aria-checked={place.included}
                     className={cn(
-                      'mt-3 inline-flex h-7 items-center gap-1.5 rounded-[5px] border px-2.5 text-[12px] leading-[15px] font-semibold transition-colors',
+                      'relative h-[28px] w-[48px] rounded-full border transition-colors',
+                      'focus-visible:ring-2 focus-visible:ring-point/40 focus-visible:outline-none',
                       place.included
-                        ? 'border-point bg-point text-background'
-                        : 'border-border bg-dark-background text-dark-border',
+                        ? 'border-point bg-point'
+                        : 'border-border bg-dark-background',
                     )}
                     onClick={() => onTogglePlaceIncluded(place.id)}
+                    aria-label={`${place.placeName} ${
+                      place.included ? '정산 포함됨' : '정산 제외됨'
+                    }`}
                   >
-                    {place.included ? (
-                      <Check size={13} strokeWidth={2.4} />
-                    ) : (
-                      <X size={13} strokeWidth={2.4} />
-                    )}
-                    {place.included ? '정산 포함' : '정산 제외'}
-                  </button>
-                </div>
-                <div className="flex min-h-[54px] shrink-0 items-center text-right">
-                  <div>
-                    <strong
+                    <span
                       className={cn(
-                        'block text-[18px] leading-[22px] font-semibold',
-                        place.included ? 'text-text' : 'text-dark-border',
+                        'absolute top-1/2 left-0 size-[22px] -translate-y-1/2 rounded-full bg-background shadow-sm transition-transform',
+                        place.included ? 'translate-x-[22px]' : 'translate-x-[3px]',
                       )}
-                    >
-                      {place.included ? formatTransferWon(allocatedAmount) : '제외'}
-                    </strong>
-                    {!place.included ? (
-                      <span className="mt-1 block text-[11px] leading-[13px] font-semibold text-dark-border">
-                        합계 미반영
-                      </span>
-                    ) : null}
+                    />
+                  </button>
+
+                  <div>
+                    <div className="flex items-center justify-end gap-1">
+                      <strong
+                        className={cn(
+                          'block text-[18px] leading-[22px] font-semibold',
+                          place.included ? 'text-text' : 'text-dark-border',
+                        )}
+                      >
+                        {place.included ? formatTransferWon(allocatedAmount) : '제외'}
+                      </strong>
+                      <button
+                        type="button"
+                        className="grid size-8 place-items-center text-dark-border"
+                        onClick={() => onTogglePlace(place.id)}
+                        aria-label={`${place.placeName} 부담금 ${
+                          isExpanded ? '접기' : '펼치기'
+                        }`}
+                        aria-expanded={isExpanded}
+                      >
+                        <ChevronDown
+                          size={18}
+                          strokeWidth={2.2}
+                          className={cn(
+                            'transition-transform',
+                            isExpanded ? 'rotate-180' : 'rotate-0',
+                          )}
+                        />
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  className="grid size-8 place-items-center rounded-[5px] border border-dark-border text-dark-border"
-                  onClick={() => onTogglePlace(place.id)}
-                  aria-label={`${place.placeName} 부담금 ${isExpanded ? '접기' : '펼치기'}`}
-                  aria-expanded={isExpanded}
-                >
-                  <ChevronDown
-                    size={18}
-                    strokeWidth={2.2}
-                    className={cn(
-                      'transition-transform',
-                      isExpanded ? 'rotate-180' : 'rotate-0',
-                    )}
-                  />
-                </button>
               </div>
 
               {isExpanded ? (

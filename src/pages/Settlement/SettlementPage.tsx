@@ -77,7 +77,16 @@ function SettlementPage() {
     togglePlaceIncluded,
     updatePlaceParticipantAmount,
     applyPlaceRemainderToMember,
+    saveCurrentDraft,
   } = useSettlementEditor();
+  const saveDraft = useCallback(() => {
+    try {
+      saveCurrentDraft();
+      showToast('중간 저장되었습니다.', 'success');
+    } catch {
+      showToast('저장에 실패했습니다.', 'error');
+    }
+  }, [saveCurrentDraft, showToast]);
   const hasRemainingAmount = remainingAmount !== 0;
   const displaySummary = {
     ...SETTLEMENT_SUMMARY,
@@ -87,7 +96,7 @@ function SettlementPage() {
   return (
     <main className="flex h-screen flex-col overflow-hidden bg-background text-text">
       <section className="min-h-0 flex-1 overflow-y-auto pb-[104px]">
-        <SettlementHeader onBack={() => navigate(-1)} />
+        <SettlementHeader onBack={() => navigate(-1)} onSave={saveDraft} />
 
         <SettlementHero
           summary={displaySummary}
