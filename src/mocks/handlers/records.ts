@@ -8,6 +8,7 @@ import type {
   MeetingRecordResponse,
   MeetingRecordsData,
   MeetingRecordsResponse,
+  OcrResponse,
   RecordParticipant,
   RecordPayer,
   RoomRecordPhoto,
@@ -20,7 +21,12 @@ import type {
 const BASE = import.meta.env.VITE_API_BASE_URL ?? '';
 const MAX_ROOM_PHOTO_COUNT = 3;
 const MAX_IMAGE_FILE_SIZE = 10 * 1024 * 1024;
-const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const ALLOWED_IMAGE_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+]);
 
 const cloneRecord = (record: MeetingRecord): MeetingRecord => ({
   ...record,
@@ -182,6 +188,52 @@ export const recordsHandlers: HttpHandler[] = [
     const response: DeleteRoomPhotoResponse = createResponse(
       '삭제되었습니다.',
       '사진 삭제 성공',
+    );
+
+    return HttpResponse.json(response);
+  }),
+
+  http.post(`${BASE}/rooms/:roomId/records/ocr`, async ({ request }) => {
+    if (!request.headers.get('content-type')?.includes('multipart/form-data')) {
+      return HttpResponse.json(
+        createErrorResponse(400, 'multipart/form-data 형식으로 요청해주세요.'),
+        { status: 400 },
+      );
+    }
+
+    const formData = await request.formData();
+    const image = formData.get('image');
+
+    if (!(image instanceof File)) {
+      return HttpResponse.json(createErrorResponse(400, 'image 파일을 첨부해주세요.'), {
+        status: 400,
+      });
+    }
+
+    if (!ALLOWED_IMAGE_TYPES.has(image.type)) {
+      return HttpResponse.json(
+        createErrorResponse(400, 'jpg, jpeg, png, gif, webp 형식의 이미지만 업로드할 수 있습니다.'),
+        { status: 400 },
+      );
+    }
+
+    if (image.size > MAX_IMAGE_FILE_SIZE) {
+      return HttpResponse.json(
+        createErrorResponse(400, '이미지 파일은 최대 10MB까지 업로드할 수 있습니다.'),
+        { status: 400 },
+      );
+    }
+
+    const response: OcrResponse = createResponse(
+      {
+        storeName: '합정 카페 A',
+        totalAmount: 28000,
+        items: [
+          { name: '김치전', count: 1, price: 14000 },
+          { name: '어묵탕', count: null, price: 14000 },
+        ],
+      },
+      '영수증 OCR 분석 성공',
     );
 
     return HttpResponse.json(response);

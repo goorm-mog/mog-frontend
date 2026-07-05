@@ -48,6 +48,20 @@ export type UploadRoomPhotoResponse = ApiResponse<RoomRecordPhoto>;
 
 export type DeleteRoomPhotoResponse = ApiResponse<string>;
 
+export type OcrItem = {
+  name: string;
+  count: number | null;
+  price: number;
+};
+
+export type OcrData = {
+  storeName: string | null;
+  totalAmount: number;
+  items: OcrItem[];
+};
+
+export type OcrResponse = ApiResponse<OcrData>;
+
 export type UpsertRecordPayerRequest = {
   roomMemberId: number;
   bankName: string;

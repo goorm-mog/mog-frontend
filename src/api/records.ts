@@ -4,6 +4,7 @@ import type {
   DeleteRoomPhotoResponse,
   MeetingRecordResponse,
   MeetingRecordsResponse,
+  OcrResponse,
   UpdateMeetingRecordRequest,
   UploadRoomPhotoResponse,
 } from '@/types/records';
@@ -22,6 +23,17 @@ export function uploadRoomPhoto(roomId: number, image: File) {
 export function deleteRoomPhoto(roomId: number, photoId: number) {
   return apiFetch<DeleteRoomPhotoResponse>(`/rooms/${roomId}/photos/${photoId}`, {
     method: 'DELETE',
+  });
+}
+
+export function analyzeReceiptOcr(roomId: number, image: File) {
+  const body = new FormData();
+  body.append('image', image);
+
+  return apiFetch<OcrResponse>(`/rooms/${roomId}/records/ocr`, {
+    method: 'POST',
+    body,
+    headers: {},
   });
 }
 
