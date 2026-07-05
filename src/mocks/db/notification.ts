@@ -1,5 +1,14 @@
 export const notificationsDb = [
   {
+    notificationId: 4,
+    userId: 1,
+    type: 'GROUP_INVITED',
+    message: '[동네 맛집 탐방] 그룹에 초대됐습니다.',
+    roomId: 46,
+    isRead: false,
+    createdAt: '2026-07-05T08:29:34.783Z',
+  },
+  {
     notificationId: 3,
     userId: 1,
     type: 'SETTLEMENT_DONE',

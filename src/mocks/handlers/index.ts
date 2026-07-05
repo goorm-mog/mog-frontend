@@ -1,5 +1,6 @@
 import { authHandlers } from './auth';
 import { groupHandlers } from './group';
+import { notificationHandlers } from './notifications';
 import { recordsHandlers } from './records';
 import { roomHandlers } from './rooms';
 import { scheduleHandlers } from './schedule';
@@ -12,4 +13,5 @@ export const handlers = [
   ...scheduleHandlers,
   ...recordsHandlers,
   ...settlementHandlers,
+  ...notificationHandlers,
 ];
