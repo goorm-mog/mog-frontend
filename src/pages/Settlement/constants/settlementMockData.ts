@@ -25,47 +25,60 @@ const formatMeetDate = (dateString: string) => {
 const room = roomsDb[0];
 const settlement = settlementsDb[0];
 const group = groupsDb.find(({ groupId }) => groupId === room.groupId);
-const records = meetingRecordsDb.filter(({ roomId }) => roomId === room.roomId);
+const records = meetingRecordsDb;
 const currentRoomMember = room.members.find(
   ({ userId }) => userId === currentUser.userId,
 );
+const settlementRounds = Object.values(settlement.data.detail);
+const totalCost = settlementRounds.reduce((total, round) => total + round.totalCost, 0);
+
+const memberBurdenById = settlementRounds.reduce<
+  Record<number, SettlementMemberBurden>
+>((acc, round) => {
+  round.participants.forEach((participant) => {
+    const roomMember = room.members.find(
+      ({ roomMemberId }) => roomMemberId === participant.roomMemberId,
+    );
+
+    acc[participant.roomMemberId] ??= {
+      id: participant.roomMemberId,
+      name: participant.nickname,
+      bankText: roomMember?.bankName ?? '은행',
+      accountText: roomMember?.accountNumber ?? '-',
+      details: [],
+    };
+
+    acc[participant.roomMemberId].details.push({
+      id: `${participant.roomMemberId}-${round.seq}`,
+      placeName: round.placeName,
+      amount: participant.amount,
+    });
+  });
+
+  return acc;
+}, {});
 
 export const SETTLEMENT_PLACE_PAYERS: SettlementPlacePayer[] = records.map((record) => ({
   placeName: record.placeName,
-  payerId: record.payer.roomMemberId,
-  payerName: record.payer.nickname,
+  payerId: record.payer?.roomMemberId ?? 0,
+  payerName: record.payer?.nickname ?? '-',
 }));
 
 export const SETTLEMENT_SUMMARY: SettlementSummary = {
   groupName: group?.groupName ?? '그룹 이름',
   roomName: room.roomName,
   datetime: formatMeetDate(room.promiseDate),
-  statusText: settlement.isConfirmed ? '정산 완료' : '정산 대기',
-  totalCost: settlement.totalCost,
-  totalCostText: formatWon(settlement.totalCost),
-  perPersonCostText: formatWon(Math.round(settlement.totalCost / room.members.length)),
+  statusText: settlement.data.isConfirmed ? '정산 완료' : '정산 대기',
+  totalCost,
+  totalCostText: formatWon(totalCost),
+  perPersonCostText: formatWon(Math.round(totalCost / room.members.length)),
   receiptCount: records.length,
   memberCount: room.members.length,
   currentRoomMemberId: currentRoomMember?.roomMemberId,
 };
 
 export const SETTLEMENT_MEMBERS: SettlementMemberBurden[] =
-  settlement.memberSettlements
-    .map((member) => ({
-      id: member.roomMemberId,
-      name: member.nickname,
-      bankText:
-        room.members.find(({ roomMemberId }) => roomMemberId === member.roomMemberId)
-          ?.bankName ?? '은행',
-      accountText:
-        room.members.find(({ roomMemberId }) => roomMemberId === member.roomMemberId)
-          ?.accountNumber ?? '-',
-      details: member.detail.map((detail) => ({
-        id: `${member.roomMemberId}-${detail.seq}`,
-        placeName: detail.placeName,
-        amount: detail.amount,
-      })),
-    }))
+  Object.values(memberBurdenById)
     .sort((leftMember, rightMember) => {
       if (leftMember.id === currentRoomMember?.roomMemberId) return -1;
       if (rightMember.id === currentRoomMember?.roomMemberId) return 1;
