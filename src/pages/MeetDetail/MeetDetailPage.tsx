@@ -1,16 +1,55 @@
+import { useEffect, useState } from 'react';
 import { ClipboardList } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { fetchMeetingRecords } from '@/api/records';
+import { fetchRoom } from '@/api/rooms';
+import { fetchSettlement } from '@/api/settlement';
 import Button from '@/components/common/Button/Button';
 import StepHeader from '@/components/common/Header/StepHeader/StepHeader';
 import TopAppBar from '@/components/common/TopAppBar/TopAppBar';
 import SettlementCard from '@/pages/MeetDetail/components/SettlementCard';
-import {
-  MEET_DETAIL,
-  SETTLEMENT_ROUNDS,
-} from '@/pages/MeetDetail/constants/meetDetailMockData';
+import type { MeetDetail, SettlementRound } from '@/pages/MeetDetail/types';
+import { createMeetDetailViewModel } from '@/pages/MeetDetail/utils/meetDetailMapper';
+
+const DEFAULT_ROOM_ID = 45;
 
 function MeetDetailPage() {
   const navigate = useNavigate();
+  const [meetDetail, setMeetDetail] = useState<MeetDetail>({
+    roomId: DEFAULT_ROOM_ID,
+    title: '약속 이름',
+    datetime: '',
+    perPersonCost: '₩ 0',
+  });
+  const [settlementRounds, setSettlementRounds] = useState<SettlementRound[]>([]);
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadMeetDetail() {
+      const [roomResponse, recordsResponse, settlementResponse] = await Promise.all([
+        fetchRoom(DEFAULT_ROOM_ID),
+        fetchMeetingRecords(DEFAULT_ROOM_ID),
+        fetchSettlement(DEFAULT_ROOM_ID),
+      ]);
+      const viewModel = createMeetDetailViewModel(
+        roomResponse.data,
+        recordsResponse.data,
+        settlementResponse?.data ?? null,
+      );
+
+      if (!ignore) {
+        setMeetDetail(viewModel.detail);
+        setSettlementRounds(viewModel.rounds);
+      }
+    }
+
+    void loadMeetDetail();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   return (
     <>
@@ -31,9 +70,9 @@ function MeetDetailPage() {
           <div className="grid min-h-[112px] grid-cols-[1fr_130px]">
             <div className="flex flex-col justify-center gap-2 px-6">
               <h1 className="text-[23px] leading-[28px] font-semibold text-text">
-                {MEET_DETAIL.title}
+                {meetDetail.title}
               </h1>
-              <p className="text-caption text-dark-border">{MEET_DETAIL.datetime}</p>
+              <p className="text-caption text-dark-border">{meetDetail.datetime}</p>
             </div>
 
             <div className="flex items-center justify-center border-l border-dashed border-border">
@@ -42,7 +81,7 @@ function MeetDetailPage() {
                 size="md"
                 fullWidth={false}
                 className="gap-2 text-[16px] font-semibold"
-                onClick={() => navigate(`/${MEET_DETAIL.roomId}/mog-card`)}
+                onClick={() => navigate(`/${meetDetail.roomId}/mog-card`)}
               >
                 <ClipboardList size={18} strokeWidth={2.2} />
                 로그
@@ -55,14 +94,14 @@ function MeetDetailPage() {
             <div className="flex items-center gap-4">
               <span className="text-[14px] leading-[17px] font-medium text-text">1인당</span>
               <span className="text-[22px] leading-[27px] font-semibold text-text">
-                {MEET_DETAIL.perPersonCost}
+                {meetDetail.perPersonCost}
               </span>
             </div>
           </div>
         </StepHeader>
 
         <section className="mt-[22px] flex min-h-0 flex-1 flex-col gap-[23px] overflow-y-auto px-[14px] pb-[19px]">
-          {SETTLEMENT_ROUNDS.map((round) => (
+          {settlementRounds.map((round) => (
             <SettlementCard key={round.id} round={round} />
           ))}
         </section>

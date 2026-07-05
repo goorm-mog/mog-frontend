@@ -1,4 +1,7 @@
-import { meetingRecordPhotosDb, meetingRecordsDb, roomsDb, settlementsDb } from '@/mocks/db';
+import type { MeetDetail, SettlementRound } from '@/pages/MeetDetail/types';
+import type { MeetingRecord, MeetingRecordsData } from '@/types/records';
+import type { RoomDetail } from '@/types/rooms';
+import type { SettlementData } from '@/types/settlement';
 
 const WON_FORMATTER = new Intl.NumberFormat('ko-KR');
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const;
@@ -12,22 +15,8 @@ const PLACE_META_BY_SEQ = {
   },
 } as const;
 
-export type SettlementRound = {
-  id: number;
-  seq: number;
-  placeName: string;
-  address: string;
-  menu: string;
-  totalCost: string;
-  payer: string;
-  participants: string;
-  memo: string;
-  photoUrls?: string[];
-  imageCount: number;
-};
-
 const formatWon = (amount: number) => `₩ ${WON_FORMATTER.format(amount)}`;
-const formatPayer = (payer: (typeof meetingRecordsDb)[number]['payer']) =>
+const formatPayer = (payer: MeetingRecord['payer']) =>
   payer ? `${payer.nickname}(${payer.bankName} : ${payer.accountNumber})` : '-';
 
 const formatMeetDate = (dateString: string) => {
@@ -43,30 +32,30 @@ const formatMeetDate = (dateString: string) => {
   return `${year}. ${month}. ${day} (${WEEKDAYS[date.getDay()]}) ${displayHours}:${minutes} ${meridiem}`;
 };
 
-const getSettlementRoundBySeq = (seq: number) =>
-  settlementsDb[0]?.data.detail[String(seq)];
-
-const meetRoom = roomsDb[0];
-const meetSettlement = settlementsDb[0];
-const settlementRounds = Object.values(meetSettlement.data.detail);
-const totalCost = settlementRounds.reduce((total, round) => total + round.totalCost, 0);
-
-export const MEET_DETAIL = {
-  roomId: meetRoom.roomId,
-  title: meetRoom.roomName,
-  datetime: formatMeetDate(meetRoom.promiseDate),
-  perPersonCost: formatWon(Math.round(totalCost / meetRoom.members.length)),
-};
-
-export const SETTLEMENT_ROUNDS: SettlementRound[] = [
-  ...meetingRecordsDb.map((record) => {
+export function createMeetDetailViewModel(
+  room: RoomDetail,
+  recordsData: MeetingRecordsData,
+  settlement: SettlementData | null,
+) {
+  const settlementRounds = Object.values(settlement?.detail ?? {});
+  const totalCost =
+    settlementRounds.length > 0
+      ? settlementRounds.reduce((total, round) => total + round.totalCost, 0)
+      : recordsData.records.reduce((total, record) => total + record.totalCost, 0);
+  const detail: MeetDetail = {
+    roomId: room.roomId,
+    title: room.roomName,
+    datetime: formatMeetDate(room.promiseDate),
+    perPersonCost: formatWon(Math.round(totalCost / Math.max(1, room.members.length))),
+  };
+  const rounds: SettlementRound[] = recordsData.records.map((record) => {
     const placeMeta = PLACE_META_BY_SEQ[record.seq as keyof typeof PLACE_META_BY_SEQ];
-    const settlementRound = getSettlementRoundBySeq(record.seq);
+    const settlementRound = settlement?.detail[String(record.seq)];
     const menu = record.participants
       .map(({ nickname, amount }) => `${nickname} ${formatWon(amount)}`)
       .join(', ');
-    const photoUrls = meetingRecordPhotosDb
-      .filter((_, index) => index % meetingRecordsDb.length === record.seq - 1)
+    const photoUrls = recordsData.photos
+      .filter((_, index) => index % recordsData.records.length === record.seq - 1)
       .map(({ s3Url }) => s3Url);
 
     return {
@@ -82,5 +71,10 @@ export const SETTLEMENT_ROUNDS: SettlementRound[] = [
       photoUrls,
       imageCount: photoUrls.length,
     };
-  }),
-];
+  });
+
+  return {
+    detail,
+    rounds,
+  };
+}

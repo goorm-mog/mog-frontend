@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import type { SettlementRound } from '@/pages/MeetDetail/constants/meetDetailMockData';
+import type { SettlementRound } from '@/pages/MeetDetail/types';
 
 const detailRows = [
   { label: '주소', key: 'address' },
