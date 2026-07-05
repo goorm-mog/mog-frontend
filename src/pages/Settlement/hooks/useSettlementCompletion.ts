@@ -15,6 +15,10 @@ function useSettlementCompletion({
   const [isSettlementCompleted, setIsSettlementCompleted] = useState(initiallyCompleted);
 
   useEffect(() => {
+    setIsSettlementCompleted(initiallyCompleted);
+  }, [initiallyCompleted]);
+
+  useEffect(() => {
     if (!isCompletionOpen) return undefined;
 
     const countdownId = window.setInterval(() => {

@@ -1,5 +1,7 @@
-import { useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { fetchRoom } from '@/api/rooms';
+import { confirmSettlement, fetchSettlement } from '@/api/settlement';
 import Button from '@/components/common/Button/Button';
 import { useToast } from '@/hooks/useToast';
 import MemberBurdenSection from '@/pages/Settlement/components/MemberBurdenSection';
@@ -9,10 +11,27 @@ import SettlementCompletionDialog from '@/pages/Settlement/components/Settlement
 import SettlementConfirmDialog from '@/pages/Settlement/components/SettlementConfirmDialog';
 import SettlementHeader from '@/pages/Settlement/components/SettlementHeader';
 import SettlementHero from '@/pages/Settlement/components/SettlementHero';
-import { SETTLEMENT_SUMMARY } from '@/pages/Settlement/constants/settlementMockData';
 import useSettlementCompletion from '@/pages/Settlement/hooks/useSettlementCompletion';
 import useSettlementEditor from '@/pages/Settlement/hooks/useSettlementEditor';
 import { formatSettlementWon } from '@/pages/Settlement/utils/format';
+import { createSettlementViewModel } from '@/pages/Settlement/utils/settlementMapper';
+import type {
+  SettlementMemberBurden,
+  SettlementPlacePayer,
+  SettlementSummary,
+} from '@/pages/Settlement/types';
+
+const EMPTY_SUMMARY: SettlementSummary = {
+  groupName: '그룹 이름',
+  roomName: '약속 이름',
+  datetime: '',
+  statusText: '정산 대기',
+  totalCost: 0,
+  totalCostText: '₩ 0',
+  perPersonCostText: '₩ 0',
+  receiptCount: 0,
+  memberCount: 0,
+};
 
 async function copyTextToClipboard(text: string) {
   if (navigator.clipboard) {
@@ -38,7 +57,49 @@ async function copyTextToClipboard(text: string) {
 
 function SettlementPage() {
   const navigate = useNavigate();
+  const { roomId: roomIdParam } = useParams<{ roomId: string }>();
+  const roomId = Number(roomIdParam);
   const { showToast } = useToast();
+  const [summary, setSummary] = useState<SettlementSummary>(EMPTY_SUMMARY);
+  const [members, setMembers] = useState<SettlementMemberBurden[]>([]);
+  const [placePayers, setPlacePayers] = useState<SettlementPlacePayer[]>([]);
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadSettlement() {
+      if (!Number.isFinite(roomId)) return;
+
+      try {
+        const [roomResponse, settlementResponse] = await Promise.all([
+          fetchRoom(roomId),
+          fetchSettlement(roomId),
+        ]);
+
+        if (!settlementResponse || ignore) return;
+
+        const viewModel = createSettlementViewModel(
+          roomResponse.data,
+          settlementResponse.data,
+        );
+
+        setSummary(viewModel.summary);
+        setMembers(viewModel.members);
+        setPlacePayers(viewModel.placePayers);
+      } catch {
+        if (!ignore) {
+          showToast('정산 정보를 불러오지 못했습니다.', 'error');
+        }
+      }
+    }
+
+    void loadSettlement();
+
+    return () => {
+      ignore = true;
+    };
+  }, [roomId, showToast]);
+
   const navigateToMeetDetail = useCallback(() => {
     navigate('/meet-detail');
   }, [navigate]);
@@ -62,7 +123,7 @@ function SettlementPage() {
     closeSettlementConfirm,
     completeSettlement,
   } = useSettlementCompletion({
-    initiallyCompleted: SETTLEMENT_SUMMARY.statusText === '정산 완료',
+    initiallyCompleted: summary.statusText === '정산 완료',
     onCompleteRedirect: navigateToMeetDetail,
   });
   const {
@@ -78,7 +139,11 @@ function SettlementPage() {
     updatePlaceParticipantAmount,
     applyPlaceRemainderToMember,
     saveCurrentDraft,
-  } = useSettlementEditor();
+  } = useSettlementEditor({
+    members,
+    placePayers,
+    summary,
+  });
   const saveDraft = useCallback(() => {
     try {
       saveCurrentDraft();
@@ -88,10 +153,21 @@ function SettlementPage() {
     }
   }, [saveCurrentDraft, showToast]);
   const hasRemainingAmount = remainingAmount !== 0;
-  const displaySummary = {
-    ...SETTLEMENT_SUMMARY,
-    statusText: isSettlementCompleted ? '정산 완료' : SETTLEMENT_SUMMARY.statusText,
-  };
+  const displaySummary = useMemo(() => ({
+    ...summary,
+    statusText: isSettlementCompleted ? '정산 완료' : summary.statusText,
+  }), [isSettlementCompleted, summary]);
+  const confirmSettlementComplete = useCallback(async () => {
+    try {
+      if (Number.isFinite(roomId)) {
+        await confirmSettlement(roomId);
+      }
+      completeSettlement();
+    } catch {
+      showToast('정산 완료 처리에 실패했습니다.', 'error');
+      closeSettlementConfirm();
+    }
+  }, [closeSettlementConfirm, completeSettlement, roomId, showToast]);
 
   return (
     <main className="flex h-screen flex-col overflow-hidden bg-background text-text">
@@ -109,7 +185,7 @@ function SettlementPage() {
           <PlaceAdjustmentSection
             places={placeSettlements}
             includedPlaceCount={includedPlaceCount}
-            currentRoomMemberId={SETTLEMENT_SUMMARY.currentRoomMemberId}
+            currentRoomMemberId={summary.currentRoomMemberId}
             expandedPlaceIds={expandedPlaceIds}
             onTogglePlace={togglePlaceExpanded}
             onTogglePlaceIncluded={togglePlaceIncluded}
@@ -119,8 +195,8 @@ function SettlementPage() {
 
           <MemberBurdenSection
             members={settlementMembers}
-            memberCount={SETTLEMENT_SUMMARY.memberCount}
-            currentRoomMemberId={SETTLEMENT_SUMMARY.currentRoomMemberId}
+            memberCount={summary.memberCount}
+            currentRoomMemberId={summary.currentRoomMemberId}
           />
 
           <MySettlementSection
@@ -145,7 +221,7 @@ function SettlementPage() {
       {isConfirmOpen ? (
         <SettlementConfirmDialog
           onClose={closeSettlementConfirm}
-          onConfirm={completeSettlement}
+          onConfirm={confirmSettlementComplete}
         />
       ) : null}
 
