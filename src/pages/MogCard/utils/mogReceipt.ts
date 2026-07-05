@@ -1,5 +1,5 @@
 import { groupsDb } from '@/mocks/db/group';
-import { meetingRecordsDb } from '@/mocks/db/meetingRecord';
+import { meetingRecordPhotosDb, meetingRecordsDb } from '@/mocks/db/meetingRecord';
 import { roomsDb } from '@/mocks/db/room';
 import type { MogReceipt, MogReceiptPlace } from '@/pages/MogCard/types';
 
@@ -9,6 +9,10 @@ const WON_FORMATTER = new Intl.NumberFormat('ko-KR');
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const;
 const RECEIPT_TITLE = 'MOG';
 const RECEIPT_FOOTER = '세상의 모든 추억을 모읍니다 • 모그';
+const PLACE_ADDRESS_BY_SEQ: Record<number, string> = {
+  1: '서울시 마포구 합정동 45',
+  2: '서울시 마포구 서교동 12',
+};
 
 const formatWon = (amount: number) => `₩ ${WON_FORMATTER.format(amount)}`;
 const formatAmount = (amount: number) => WON_FORMATTER.format(amount);
@@ -61,26 +65,26 @@ const mapReceiptPlaces = (
   meetingRecords.map((record) => ({
     id: record.recordId,
     placeName: record.placeName,
-    address: record.address,
-    totalCost: formatWon(record.totalPrice),
-    items: record.menuItems.map(({ menuName, count, price }) => ({
-      name: count > 1 ? `${menuName} x ${count}` : menuName,
-      amount: formatAmount(count * price),
+    address: PLACE_ADDRESS_BY_SEQ[record.seq] ?? '-',
+    totalCost: formatWon(record.totalCost),
+    items: record.participants.map(({ nickname, amount }) => ({
+      name: nickname,
+      amount: formatAmount(amount),
     })),
   }));
 
 export function getMogReceiptByRoomId(roomId: number): MogReceipt | null {
   const room = roomsDb.find((item) => item.roomId === roomId);
   const group = groupsDb.find((item) => item.groupId === room?.groupId);
-  const meetingRecords = meetingRecordsDb.filter((record) => record.roomId === roomId);
+  const meetingRecords = room ? meetingRecordsDb : [];
 
   if (!room || !group || meetingRecords.length === 0) {
     return null;
   }
 
   const participants = getParticipantNames(meetingRecords);
-  const photoCount = sumByRecord(meetingRecords, (record) => record.photoCount);
-  const totalCost = sumByRecord(meetingRecords, (record) => record.totalPrice);
+  const photoCount = meetingRecordPhotosDb.length;
+  const totalCost = sumByRecord(meetingRecords, (record) => record.totalCost);
 
   return {
     title: RECEIPT_TITLE,
