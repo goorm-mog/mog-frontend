@@ -6,6 +6,16 @@ export type AuthUser = {
 
 export type LoginResponse = {
   accessToken: string;
-  refreshToken: string;
   user: AuthUser;
+};
+
+export type ReissueResponse = {
+  accessToken: string;
+};
+
+export type ApiResponse<T> = {
+  status: number;
+  code: string;
+  message: string;
+  data: T;
 };
