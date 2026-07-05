@@ -1,9 +1,7 @@
-import type { MockDb } from '@/mocks/fixtures';
 import { meetDateFallback } from '@/pages/MeetRecord/constants/receiptCopy';
+import type { ConfirmScheduleResponse } from '@/types/schedule';
 
-type ConfirmedSchedule = MockDb['confirmedSchedules'][number];
-
-export function formatMeetDate(schedule?: ConfirmedSchedule) {
+export function formatMeetDate(schedule?: ConfirmScheduleResponse | null) {
   if (!schedule) {
     return meetDateFallback;
   }

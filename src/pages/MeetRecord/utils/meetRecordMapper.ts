@@ -1,9 +1,7 @@
 import type { ReceiptCardData } from '@/pages/MeetRecord/types';
-import type { MockDb } from '@/mocks/fixtures';
 import { receiptCopy } from '@/pages/MeetRecord/constants/receiptCopy';
-
-type MeetingRecord = MockDb['meetingRecords'][number];
-type RoomMember = MockDb['roomMembers'][number];
+import type { MeetingRecord } from '@/types/records';
+import type { RoomMember } from '@/types/rooms';
 
 export function mapMeetingRecordToReceipt(
   record: MeetingRecord,

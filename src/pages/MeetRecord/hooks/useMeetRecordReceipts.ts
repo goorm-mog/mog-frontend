@@ -1,5 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
-import type { MockDb } from '@/mocks/fixtures';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReceiptCardData } from '@/pages/MeetRecord/types';
 import {
   createEmptyReceipt,
@@ -10,8 +9,7 @@ import {
   readSavedReceipts,
   saveMeetRecord,
 } from '@/pages/MeetRecord/utils/meetRecordStorage';
-
-type RoomMember = MockDb['roomMembers'][number];
+import type { RoomMember } from '@/types/rooms';
 
 type UseMeetRecordReceiptsParams = {
   roomId: number;
@@ -32,6 +30,14 @@ export function useMeetRecordReceipts({
     null,
   );
   const nextReceiptSeqRef = useRef(getNextReceiptSeq(receiptCards));
+
+  useEffect(() => {
+    setReceiptCards(readSavedReceipts(storageKey, initialReceipts));
+  }, [initialReceipts, storageKey]);
+
+  useEffect(() => {
+    nextReceiptSeqRef.current = getNextReceiptSeq(receiptCards);
+  }, [receiptCards]);
 
   const totalAmount = receiptCards.reduce(
     (sum, receipt) => sum + receipt.totalAmount,

@@ -1,8 +1,6 @@
-import type { MockDb } from '@/mocks/fixtures';
 import { receiptCopy } from '@/pages/MeetRecord/constants/receiptCopy';
 import type { ReceiptCardData } from '@/pages/MeetRecord/types';
-
-type RoomMember = MockDb['roomMembers'][number];
+import type { RoomMember } from '@/types/rooms';
 
 function getReceiptSeq(receipt: ReceiptCardData) {
   return Number.parseInt(receipt.roundLabel, 10) || 0;
