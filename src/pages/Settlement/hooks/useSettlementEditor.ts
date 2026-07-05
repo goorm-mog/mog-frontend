@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   buildMySettlementTransferRows,
   calculateIncludedTargetAmount,
@@ -25,6 +25,12 @@ type UseSettlementEditorParams = {
   summary: SettlementSummary;
 };
 
+type PlaceSettlementsState = {
+  draftStorageKey: string;
+  initialPlaceSettlements: ReturnType<typeof createInitialPlaceSettlements>;
+  places: ReturnType<typeof createInitialPlaceSettlements>;
+};
+
 function useSettlementEditor({ members, placePayers, summary }: UseSettlementEditorParams) {
   const initialPlaceSettlements = useMemo(
     () => createInitialPlaceSettlements(members, placePayers),
@@ -43,14 +49,41 @@ function useSettlementEditor({ members, placePayers, summary }: UseSettlementEdi
     () => getSettlementDraftStorageKey(summary.roomName),
     [summary.roomName],
   );
-  const [placeSettlements, setPlaceSettlements] = useState(() =>
-    readSavedSettlementDraft(draftStorageKey, initialPlaceSettlements),
-  );
+  const [placeSettlementsState, setPlaceSettlementsState] =
+    useState<PlaceSettlementsState>(() => ({
+      draftStorageKey,
+      initialPlaceSettlements,
+      places: readSavedSettlementDraft(draftStorageKey, initialPlaceSettlements),
+    }));
   const [expandedPlaceIds, setExpandedPlaceIds] = useState<Set<string>>(() => new Set());
+  let placeSettlements = placeSettlementsState.places;
 
-  useEffect(() => {
-    setPlaceSettlements(readSavedSettlementDraft(draftStorageKey, initialPlaceSettlements));
-  }, [draftStorageKey, initialPlaceSettlements]);
+  if (
+    placeSettlementsState.draftStorageKey !== draftStorageKey ||
+    placeSettlementsState.initialPlaceSettlements !== initialPlaceSettlements
+  ) {
+    placeSettlements = readSavedSettlementDraft(draftStorageKey, initialPlaceSettlements);
+    setPlaceSettlementsState({
+      draftStorageKey,
+      initialPlaceSettlements,
+      places: placeSettlements,
+    });
+  }
+
+  const setPlaceSettlements = useCallback(
+    (
+      updater:
+        | PlaceSettlementsState['places']
+        | ((currentPlaces: PlaceSettlementsState['places']) => PlaceSettlementsState['places']),
+    ) => {
+      setPlaceSettlementsState((currentState) => ({
+        ...currentState,
+        places:
+          typeof updater === 'function' ? updater(currentState.places) : updater,
+      }));
+    },
+    [],
+  );
 
   const settlementMembers = useMemo(
     () => calculateMembersFromPlaces(placeSettlements, members),

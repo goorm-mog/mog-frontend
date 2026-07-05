@@ -5,6 +5,11 @@ type UseSettlementCompletionParams = {
   onCompleteRedirect: () => void;
 };
 
+type SettlementCompletedState = {
+  initialValue: boolean;
+  value: boolean;
+};
+
 function useSettlementCompletion({
   initiallyCompleted,
   onCompleteRedirect,
@@ -12,11 +17,21 @@ function useSettlementCompletion({
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isCompletionOpen, setIsCompletionOpen] = useState(false);
   const [countdownSeconds, setCountdownSeconds] = useState(3);
-  const [isSettlementCompleted, setIsSettlementCompleted] = useState(initiallyCompleted);
+  const [settlementCompletedState, setSettlementCompletedState] =
+    useState<SettlementCompletedState>({
+      initialValue: initiallyCompleted,
+      value: initiallyCompleted,
+    });
 
-  useEffect(() => {
-    setIsSettlementCompleted(initiallyCompleted);
-  }, [initiallyCompleted]);
+  let isSettlementCompleted = settlementCompletedState.value;
+
+  if (settlementCompletedState.initialValue !== initiallyCompleted) {
+    isSettlementCompleted = initiallyCompleted;
+    setSettlementCompletedState({
+      initialValue: initiallyCompleted,
+      value: initiallyCompleted,
+    });
+  }
 
   useEffect(() => {
     if (!isCompletionOpen) return undefined;
@@ -43,7 +58,10 @@ function useSettlementCompletion({
   };
 
   const completeSettlement = () => {
-    setIsSettlementCompleted(true);
+    setSettlementCompletedState((currentState) => ({
+      ...currentState,
+      value: true,
+    }));
     setIsConfirmOpen(false);
     setCountdownSeconds(3);
     setIsCompletionOpen(true);

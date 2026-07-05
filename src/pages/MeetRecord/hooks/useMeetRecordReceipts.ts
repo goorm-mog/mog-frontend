@@ -17,23 +17,52 @@ type UseMeetRecordReceiptsParams = {
   initialReceipts: ReceiptCardData[];
 };
 
+type ReceiptCardsState = {
+  initialReceipts: ReceiptCardData[];
+  receipts: ReceiptCardData[];
+  storageKey: string;
+};
+
 export function useMeetRecordReceipts({
   roomId,
   roomMembers,
   initialReceipts,
 }: UseMeetRecordReceiptsParams) {
   const storageKey = useMemo(() => getMeetRecordStorageKey(roomId), [roomId]);
-  const [receiptCards, setReceiptCards] = useState<ReceiptCardData[]>(() =>
-    readSavedReceipts(storageKey, initialReceipts),
-  );
+  const [receiptCardsState, setReceiptCardsState] = useState<ReceiptCardsState>(() => ({
+    initialReceipts,
+    receipts: readSavedReceipts(storageKey, initialReceipts),
+    storageKey,
+  }));
   const [pendingScrollReceiptId, setPendingScrollReceiptId] = useState<string | null>(
     null,
   );
+  let receiptCards = receiptCardsState.receipts;
+
+  if (
+    receiptCardsState.storageKey !== storageKey ||
+    receiptCardsState.initialReceipts !== initialReceipts
+  ) {
+    receiptCards = readSavedReceipts(storageKey, initialReceipts);
+    setReceiptCardsState({ initialReceipts, receipts: receiptCards, storageKey });
+  }
+
   const nextReceiptSeqRef = useRef(getNextReceiptSeq(receiptCards));
 
-  useEffect(() => {
-    setReceiptCards(readSavedReceipts(storageKey, initialReceipts));
-  }, [initialReceipts, storageKey]);
+  const setReceiptCards = useCallback(
+    (
+      updater:
+        | ReceiptCardData[]
+        | ((currentReceipts: ReceiptCardData[]) => ReceiptCardData[]),
+    ) => {
+      setReceiptCardsState((currentState) => ({
+        ...currentState,
+        receipts:
+          typeof updater === 'function' ? updater(currentState.receipts) : updater,
+      }));
+    },
+    [],
+  );
 
   useEffect(() => {
     nextReceiptSeqRef.current = getNextReceiptSeq(receiptCards);
@@ -52,14 +81,14 @@ export function useMeetRecordReceipts({
         ),
       );
     },
-    [],
+    [setReceiptCards],
   );
 
   const deleteReceipt = useCallback((receiptId: string) => {
     setReceiptCards((currentReceipts) =>
       currentReceipts.filter((receipt) => receipt.roundLabel !== receiptId),
     );
-  }, []);
+  }, [setReceiptCards]);
 
   const addReceipt = useCallback(() => {
     const nextReceipt = createEmptyReceipt(nextReceiptSeqRef.current, roomMembers);
@@ -67,7 +96,7 @@ export function useMeetRecordReceipts({
 
     setReceiptCards((currentReceipts) => [...currentReceipts, nextReceipt]);
     setPendingScrollReceiptId(nextReceipt.roundLabel);
-  }, [roomMembers]);
+  }, [roomMembers, setReceiptCards]);
 
   const saveReceipts = useCallback(() => {
     saveMeetRecord({
