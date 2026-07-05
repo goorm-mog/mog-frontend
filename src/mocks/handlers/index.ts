@@ -1,6 +1,7 @@
 import { authHandlers } from './auth';
 import { chatHandlers } from './chat';
 import { notificationHandlers } from './notification';
+import { recordsHandlers } from './records';
 import { scheduleHandlers } from './schedule';
 import { departureHandlers } from './departure';
 import { settlementHandlers } from './settlement';
@@ -18,4 +19,5 @@ export const handlers = [
   ...groupHandlers,
   ...roomHandlers,
   ...meetingRecordHandlers,
+  ...recordsHandlers
 ];
