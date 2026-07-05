@@ -3,18 +3,24 @@ import { meetingRecordsResponseDb } from '@/mocks/db/meetingRecord';
 import { mockDb } from '@/mocks/fixtures/mockDb';
 import type {
   CreateMeetingRecordRequest,
+  DeleteRoomPhotoResponse,
   MeetingRecord,
   MeetingRecordResponse,
   MeetingRecordsData,
   MeetingRecordsResponse,
   RecordParticipant,
   RecordPayer,
+  RoomRecordPhoto,
   UpdateMeetingRecordRequest,
+  UploadRoomPhotoResponse,
   UpsertRecordPayerRequest,
   UpsertRecordParticipantRequest,
 } from '@/types/records';
 
 const BASE = import.meta.env.VITE_API_BASE_URL ?? '';
+const MAX_ROOM_PHOTO_COUNT = 3;
+const MAX_IMAGE_FILE_SIZE = 10 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 const cloneRecord = (record: MeetingRecord): MeetingRecord => ({
   ...record,
@@ -32,12 +38,21 @@ const recordsByRoomId: Record<number, MeetingRecordsData> = {
 let nextRecordId =
   Math.max(0, ...meetingRecordsResponseDb.data.records.map(({ recordId }) => recordId)) +
   1;
+let nextPhotoId =
+  Math.max(0, ...meetingRecordsResponseDb.data.photos.map(({ photoId }) => photoId)) + 1;
 
 const createResponse = <T>(data: T, message: string) => ({
   status: 0,
   code: 'OK',
   message,
   data,
+});
+
+const createErrorResponse = (status: number, message: string) => ({
+  status,
+  code: 'BAD_REQUEST',
+  message,
+  data: null,
 });
 
 const getRoomData = (roomId: number) => {
@@ -98,6 +113,80 @@ const resequenceRecords = (records: MeetingRecord[]) => {
 };
 
 export const recordsHandlers: HttpHandler[] = [
+  http.post(`${BASE}/rooms/:roomId/photos`, async ({ params, request }) => {
+    const roomId = Number(params.roomId);
+    const roomData = getRoomData(roomId);
+
+    if (!request.headers.get('content-type')?.includes('multipart/form-data')) {
+      return HttpResponse.json(
+        createErrorResponse(400, 'multipart/form-data 형식으로 요청해주세요.'),
+        { status: 400 },
+      );
+    }
+
+    if (roomData.photos.length >= MAX_ROOM_PHOTO_COUNT) {
+      return HttpResponse.json(createErrorResponse(400, '사진은 최대 3장까지 등록할 수 있습니다.'), {
+        status: 400,
+      });
+    }
+
+    const formData = await request.formData();
+    const image = formData.get('image');
+
+    if (!(image instanceof File)) {
+      return HttpResponse.json(createErrorResponse(400, 'image 파일을 첨부해주세요.'), {
+        status: 400,
+      });
+    }
+
+    if (!ALLOWED_IMAGE_TYPES.has(image.type)) {
+      return HttpResponse.json(
+        createErrorResponse(400, 'jpeg, png, webp 형식의 이미지만 업로드할 수 있습니다.'),
+        { status: 400 },
+      );
+    }
+
+    if (image.size > MAX_IMAGE_FILE_SIZE) {
+      return HttpResponse.json(
+        createErrorResponse(400, '이미지 파일은 최대 10MB까지 업로드할 수 있습니다.'),
+        { status: 400 },
+      );
+    }
+
+    const photo: RoomRecordPhoto = {
+      photoId: nextPhotoId,
+      s3Url: `https://picsum.photos/seed/mog-room-${roomId}-${nextPhotoId}/360/504`,
+      createdAt: new Date().toISOString(),
+    };
+
+    nextPhotoId += 1;
+    roomData.photos.push(photo);
+
+    const response: UploadRoomPhotoResponse = createResponse(photo, '사진 업로드 성공');
+
+    return HttpResponse.json(response);
+  }),
+
+  http.delete(`${BASE}/rooms/:roomId/photos/:photoId`, ({ params }) => {
+    const roomId = Number(params.roomId);
+    const photoId = Number(params.photoId);
+    const roomData = getRoomData(roomId);
+    const nextPhotos = roomData.photos.filter((photo) => photo.photoId !== photoId);
+
+    if (nextPhotos.length === roomData.photos.length) {
+      return HttpResponse.json({ message: '사진 정보가 없습니다.' }, { status: 404 });
+    }
+
+    roomData.photos = nextPhotos;
+
+    const response: DeleteRoomPhotoResponse = createResponse(
+      '삭제되었습니다.',
+      '사진 삭제 성공',
+    );
+
+    return HttpResponse.json(response);
+  }),
+
   http.get(`${BASE}/rooms/:roomId/records`, ({ params }) => {
     const roomId = Number(params.roomId);
     const roomData = getRoomData(roomId);

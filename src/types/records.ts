@@ -44,6 +44,10 @@ export type MeetingRecordsResponse = ApiResponse<MeetingRecordsData>;
 
 export type MeetingRecordResponse = ApiResponse<MeetingRecord>;
 
+export type UploadRoomPhotoResponse = ApiResponse<RoomRecordPhoto>;
+
+export type DeleteRoomPhotoResponse = ApiResponse<string>;
+
 export type UpsertRecordPayerRequest = {
   roomMemberId: number;
   bankName: string;
