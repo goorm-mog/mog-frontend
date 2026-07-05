@@ -4,8 +4,10 @@ export type NotificationType =
   | 'GROUP_INVITED'
   | 'SETTLEMENT_DONE'
   | 'DATE_CONFIRMED'
+  | 'PLACE_CONFIRMED'
+  | 'RECORD_ADDED'
   | 'ROOM_CREATED'
-  | (string & {});
+  | 'SUMMARY_READY';
 
 export type Notification = {
   notificationId: number;
