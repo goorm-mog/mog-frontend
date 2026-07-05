@@ -1,4 +1,21 @@
-export const groupsDb = [
+type MockGroupRole = 'LEADER' | 'MEMBER';
+
+type MockGroupMember = {
+  userId: number;
+  nickname: string;
+  role: MockGroupRole;
+};
+
+export type MockGroup = {
+  groupId: number;
+  groupName: string;
+  inviteCode: string;
+  kakaoShareUrl: string;
+  createdAt: string;
+  members: MockGroupMember[];
+};
+
+export const groupsDb: MockGroup[] = [
   {
     groupId: 12,
     groupName: '대학 친구들',
@@ -36,4 +53,4 @@ export const groupsDb = [
       { userId: 4, nickname: '이구름', role: 'MEMBER' },
     ],
   },
-] as const;
+];

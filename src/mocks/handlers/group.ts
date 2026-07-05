@@ -1,4 +1,6 @@
 import { http, HttpResponse, type HttpHandler } from 'msw';
+import { groupsDb } from '@/mocks/db/group';
+import { roomsDb } from '@/mocks/db/room';
 import { mockDb } from '@/mocks/fixtures/mockDb';
 
 const BASE = import.meta.env.VITE_API_BASE_URL ?? '';
@@ -37,10 +39,7 @@ const ok = <T>(data: T, message = '요청이 성공했습니다.'): ApiResponse<
 const error = (status: number, code: string, message: string) =>
   HttpResponse.json({ status, code, message, data: null }, { status });
 
-const groups: MutableGroup[] = mockDb.groups.map((group) => ({
-  ...group,
-  members: group.members.map((member) => ({ ...member })),
-}));
+const groups: MutableGroup[] = groupsDb;
 
 let nextGroupId = Math.max(...groups.map(({ groupId }) => groupId)) + 1;
 
@@ -147,8 +146,8 @@ export const groupHandlers: HttpHandler[] = [
       return error(403, 'GROUP_ACCESS_DENIED', '그룹 멤버만 조회할 수 있습니다.');
     }
 
-    const rooms = mockDb.rooms
-      .filter((room) => room.groupId === groupId)
+    const rooms = roomsDb
+      .filter((room) => room.groupId === groupId && !room.deletedAt)
       .map(({ roomId, roomName, status, promiseDate }) => ({
         roomId,
         roomName,

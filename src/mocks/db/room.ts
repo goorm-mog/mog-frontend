@@ -1,4 +1,30 @@
-export const roomMembersDb = [
+export type MockRoomMemberRole = 'HOST' | 'MEMBER';
+
+export type MockRoomMember = {
+  roomMemberId: number;
+  roomId: number;
+  userId: number;
+  nickname: string;
+  role: MockRoomMemberRole;
+  bankName: string;
+  accountNumber: string;
+};
+
+export type MockRoomStatus = 'VOTING' | 'RECORDING' | 'COMPLETED';
+
+export type MockRoom = {
+  roomId: number;
+  groupId: number;
+  roomName: string;
+  status: MockRoomStatus;
+  creatorId: number;
+  promiseDate: string;
+  createdAt: string;
+  updatedAt?: string;
+  deletedAt?: string;
+};
+
+export const roomMembersDb: MockRoomMember[] = [
   {
     roomMemberId: 101,
     roomId: 45,
@@ -35,17 +61,16 @@ export const roomMembersDb = [
     bankName: '토스뱅크',
     accountNumber: '1000-9988-7766',
   },
-] as const;
+];
 
-export const roomsDb = [
+export const roomsDb: MockRoom[] = [
   {
     roomId: 45,
     groupId: 12,
     roomName: '강남역 삼겹살 모임',
-    status: 'PROCEEDING',
+    status: 'VOTING',
     creatorId: 1,
     promiseDate: '2026-06-20T18:30:00',
     createdAt: '2026-06-16T14:30:00',
-    members: roomMembersDb,
   },
-] as const;
+];
