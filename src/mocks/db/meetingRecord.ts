@@ -1,19 +1,34 @@
-const calculateTotalPrice = (
-  menuItems: readonly { count: number; price: number }[],
-) => menuItems.reduce((total, { count, price }) => total + count * price, 0);
+import type {
+  MeetingRecord,
+  MeetingRecordsResponse,
+  RoomRecordPhoto,
+} from '@/types/records';
 
-const rawMeetingRecords = [
+export const meetingRecordPhotosDb: RoomRecordPhoto[] = [
+  {
+    photoId: 1,
+    s3Url: 'https://picsum.photos/seed/mog-room-45-1/360/504',
+    createdAt: '2026-06-20T19:10:00.000Z',
+  },
+  {
+    photoId: 2,
+    s3Url: 'https://picsum.photos/seed/mog-room-45-2/360/504',
+    createdAt: '2026-06-20T20:20:00.000Z',
+  },
+  {
+    photoId: 3,
+    s3Url: 'https://picsum.photos/seed/mog-room-45-3/360/504',
+    createdAt: '2026-06-20T21:30:00.000Z',
+  },
+];
+
+export const meetingRecordsDb: MeetingRecord[] = [
   {
     recordId: 1,
-    roomId: 45,
     seq: 1,
     placeName: '합정 카페 A',
-    address: '서울시 마포구 합정동 45',
     memo: '디저트 괜찮았음',
-    menuItems: [
-      { menuName: '김치전', count: 1, price: 14000 },
-      { menuName: '어묵탕', count: 1, price: 14000 },
-    ],
+    totalCost: 28000,
     payer: {
       roomMemberId: 101,
       nickname: '김구름',
@@ -25,21 +40,14 @@ const rawMeetingRecords = [
       { roomMemberId: 102, nickname: '박구름', amount: 8000 },
       { roomMemberId: 103, nickname: '최구름', amount: 10000 },
     ],
-    photoCount: 3,
-    createdAt: '2026-06-20T19:30:00',
+    createdAt: '2026-06-20T19:30:00.000Z',
   },
   {
     recordId: 2,
-    roomId: 45,
     seq: 2,
     placeName: '냥냥 룰루',
-    address: '서울시 마포구 서교동 12',
     memo: '분위기 최고',
-    menuItems: [
-      { menuName: '하이볼', count: 2, price: 12000 },
-      { menuName: '감자튀김', count: 1, price: 15000 },
-      { menuName: '나쵸', count: 1, price: 13000 },
-    ],
+    totalCost: 52000,
     payer: {
       roomMemberId: 103,
       nickname: '최구름',
@@ -51,12 +59,16 @@ const rawMeetingRecords = [
       { roomMemberId: 102, nickname: '박구름', amount: 15000 },
       { roomMemberId: 104, nickname: '이구름', amount: 22000 },
     ],
-    photoCount: 2,
-    createdAt: '2026-06-20T21:00:00',
+    createdAt: '2026-06-20T21:00:00.000Z',
   },
-] as const;
+];
 
-export const meetingRecordsDb = rawMeetingRecords.map((record) => ({
-  ...record,
-  totalPrice: calculateTotalPrice(record.menuItems),
-}));
+export const meetingRecordsResponseDb: MeetingRecordsResponse = {
+  status: 0,
+  code: 'OK',
+  message: '만남 기록 목록 조회 성공',
+  data: {
+    photos: meetingRecordPhotosDb,
+    records: meetingRecordsDb,
+  },
+};
