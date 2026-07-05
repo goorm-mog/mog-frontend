@@ -143,9 +143,14 @@ export const scheduleHandlers: HttpHandler[] = [
     const roomId = Number(params.roomId);
     const members = [...mockDb.roomMembers]
       .filter((m) => m.roomId === roomId)
-      .map(({ userId, nickname }) => ({
+      .map(({ roomMemberId, roomId, userId, nickname, role, bankName, accountNumber }) => ({
+        roomMemberId,
+        roomId,
         userId,
         nickname,
+        role,
+        bankName,
+        accountNumber,
         profileImageUrl: mockDb.users.find((u) => u.userId === userId)?.profileImageUrl ?? '',
       }));
     return HttpResponse.json({ members });

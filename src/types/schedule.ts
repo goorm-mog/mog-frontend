@@ -24,8 +24,13 @@ export interface VoteResponse {
 }
 
 export interface RoomMember {
+  roomMemberId?: number;
+  roomId?: number;
   userId: number;
   nickname: string;
+  role?: 'HOST' | 'MEMBER';
+  bankName?: string;
+  accountNumber?: string;
   profileImageUrl?: string;
 }
 

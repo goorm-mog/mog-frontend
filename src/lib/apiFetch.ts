@@ -13,12 +13,17 @@ export class ApiError extends Error {
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '';
 
 export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
+  const isFormData = options?.body instanceof FormData;
+  const headers = isFormData
+    ? options?.headers
+    : {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      };
+
   const response = await fetch(`${API_BASE}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
     ...options,
+    headers,
   });
 
   if (!response.ok) {
