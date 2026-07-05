@@ -8,6 +8,9 @@ import ArchivalCard from '@/components/common/ArchivalCard/ArchivalCard';
 import DividerWithStar from '@/components/common/DividerWithStar';
 import HomeTabNav from '@/pages/Home/components/HomeTabNav';
 import CreateAppointmentSheet from '@/pages/Home/components/CreateAppointmentSheet';
+import CreateRoomSheet from '@/pages/Home/components/CreateRoomSheet';
+import DeleteGroupDialog from '@/pages/Home/components/DeleteGroupDialog';
+import HomeSidebar from '@/pages/Home/components/HomeSidebar';
 import {
   HOME_ARCHIVAL_ITEMS,
   HOME_DEFAULT_SELECTED,
@@ -16,12 +19,19 @@ import {
   HOME_SCHEDULES,
   type HomeTab,
 } from '@/pages/Home/constants/homeMockData';
+import { HOME_GROUPS, type HomeGroup } from '@/pages/Home/constants/groupMockData';
 
 function HomePage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<HomeTab>('all');
   const [selectedDate, setSelectedDate] = useState(HOME_DEFAULT_SELECTED);
   const [isCreateAppointmentOpen, setIsCreateAppointmentOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isCreateRoomOpen, setIsCreateRoomOpen] = useState(false);
+  const [isEditRoomOpen, setIsEditRoomOpen] = useState(false);
+  const [isDeleteRoomOpen, setIsDeleteRoomOpen] = useState(false);
+  const [groups, setGroups] = useState<HomeGroup[]>(HOME_GROUPS);
+  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(HOME_GROUPS[0]?.id ?? null);
 
   const selectedDateKey = format(selectedDate, 'yyyy-MM-dd');
 
@@ -30,18 +40,60 @@ function HomePage() {
     [selectedDateKey],
   );
 
+  const selectedGroup = groups.find((group) => group.id === selectedGroupId) ?? null;
+
+  const openCreateRoomSheet = () => {
+    setIsSidebarOpen(false);
+    setIsCreateRoomOpen(true);
+  };
+
+  const handleCreateRoom = (name: string) => {
+    const nextId = Math.max(0, ...groups.map((group) => group.id)) + 1;
+    const newGroup: HomeGroup = { id: nextId, name, memberCount: 1 };
+    setGroups((prev) => [...prev, newGroup]);
+    setSelectedGroupId(nextId);
+    setIsCreateRoomOpen(false);
+  };
+
+  const handleEditRoom = (name: string) => {
+    if (selectedGroupId === null) return;
+
+    setGroups((prev) =>
+      prev.map((group) => (group.id === selectedGroupId ? { ...group, name } : group)),
+    );
+    setIsEditRoomOpen(false);
+  };
+
+  const handleDeleteRoom = () => {
+    if (selectedGroupId === null) return;
+
+    setGroups((prev) => {
+      const next = prev.filter((group) => group.id !== selectedGroupId);
+      setSelectedGroupId(next[0]?.id ?? null);
+      return next;
+    });
+    setIsDeleteRoomOpen(false);
+    setIsSidebarOpen(false);
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <TopAppBar
         showBack
         hasNotificationBadge
         onBack={() => navigate('/login')}
+        onMenuClick={() => setIsSidebarOpen(true)}
       />
 
       <HomeTabNav
         activeTab={activeTab}
         onTabChange={setActiveTab}
         onAddClick={() => {
+          if (activeTab === 'all') {
+            openCreateRoomSheet();
+            return;
+          }
+
           if (activeTab === 'list') {
             setIsCreateAppointmentOpen(true);
           }
@@ -102,6 +154,50 @@ function HomePage() {
           </section>
         )}
       </main>
+
+      {isSidebarOpen ? (
+        <HomeSidebar
+          isOpen={isSidebarOpen}
+          groups={groups}
+          selectedGroupId={selectedGroupId}
+          onClose={() => setIsSidebarOpen(false)}
+          onSelectGroup={setSelectedGroupId}
+          onCreateGroup={openCreateRoomSheet}
+          onEditGroup={() => {
+            if (selectedGroupId === null) return;
+            setIsEditRoomOpen(true);
+          }}
+          onDeleteGroup={() => {
+            if (selectedGroupId === null) return;
+            setIsDeleteRoomOpen(true);
+          }}
+        />
+      ) : null}
+
+      {isCreateRoomOpen ? (
+        <CreateRoomSheet
+          onClose={() => setIsCreateRoomOpen(false)}
+          onSubmit={handleCreateRoom}
+        />
+      ) : null}
+
+      {isEditRoomOpen && selectedGroup ? (
+        <CreateRoomSheet
+          key={selectedGroup.id}
+          mode="edit"
+          initialName={selectedGroup.name}
+          onClose={() => setIsEditRoomOpen(false)}
+          onSubmit={handleEditRoom}
+        />
+      ) : null}
+
+      {isDeleteRoomOpen && selectedGroup ? (
+        <DeleteGroupDialog
+          groupName={selectedGroup.name}
+          onClose={() => setIsDeleteRoomOpen(false)}
+          onConfirm={handleDeleteRoom}
+        />
+      ) : null}
 
       {isCreateAppointmentOpen ? (
         <CreateAppointmentSheet
