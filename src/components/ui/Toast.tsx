@@ -17,7 +17,7 @@ function Toast({ message, type }: ToastProps) {
   return (
     <div
       className={cn(
-        'w-full py-3 px-4 rounded-lg font-pretendard text-[13px] leading-snug',
+        'w-fit max-w-full rounded-lg px-4 py-3 text-center font-pretendard text-[13px] leading-snug',
         'animate-in slide-in-from-bottom-2 fade-in-0 duration-200 ease-out',
         TOAST_STYLES[type],
       )}
