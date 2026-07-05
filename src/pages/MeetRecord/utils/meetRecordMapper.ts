@@ -18,20 +18,22 @@ export function mapMeetingRecordToReceipt(
     placeName: record.placeName,
     placePlaceholder: receiptCopy.placePlaceholder,
     menuPlaceholder: receiptCopy.menuPlaceholder,
-    items: record.menuItems.map(({ menuName, count, price }) => ({
-      name: menuName,
-      count,
-      price,
+    items: record.participants.map(({ nickname, amount }) => ({
+      name: nickname,
+      count: 1,
+      price: amount,
     })),
-    totalAmount: record.totalPrice,
+    totalAmount: record.totalCost,
     participants: roomMembers.map(({ roomMemberId, nickname }) => ({
       id: roomMemberId,
       name: nickname,
       selected: participantIds.has(roomMemberId),
     })),
-    payerPlaceholder: `${record.payer.nickname}(${record.payer.bankName} : ${record.payer.accountNumber})`,
+    payerPlaceholder: record.payer
+      ? `${record.payer.nickname}(${record.payer.bankName} : ${record.payer.accountNumber})`
+      : receiptCopy.payerPlaceholder,
     memo: record.memo,
     memoPlaceholder: receiptCopy.memoPlaceholder,
-    photoCount: record.photoCount,
+    photoCount: 0,
   };
 }
