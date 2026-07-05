@@ -1,4 +1,4 @@
-import { meetingRecordsDb, roomsDb, settlementsDb } from '@/mocks/db';
+import { meetingRecordPhotosDb, meetingRecordsDb, roomsDb, settlementsDb } from '@/mocks/db';
 
 const WON_FORMATTER = new Intl.NumberFormat('ko-KR');
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const;
@@ -27,6 +27,8 @@ export type SettlementRound = {
 };
 
 const formatWon = (amount: number) => `₩ ${WON_FORMATTER.format(amount)}`;
+const formatPayer = (payer: (typeof meetingRecordsDb)[number]['payer']) =>
+  payer ? `${payer.nickname}(${payer.bankName} : ${payer.accountNumber})` : '-';
 
 const formatMeetDate = (dateString: string) => {
   const date = new Date(dateString);
@@ -41,31 +43,31 @@ const formatMeetDate = (dateString: string) => {
   return `${year}. ${month}. ${day} (${WEEKDAYS[date.getDay()]}) ${displayHours}:${minutes} ${meridiem}`;
 };
 
-const getSettlementAmountBySeq = (seq: number) =>
-  settlementsDb[0]?.memberSettlements.reduce((total, memberSettlement) => {
-    const detail = memberSettlement.detail.find((item) => item.seq === seq);
-
-    return total + (detail?.amount ?? 0);
-  }, 0) ?? 0;
+const getSettlementRoundBySeq = (seq: number) =>
+  settlementsDb[0]?.data.detail[String(seq)];
 
 const meetRoom = roomsDb[0];
 const meetSettlement = settlementsDb[0];
+const settlementRounds = Object.values(meetSettlement.data.detail);
+const totalCost = settlementRounds.reduce((total, round) => total + round.totalCost, 0);
 
 export const MEET_DETAIL = {
   roomId: meetRoom.roomId,
   title: meetRoom.roomName,
   datetime: formatMeetDate(meetRoom.promiseDate),
-  perPersonCost: formatWon(
-    Math.round(meetSettlement.totalCost / meetRoom.members.length),
-  ),
+  perPersonCost: formatWon(Math.round(totalCost / meetRoom.members.length)),
 };
 
 export const SETTLEMENT_ROUNDS: SettlementRound[] = [
   ...meetingRecordsDb.map((record) => {
     const placeMeta = PLACE_META_BY_SEQ[record.seq as keyof typeof PLACE_META_BY_SEQ];
-    const menu = record.menuItems
-      .map(({ menuName, count }) => `${menuName} ${count}`)
+    const settlementRound = getSettlementRoundBySeq(record.seq);
+    const menu = record.participants
+      .map(({ nickname, amount }) => `${nickname} ${formatWon(amount)}`)
       .join(', ');
+    const photoUrls = meetingRecordPhotosDb
+      .filter((_, index) => index % meetingRecordsDb.length === record.seq - 1)
+      .map(({ s3Url }) => s3Url);
 
     return {
       id: record.recordId,
@@ -73,11 +75,12 @@ export const SETTLEMENT_ROUNDS: SettlementRound[] = [
       placeName: record.placeName,
       address: placeMeta?.address ?? '-',
       menu,
-      totalCost: formatWon(getSettlementAmountBySeq(record.seq)),
-      payer: `${record.payer.nickname}(${record.payer.bankName} : ${record.payer.accountNumber})`,
+      totalCost: formatWon(settlementRound?.totalCost ?? record.totalCost),
+      payer: formatPayer(record.payer),
       participants: record.participants.map((participant) => participant.nickname).join(', '),
       memo: record.memo || '-',
-      imageCount: record.photoCount,
+      photoUrls,
+      imageCount: photoUrls.length,
     };
   }),
 ];
