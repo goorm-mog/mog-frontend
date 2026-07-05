@@ -1,5 +1,11 @@
 import { apiFetch, apiFetchNullOn404 } from '@/lib/apiFetch';
-import type { ConfirmScheduleResponse, RegisterSlotsResponse, RoomMembersResponse, SlotsResponse, VoteResponse } from '@/types/schedule';
+import type {
+  ConfirmScheduleResponse,
+  RegisterSlotsResponse,
+  RoomMembersResponse,
+  SlotsResponse,
+  VoteResponse,
+} from '@/types/schedule';
 
 export function fetchConfirmedSchedule(roomId: number) {
   return apiFetchNullOn404<ConfirmScheduleResponse>(`/rooms/${roomId}/schedule/confirm`);
@@ -33,7 +39,7 @@ export function fetchRoomMembers(roomId: number) {
 
 export function confirmSchedule(roomId: number, date: string, time: string) {
   return apiFetch<ConfirmScheduleResponse>(`/rooms/${roomId}/schedule/confirm`, {
-    method: 'POST',
+    method: 'PATCH',
     body: JSON.stringify({ date, time }),
   });
 }

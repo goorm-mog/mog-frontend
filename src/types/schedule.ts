@@ -38,7 +38,7 @@ export interface ConfirmScheduleResponse {
   roomId: number;
   date: string;
   time: string;
-  confirmedBy: { userId: number; nickname: string };
-  kakaoEventId: string | null;
+  confirmedBy: number;
+  kakaoEventId: string;
   confirmedAt: string;
 }

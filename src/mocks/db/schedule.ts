@@ -11,15 +11,15 @@ const SCENARIO = 'fresh' as 'fresh' | 'vote' | 'done';
 const BASE_SLOTS = {
   roomId: 45,
   dates: [
-    { slotId: 10, date: '2026-07-01', time: '09:00' },
-    { slotId: 11, date: '2026-07-01', time: '10:00' },
-    { slotId: 12, date: '2026-07-01', time: '14:00' },
-    { slotId: 13, date: '2026-07-01', time: '19:00' },
-    { slotId: 14, date: '2026-07-02', time: '13:00' },
-    { slotId: 15, date: '2026-07-02', time: '19:00' },
-    { slotId: 16, date: '2026-07-03', time: '18:00' },
-    { slotId: 17, date: '2026-07-03', time: '19:00' },
-    { slotId: 18, date: '2026-07-03', time: '20:00' },
+    { slotId: 10, date: '2026-07-05', time: '09:00' },
+    { slotId: 11, date: '2026-07-05', time: '10:00' },
+    { slotId: 12, date: '2026-07-05', time: '14:00' },
+    { slotId: 13, date: '2026-07-05', time: '15:00' },
+    { slotId: 14, date: '2026-07-06', time: '13:00' },
+    { slotId: 15, date: '2026-07-06', time: '19:00' },
+    { slotId: 16, date: '2026-07-07', time: '18:00' },
+    { slotId: 17, date: '2026-07-07', time: '19:00' },
+    { slotId: 18, date: '2026-07-07', time: '20:00' },
   ],
 };
 
@@ -63,11 +63,11 @@ export const confirmedSchedulesDb =
         {
           confirmedId: 1,
           roomId: 45,
-          date: '2026-07-01',
-          time: '19:00',
-          confirmedBy: { userId: 1, nickname: '김구름' },
+          date: '2026-07-05',
+          time: '15:00',
+          confirmedBy: 1,
           kakaoEventId: 'kakao_event_abc123',
-          confirmedAt: '2026-06-18T10:00:00',
+          confirmedAt: '2026-07-05T07:07:52.857Z',
         },
       ]
     : [];

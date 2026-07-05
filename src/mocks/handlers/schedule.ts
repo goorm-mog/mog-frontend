@@ -11,33 +11,46 @@ type MutableRoomSlots = {
   slots: (Omit<ScheduleSlot, 'votedUserIds'> & { votedUserIds: number[] })[];
 };
 
-const mutableSlots: Record<number, MutableRoomSlots> = scheduleSlotsDb.reduce<Record<number, MutableRoomSlots>>(
-  (acc, slot) => {
-    const { roomId } = slot;
-    if (!acc[roomId]) {
-      acc[roomId] = {
-        roomId,
-        totalParticipants: mockDb.roomMembers.filter((m) => m.roomId === roomId).length || 4,
-        slots: [],
-      };
-    }
-    acc[roomId].slots.push({
-      slotId: slot.slotId,
-      date: slot.date,
-      time: slot.time,
-      voteCount: slot.votedUserIds.length,
-      votedUserIds: [...slot.votedUserIds],
-    });
-    return acc;
-  },
-  {},
-);
+const mutableSlots: Record<number, MutableRoomSlots> = scheduleSlotsDb.reduce<
+  Record<number, MutableRoomSlots>
+>((acc, slot) => {
+  const { roomId } = slot;
+  if (!acc[roomId]) {
+    acc[roomId] = {
+      roomId,
+      totalParticipants: mockDb.roomMembers.filter((m) => m.roomId === roomId).length || 4,
+      slots: [],
+    };
+  }
+  acc[roomId].slots.push({
+    slotId: slot.slotId,
+    date: slot.date,
+    time: slot.time,
+    voteCount: slot.votedUserIds.length,
+    votedUserIds: [...slot.votedUserIds],
+  });
+  return acc;
+}, {});
 
-let nextSlotId = 100;
+let nextSlotId = Math.max(0, ...scheduleSlotsDb.map((slot) => slot.slotId)) + 1;
+let nextConfirmedId =
+  Math.max(0, ...confirmedSchedulesDb.map((schedule) => schedule.confirmedId)) + 1;
 
-const confirmedSchedules: Record<number, { date: string; time: string; confirmedBy: { userId: number; nickname: string }; kakaoEventId: string | null; confirmedAt: string }> =
-  confirmedSchedulesDb.reduce<typeof confirmedSchedules>((acc, c) => {
+type MutableConfirmedSchedule = {
+  confirmedId: number;
+  roomId: number;
+  date: string;
+  time: string;
+  confirmedBy: number;
+  kakaoEventId: string;
+  confirmedAt: string;
+};
+
+const confirmedSchedules = confirmedSchedulesDb.reduce<Record<number, MutableConfirmedSchedule>>(
+  (acc, c) => {
     acc[c.roomId] = {
+      confirmedId: c.confirmedId,
+      roomId: c.roomId,
       date: c.date,
       time: c.time,
       confirmedBy: c.confirmedBy,
@@ -45,14 +58,16 @@ const confirmedSchedules: Record<number, { date: string; time: string; confirmed
       confirmedAt: c.confirmedAt,
     };
     return acc;
-  }, {});
+  },
+  {},
+);
 
 export const scheduleHandlers: HttpHandler[] = [
   http.get(`${BASE}/rooms/:roomId/schedule/slots`, ({ params }) => {
     const roomId = Number(params.roomId);
     const data = mutableSlots[roomId];
     if (!data) {
-      return HttpResponse.json({ message: '방 정보가 없습니다.' }, { status: 404 });
+      return HttpResponse.json({ roomId, totalParticipants: 0, slots: [] });
     }
     const response: SlotsResponse = {
       roomId: data.roomId,
@@ -80,6 +95,8 @@ export const scheduleHandlers: HttpHandler[] = [
       };
     }
 
+    mutableSlots[roomId].slots = [];
+
     const newSlots: RegisteredSlot[] = slots.map(({ date, time }) => ({
       slotId: nextSlotId++,
       date,
@@ -90,7 +107,7 @@ export const scheduleHandlers: HttpHandler[] = [
       mutableSlots[roomId].slots.push({ ...s, voteCount: 0, votedUserIds: [] });
     });
 
-    return HttpResponse.json({ roomId, slots: newSlots }, { status: 201 });
+    return HttpResponse.json({ roomId, slots: newSlots });
   }),
 
   http.post(`${BASE}/rooms/:roomId/schedule/votes`, async ({ params, request }) => {
@@ -140,28 +157,25 @@ export const scheduleHandlers: HttpHandler[] = [
     if (!confirmed) {
       return HttpResponse.json({ message: '확정된 일정이 없습니다.' }, { status: 404 });
     }
-    return HttpResponse.json({ roomId, ...confirmed });
+    return HttpResponse.json(confirmed);
   }),
 
-  http.post(`${BASE}/rooms/:roomId/schedule/confirm`, async ({ params, request }) => {
+  http.patch(`${BASE}/rooms/:roomId/schedule/confirm`, async ({ params, request }) => {
     const roomId = Number(params.roomId);
     const { date, time } = (await request.json()) as { date: string; time: string };
     const confirmedAt = new Date().toISOString();
+    const confirmedId = confirmedSchedules[roomId]?.confirmedId ?? nextConfirmedId++;
+    const kakaoEventId = confirmedSchedules[roomId]?.kakaoEventId ?? `mock_kakao_event_${roomId}`;
+
     confirmedSchedules[roomId] = {
-      date,
-      time,
-      confirmedBy: { userId: mockDb.auth.currentUser.userId, nickname: mockDb.auth.currentUser.nickname },
-      kakaoEventId: null,
-      confirmedAt,
-    };
-    return HttpResponse.json({
-      confirmedId: Date.now(),
+      confirmedId,
       roomId,
       date,
       time,
-      confirmedBy: confirmedSchedules[roomId].confirmedBy,
-      kakaoEventId: null,
+      confirmedBy: mockDb.auth.currentUser.userId,
+      kakaoEventId,
       confirmedAt,
-    });
+    };
+    return HttpResponse.json(confirmedSchedules[roomId]);
   }),
 ];
