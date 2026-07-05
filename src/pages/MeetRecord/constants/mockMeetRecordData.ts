@@ -15,9 +15,7 @@ export const meetRecordMembers = mockDb.roomMembers.filter(
   ({ roomId }) => roomId === meetRecordRoom.roomId,
 );
 
-const meetRecordRecords = mockDb.meetingRecords.filter(
-  ({ roomId }) => roomId === meetRecordRoom.roomId,
-);
+const meetRecordRecords = mockDb.meetingRecords;
 
 export const initialMeetRecordReceipts = meetRecordRecords.map((record) =>
   mapMeetingRecordToReceipt(record, meetRecordMembers),
