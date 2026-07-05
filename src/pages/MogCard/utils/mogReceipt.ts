@@ -1,9 +1,6 @@
-import { groupsDb } from '@/mocks/db/group';
-import { meetingRecordPhotosDb, meetingRecordsDb } from '@/mocks/db/meetingRecord';
-import { roomsDb } from '@/mocks/db/room';
 import type { MogReceipt, MogReceiptPlace } from '@/pages/MogCard/types';
-
-type MeetingRecord = (typeof meetingRecordsDb)[number];
+import type { MeetingRecordsData, MeetingRecord } from '@/types/records';
+import type { RoomDetail } from '@/types/rooms';
 
 const WON_FORMATTER = new Intl.NumberFormat('ko-KR');
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const;
@@ -73,28 +70,27 @@ const mapReceiptPlaces = (
     })),
   }));
 
-export function getMogReceiptByRoomId(roomId: number): MogReceipt | null {
-  const room = roomsDb.find((item) => item.roomId === roomId);
-  const group = groupsDb.find((item) => item.groupId === room?.groupId);
-  const meetingRecords = room ? meetingRecordsDb : [];
-
-  if (!room || !group || meetingRecords.length === 0) {
+export function createMogReceipt(
+  room: RoomDetail,
+  recordsData: MeetingRecordsData,
+): MogReceipt | null {
+  if (recordsData.records.length === 0) {
     return null;
   }
 
-  const participants = getParticipantNames(meetingRecords);
-  const photoCount = meetingRecordPhotosDb.length;
-  const totalCost = sumByRecord(meetingRecords, (record) => record.totalCost);
+  const participants = getParticipantNames(recordsData.records);
+  const totalCost = sumByRecord(recordsData.records, (record) => record.totalCost);
 
   return {
     title: RECEIPT_TITLE,
-    downloadFileName: `[MOG]${group.groupName}_${formatFileDate(room.promiseDate)}.png`,
+    downloadFileName: `[MOG]${room.groupName}_${formatFileDate(room.promiseDate)}.png`,
     participantCount: participants.length,
     participants: participants.join(', '),
     datetime: formatReceiptDate(room.promiseDate),
-    places: mapReceiptPlaces(meetingRecords),
+    places: mapReceiptPlaces(recordsData.records),
     totalCost: formatWon(totalCost),
-    photoCount,
+    photoCount: recordsData.photos.length,
+    representativePhotoUrl: recordsData.photos[0]?.s3Url,
     barcodeValue: formatBarcodeValue(room.promiseDate),
     footer: RECEIPT_FOOTER,
   };

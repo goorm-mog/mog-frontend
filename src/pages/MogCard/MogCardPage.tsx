@@ -1,6 +1,8 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { Download, Share2, X } from 'lucide-react';
-import { useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { fetchMeetingRecords } from '@/api/records';
+import { fetchRoom } from '@/api/rooms';
 import { typography } from '@/constants/typography';
 import { useToast } from '@/hooks/useToast';
 import MogReceiptCard from '@/pages/MogCard/components/MogReceiptCard';
@@ -9,7 +11,8 @@ import {
   downloadReceiptImage,
   shareReceiptImage,
 } from '@/pages/MogCard/utils/downloadReceiptImage';
-import { getMogReceiptByRoomId } from '@/pages/MogCard/utils/mogReceipt';
+import { createMogReceipt } from '@/pages/MogCard/utils/mogReceipt';
+import type { MogReceipt } from '@/pages/MogCard/types';
 
 function MogCardPage() {
   const navigate = useNavigate();
@@ -18,12 +21,43 @@ function MogCardPage() {
   const receiptRef = useRef<HTMLElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  const [receipt, setReceipt] = useState<MogReceipt | null>(null);
   const numericRoomId = Number(roomId);
-  const receipt = Number.isFinite(numericRoomId)
-    ? getMogReceiptByRoomId(numericRoomId)
-    : null;
   const isProcessing = isDownloading || isSharing;
   const canUseReceiptAction = Boolean(receipt) && !isProcessing;
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadReceipt() {
+      if (!Number.isFinite(numericRoomId)) {
+        setReceipt(null);
+        return;
+      }
+
+      try {
+        const [roomResponse, recordsResponse] = await Promise.all([
+          fetchRoom(numericRoomId),
+          fetchMeetingRecords(numericRoomId),
+        ]);
+
+        if (!ignore) {
+          setReceipt(createMogReceipt(roomResponse.data, recordsResponse.data));
+        }
+      } catch {
+        if (!ignore) {
+          setReceipt(null);
+          showToast('영수증 정보를 불러오지 못했어요.', 'error');
+        }
+      }
+    }
+
+    void loadReceipt();
+
+    return () => {
+      ignore = true;
+    };
+  }, [numericRoomId, showToast]);
 
   const handleDownload = async () => {
     if (!receiptRef.current || !receipt || isDownloading) {
