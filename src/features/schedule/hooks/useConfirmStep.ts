@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { format, parseISO } from 'date-fns';
-import type { RoomMember, ScheduleSlot } from '@/types/schedule';
+import type { RoomMember, ScheduleSlot } from '@/features/schedule/types/schedule';
 
 export function useConfirmStep(slots: ScheduleSlot[], members: RoomMember[]) {
   const [selectedDateKey, setSelectedDateKey] = useState<string>('');

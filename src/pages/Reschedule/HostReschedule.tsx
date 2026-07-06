@@ -4,16 +4,16 @@ import { CalendarClock, Clock } from 'lucide-react';
 import StepHeader from '@/components/common/Header/StepHeader/StepHeader';
 import Calendar from '@/components/common/Calendar/Calendar';
 import Title from '@/components/common/Title/Title';
-import DateTabs from '@/components/Reschedule/DateTabs';
-import DateCheckboxes from '@/components/Reschedule/DateCheckboxes';
-import TimeTable from '@/components/Reschedule/TimeTable';
-import VoteResultTimeList from '@/components/Reschedule/VoteResultTimeList';
-import VoteCountBadge from '@/components/Reschedule/VoteCountBadge';
-import TimeSectionHeader from '@/components/Reschedule/TimeSectionHeader';
-import TopSlotsContent from '@/components/Reschedule/TopSlotsContent';
+import DateTabs from '@/features/schedule/components/DateTabs';
+import DateCheckboxes from '@/features/schedule/components/DateCheckboxes';
+import TimeTable from '@/features/schedule/components/TimeTable';
+import VoteResultTimeList from '@/features/schedule/components/VoteResultTimeList';
+import VoteCountBadge from '@/components/common/VoteCountBadge/VoteCountBadge';
+import TimeSectionHeader from '@/features/schedule/components/TimeSectionHeader';
+import TopSlotsContent from '@/features/schedule/components/TopSlotsContent';
 import BottomSheet from '@/components/common/BottomSheet/BottomSheet';
 import Skeleton from '@/components/ui/Skeleton';
-import { useHostReschedule } from '@/hooks/useHostReschedule';
+import { useHostReschedule } from '@/features/schedule/hooks/useHostReschedule';
 
 const CTA_LABEL = {
   create: '슬롯 열기',
@@ -154,9 +154,10 @@ function HostReschedule() {
                 icon={CalendarClock}
                 iconStrokeWidth={2}
                 subtitle={{
-                  text: voteSubStep === 'base'
-                    ? '가능한 날짜를 선택해주세요'
-                    : '날짜별 시간을 확인하고 조정해주세요',
+                  text:
+                    voteSubStep === 'base'
+                      ? '가능한 날짜를 선택해주세요'
+                      : '날짜별 시간을 확인하고 조정해주세요',
                 }}
               />
               <VoteCountBadge votedCount={votedCount} totalParticipants={totalParticipants} />
@@ -168,7 +169,9 @@ function HostReschedule() {
                   mode="multiple"
                   availableDates={voteAvailableDates}
                   onSelectionChange={handleVoteDateChange}
-                  hintText={'드래그: 기간 · Shift+드래그: 기간 추가\n클릭: 날짜 · ⌘+클릭: 날짜 추가'}
+                  hintText={
+                    '드래그: 기간 · Shift+드래그: 기간 추가\n클릭: 날짜 · ⌘+클릭: 날짜 추가'
+                  }
                 />
                 {voteSelectedDates.length > 0 && (
                   <>
@@ -229,7 +232,9 @@ function HostReschedule() {
                   )}
                   <TimeSectionHeader
                     label={`${activeDateKey}에 가능한 시간 선택`}
-                    onSelectAll={() => handleVoteSelectSection(voteTimesByDate[activeDateKey] ?? [])}
+                    onSelectAll={() =>
+                      handleVoteSelectSection(voteTimesByDate[activeDateKey] ?? [])
+                    }
                     onClear={() => handleVoteClearSection(voteByDate[activeDateKey] ?? [])}
                   />
                   <TimeTable

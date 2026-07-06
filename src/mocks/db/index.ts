@@ -1,4 +1,5 @@
 export { currentUser, usersDb } from './user';
+export { departuresDb } from './departure';
 export { groupsDb } from './group';
 export { roomsDb, roomMembersDb } from './room';
 export { scheduleSlotsDb, confirmedSchedulesDb } from './schedule';

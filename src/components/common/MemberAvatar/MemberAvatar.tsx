@@ -11,6 +11,7 @@ type MemberAvatarLabelPosition = 'bottom' | 'right';
 
 type MemberAvatarProps = {
   name: string;
+  subLabel?: string;
   size?: MemberAvatarSize;
   borderWeight?: MemberAvatarBorderWeight;
   borderStyle?: MemberAvatarBorderStyle;
@@ -45,6 +46,7 @@ function getDashArray(size: number) {
 
 function MemberAvatar({
   name,
+  subLabel,
   size = 'md',
   borderWeight = 'thin',
   borderStyle,
@@ -61,16 +63,10 @@ function MemberAvatar({
 }: MemberAvatarProps) {
   const sizePx = getAvatarSize(size);
   const borderWidth =
-    borderWeight === 'bold'
-      ? Math.max(2, sizePx * 0.056)
-      : Math.max(1.5, sizePx * 0.039);
-  const avatarColor = disabled
-    ? colors.border
-    : toneColor[selected ? tone : unselectedTone];
+    borderWeight === 'bold' ? Math.max(2, sizePx * 0.056) : Math.max(1.5, sizePx * 0.039);
+  const avatarColor = disabled ? colors.border : toneColor[selected ? tone : unselectedTone];
   const labelColor = labelTone ? toneColor[labelTone] : avatarColor;
-  const isDashed = borderStyle
-    ? borderStyle === 'dashed'
-    : !selected || disabled;
+  const isDashed = borderStyle ? borderStyle === 'dashed' : !selected || disabled;
 
   return (
     <button
@@ -116,7 +112,7 @@ function MemberAvatar({
           </svg>
         ) : null}
         <Cloud size={sizePx * 0.55} strokeWidth={2} />
-        {selected && showCheck ? (
+        {showCheck ? (
           <span
             className="absolute grid place-items-center rounded-full"
             style={{
@@ -132,13 +128,18 @@ function MemberAvatar({
           </span>
         ) : null}
       </span>
-      <span
-        className={`${typography.caption} block truncate ${
-          labelPosition === 'bottom' ? 'mt-2' : ''
-        }`}
-        style={{ color: labelColor }}
-      >
-        {name}
+      <span className={`block ${labelPosition === 'bottom' ? 'mt-2' : ''}`}>
+        <span className={`${typography.caption} block truncate`} style={{ color: labelColor }}>
+          {name}
+        </span>
+        {subLabel ? (
+          <span
+            className="font-pretendard text-[11px] block truncate"
+            style={{ color: toneColor.muted }}
+          >
+            {subLabel}
+          </span>
+        ) : null}
       </span>
     </button>
   );

@@ -1,5 +1,5 @@
 import { apiFetch, apiFetchNullOn404 } from '@/lib/apiFetch';
-import type { ConfirmScheduleResponse, RegisterSlotsResponse, RoomMembersResponse, SlotsResponse, VoteResponse } from '@/types/schedule';
+import type { ConfirmScheduleResponse, RegisterSlotsResponse, RoomMembersResponse, SlotsResponse, VoteResponse } from '@/features/schedule/types/schedule';
 
 export function fetchConfirmedSchedule(roomId: number) {
   return apiFetchNullOn404<ConfirmScheduleResponse>(`/rooms/${roomId}/schedule/confirm`);

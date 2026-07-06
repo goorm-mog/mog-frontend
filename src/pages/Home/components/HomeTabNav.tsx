@@ -52,7 +52,7 @@ function HomeTabNav({ activeTab, onTabChange, onAddClick }: HomeTabNavProps) {
       {showActionButton ? (
         <IconButton
           className="absolute right-4"
-          aria-label={activeTab === 'all' ? '모임 추가' : '일정 추가'}
+          aria-label={activeTab === 'all' ? '방 만들기' : '일정 추가'}
           onClick={onAddClick}
         >
           {activeTab === 'all' ? (

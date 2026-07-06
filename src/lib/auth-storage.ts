@@ -15,6 +15,9 @@ export function getAccessToken() {
 }
 
 export function getMyUserId(): number | null {
+  if (import.meta.env.VITE_MSW_ENABLED === 'true') {
+    return window.location.pathname.includes('/participant/') ? 3 : 1;
+  }
   const val = sessionStorage.getItem(USER_ID_KEY);
   return val ? Number(val) : null;
 }
