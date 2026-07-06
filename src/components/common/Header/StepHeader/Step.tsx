@@ -1,10 +1,14 @@
 const STEPS = [
-  { number: 1, label: '날짜 및 시간 선택', active: true },
-  { number: 2, label: '출발지 입력', active: false },
-  { number: 3, label: '장소 확정', active: false },
+  { number: 1, label: '날짜 및 시간 선택' },
+  { number: 2, label: '출발지 입력' },
+  { number: 3, label: '장소 확정' },
 ];
 
-function Step() {
+interface StepProps {
+  currentStep?: number;
+}
+
+function Step({ currentStep = 1 }: StepProps) {
   return (
     <div className="w-full flex flex-col gap-2">
       <div className="relative flex justify-around">
@@ -13,7 +17,7 @@ function Step() {
           <div
             key={step.number}
             className={
-              step.active
+              step.number === currentStep
                 ? 'relative z-10 bg-point size-8 rounded-full flex items-center justify-center text-background text-caption'
                 : 'relative z-10 bg-background border-[0.5px] border-dark-border size-8 rounded-full flex items-center justify-center text-dark-border text-caption'
             }

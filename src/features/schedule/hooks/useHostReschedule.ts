@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
-import { confirmSchedule, fetchRoomMembers, fetchSlots, fetchSlotsIfExists, registerSlots, submitVotes } from '@/api/schedule';
+import { confirmSchedule, fetchRoomMembers, fetchSlots, fetchSlotsIfExists, registerSlots, submitVotes } from '@/features/schedule/api/schedule';
 import { getMyUserId } from '@/lib/auth-storage';
 import { useToast } from '@/hooks/useToast';
-import { useVoteStep } from '@/hooks/useVoteStep';
-import { useConfirmStep } from '@/hooks/useConfirmStep';
-import type { RegisteredSlot, RoomMember, ScheduleSlot } from '@/types/schedule';
+import { useVoteStep } from '@/features/schedule/hooks/useVoteStep';
+import { useConfirmStep } from '@/features/schedule/hooks/useConfirmStep';
+import type { RegisteredSlot, RoomMember, ScheduleSlot } from '@/features/schedule/types/schedule';
+import { countUniqueVoters } from '@/features/schedule/utils/slotUtils';
 
 export type HostStep = 'create' | 'vote' | 'confirm';
 
@@ -42,7 +43,7 @@ export function useHostReschedule(roomId: number) {
 
         setRegisteredSlots(slotsData.slots.map(({ slotId, date, time }) => ({ slotId, date, time })));
         setTotalParticipants(slotsData.totalParticipants);
-        setVotedCount(new Set(slotsData.slots.flatMap((s) => s.votedUserIds)).size);
+        setVotedCount(countUniqueVoters(slotsData.slots));
         setStep('vote');
 
         const myUserId = getMyUserId();
@@ -151,7 +152,7 @@ export function useHostReschedule(roomId: number) {
           slotsData.slots.map(({ slotId, date, time }) => ({ slotId, date, time })),
         );
         setTotalParticipants(slotsData.totalParticipants);
-        setVotedCount(new Set(slotsData.slots.flatMap((s) => s.votedUserIds)).size);
+        setVotedCount(countUniqueVoters(slotsData.slots));
         setStep('vote');
       } catch (e) {
         showToast(e instanceof Error ? e.message : '슬롯 등록에 실패했습니다.', 'error');

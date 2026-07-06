@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { format, parse } from 'date-fns';
 import { useSwipe } from '@/hooks/useSwipe';
-import type { RegisteredSlot } from '@/types/schedule';
+import type { RegisteredSlot } from '@/features/schedule/types/schedule';
 
 export function useVoteStep(registeredSlots: RegisteredSlot[]) {
   // 슬롯 → 날짜별 사용 가능한 시간 목록

@@ -1,6 +1,7 @@
 import {
   confirmedSchedulesDb,
   currentUser,
+  departuresDb,
   groupsDb,
   meetingRecordsDb,
   notificationsDb,
@@ -23,6 +24,7 @@ export const mockDb = {
   roomMembers: roomMembersDb,
   scheduleSlots: scheduleSlotsDb,
   confirmedSchedules: confirmedSchedulesDb,
+  departures: departuresDb,
   meetingRecords: meetingRecordsDb,
   settlements: settlementsDb,
   notifications: notificationsDb,
