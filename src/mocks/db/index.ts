@@ -5,3 +5,4 @@ export { scheduleSlotsDb, confirmedSchedulesDb } from './schedule';
 export { meetingRecordsDb } from './meetingRecord';
 export { settlementsDb } from './settlement';
 export { notificationsDb } from './notification';
+export { chatParticipantsDb, chatMessagesDb } from './chat';

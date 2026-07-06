@@ -1,5 +1,7 @@
 import {
   confirmedSchedulesDb,
+  chatMessagesDb,
+  chatParticipantsDb,
   currentUser,
   groupsDb,
   meetingRecordsDb,
@@ -26,6 +28,8 @@ export const mockDb = {
   meetingRecords: meetingRecordsDb,
   settlements: settlementsDb,
   notifications: notificationsDb,
+  chatParticipants: chatParticipantsDb,
+  chatMessages: chatMessagesDb,
 } as const;
 
 export type MockDb = typeof mockDb;
