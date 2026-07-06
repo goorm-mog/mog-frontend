@@ -8,6 +8,8 @@ import ParticipantReschedule from '@/pages/Reschedule/ParticipantReschedule';
 import DeparturePage from '@/pages/Reschedule/DeparturePage';
 import MeetDetailPage from '@/pages/MeetDetail/MeetDetailPage';
 import MeetRecord from '@/pages/MeetRecord/MeetRecord';
+import MogCardPage from '@/pages/MogCard/MogCardPage';
+import SettlementPage from '@/pages/Settlement/SettlementPage';
 
 function App() {
   return (
@@ -23,6 +25,8 @@ function App() {
           <Route path="/departure/participant/:roomId" element={<DeparturePage />} />
           <Route path="/meet-detail" element={<MeetDetailPage />} />
           <Route path="/meet-record" element={<MeetRecord />} />
+          <Route path="/:roomId/mog-card" element={<MogCardPage />} />
+          <Route path="/:roomId/settlement" element={<SettlementPage />} />
           <Route path="/example/*" element={<ExampleRoutes />} />
         </Routes>
       </ToastProvider>

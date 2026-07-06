@@ -7,6 +7,7 @@ type MemberAvatarTone = 'default' | 'point' | 'muted';
 type MemberAvatarSize = 'sm' | 'md' | 'lg' | number;
 type MemberAvatarBorderWeight = 'thin' | 'bold';
 type MemberAvatarBorderStyle = 'solid' | 'dashed';
+type MemberAvatarLabelPosition = 'bottom' | 'right';
 
 type MemberAvatarProps = {
   name: string;
@@ -20,6 +21,7 @@ type MemberAvatarProps = {
   tone?: MemberAvatarTone;
   unselectedTone?: MemberAvatarTone;
   labelTone?: MemberAvatarTone;
+  labelPosition?: MemberAvatarLabelPosition;
 } & Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children' | 'disabled'>;
 
 const toneColor: Record<MemberAvatarTone, string> = {
@@ -54,6 +56,7 @@ function MemberAvatar({
   tone = 'default',
   unselectedTone = 'muted',
   labelTone,
+  labelPosition = 'bottom',
   className = '',
   style,
   ...buttonProps
@@ -68,8 +71,12 @@ function MemberAvatar({
   return (
     <button
       type="button"
-      className={`shrink-0 text-center disabled:cursor-not-allowed ${className}`}
-      style={{ ...style, width: sizePx }}
+      className={`shrink-0 disabled:cursor-not-allowed ${
+        labelPosition === 'right'
+          ? 'inline-flex items-center gap-2 text-left'
+          : 'text-center'
+      } ${className}`}
+      style={{ width: labelPosition === 'bottom' ? sizePx : undefined, ...style }}
       aria-pressed={selected}
       disabled={disabled}
       {...buttonProps}
@@ -121,13 +128,13 @@ function MemberAvatar({
           </span>
         ) : null}
       </span>
-      <span className="mt-2 block">
+      <span className={`block ${labelPosition === 'bottom' ? 'mt-2' : ''}`}>
         <span className={`${typography.caption} block truncate`} style={{ color: labelColor }}>
           {name}
         </span>
         {subLabel ? (
           <span
-            className={`font-pretendard text-[11px] block truncate`}
+            className="font-pretendard text-[11px] block truncate"
             style={{ color: toneColor.muted }}
           >
             {subLabel}
