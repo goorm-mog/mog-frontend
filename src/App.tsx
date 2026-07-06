@@ -10,6 +10,7 @@ import MeetDetailPage from '@/pages/MeetDetail/MeetDetailPage';
 import MeetRecord from '@/pages/MeetRecord/MeetRecord';
 import MogCardPage from '@/pages/MogCard/MogCardPage';
 import SettlementPage from '@/pages/Settlement/SettlementPage';
+import MeetChatPage from '@/pages/MeetChat/MeetChatPage';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="/meet-record" element={<MeetRecord />} />
           <Route path="/:roomId/mog-card" element={<MogCardPage />} />
           <Route path="/:roomId/settlement" element={<SettlementPage />} />
+          <Route path="/:roomId/chat" element={<MeetChatPage />} />
           <Route path="/example/*" element={<ExampleRoutes />} />
         </Routes>
       </ToastProvider>
