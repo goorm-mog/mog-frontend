@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TIME_SECTIONS } from '@/constants/time';
-import type { RoomMember, ScheduleSlot } from '@/types/schedule';
+import type { RoomMember, ScheduleSlot } from '@/features/schedule/types/schedule';
 
 interface VoteResultTimeListProps {
   slots: ScheduleSlot[];

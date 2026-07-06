@@ -1,7 +1,7 @@
 import { http, HttpResponse, type HttpHandler } from 'msw';
 import { mockDb } from '@/mocks/fixtures/mockDb';
 import { confirmedSchedulesDb, scheduleSlotsDb } from '@/mocks/db/schedule';
-import type { RegisteredSlot, ScheduleSlot, SlotsResponse } from '@/types/schedule';
+import type { RegisteredSlot, ScheduleSlot, SlotsResponse } from '@/features/schedule/types/schedule';
 
 const BASE = import.meta.env.VITE_API_BASE_URL ?? '';
 

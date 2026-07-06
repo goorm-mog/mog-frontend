@@ -2,13 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useKakaoPlaceSearch } from '@/hooks/useKakaoPlaceSearch';
 import { useKakaoMapSetup } from '@/features/departure/hooks/useKakaoMapSetup';
 import { useToast } from '@/hooks/useToast';
+import { TRANSPORT_OPTIONS } from '@/features/departure/constants';
 import type { SelectedPlace, TransportType } from '@/features/departure/types/departure';
-
-const TRANSPORT_OPTIONS: { label: string; value: TransportType }[] = [
-  { label: '대중교통', value: 'PUBLIC' },
-  { label: '자동차', value: 'CAR' },
-  { label: '도보', value: 'WALK' },
-];
 
 interface DepartureMapSectionProps {
   selectedPlace: SelectedPlace | null;
@@ -48,6 +43,20 @@ export default function DepartureMapSection({
 
   const { mapInstanceRef, markerRef, mapReady } = useKakaoMapSetup(mapRef, applyPlaceRef);
 
+  const moveMapToCurrentPosition = (
+    onSuccess?: (coords: GeolocationCoordinates) => void,
+    onError?: () => void,
+  ) => {
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        const pos = new window.kakao.maps.LatLng(coords.latitude, coords.longitude);
+        (mapInstanceRef.current as KakaoMap).setCenter(pos);
+        onSuccess?.(coords);
+      },
+      onError ?? (() => { console.warn('현재 위치를 가져올 수 없습니다.'); }),
+    );
+  };
+
   // selectedPlace → 마커 + 지도 중심 이동
   useEffect(() => {
     if (!mapReady) return;
@@ -60,13 +69,7 @@ export default function DepartureMapSection({
       markerRef.current.setMap(mapInstanceRef.current);
       (mapInstanceRef.current as KakaoMap).setCenter(position);
     } else {
-      navigator.geolocation.getCurrentPosition(
-        ({ coords }) => {
-          const pos = new window.kakao.maps.LatLng(coords.latitude, coords.longitude);
-          (mapInstanceRef.current as KakaoMap).setCenter(pos);
-        },
-        () => { console.warn('지도 중심 이동을 위한 위치 정보를 가져올 수 없습니다.'); },
-      );
+      moveMapToCurrentPosition();
     }
     // mapInstanceRef, markerRef는 useRef로 생성된 안정적인 참조값이므로 deps 제외
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -95,11 +98,8 @@ export default function DepartureMapSection({
   };
 
   const handleCurrentLocation = () => {
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
-        const position = new window.kakao.maps.LatLng(coords.latitude, coords.longitude);
-        (mapInstanceRef.current as KakaoMap).setCenter(position);
-
+    moveMapToCurrentPosition(
+      (coords) => {
         const geocoder = new window.kakao.maps.services.Geocoder();
         geocoder.coord2Address(coords.longitude, coords.latitude, (result, status) => {
           const address =

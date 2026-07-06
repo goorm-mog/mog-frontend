@@ -4,16 +4,16 @@ import { CalendarClock, Clock } from 'lucide-react';
 import StepHeader from '@/components/common/Header/StepHeader/StepHeader';
 import Calendar from '@/components/common/Calendar/Calendar';
 import Title from '@/components/common/Title/Title';
-import DateTabs from '@/pages/Reschedule/components/Time/DateTabs';
-import DateCheckboxes from '@/pages/Reschedule/components/Time/DateCheckboxes';
-import TimeTable from '@/pages/Reschedule/components/Time/TimeTable';
-import VoteResultTimeList from '@/pages/Reschedule/components/Time/VoteResultTimeList';
-import VoteCountBadge from '@/pages/Reschedule/components/Time/VoteCountBadge';
-import TimeSectionHeader from '@/pages/Reschedule/components/Time/TimeSectionHeader';
-import TopSlotsContent from '@/pages/Reschedule/components/Time/TopSlotsContent';
+import DateTabs from '@/features/schedule/components/DateTabs';
+import DateCheckboxes from '@/features/schedule/components/DateCheckboxes';
+import TimeTable from '@/features/schedule/components/TimeTable';
+import VoteResultTimeList from '@/features/schedule/components/VoteResultTimeList';
+import VoteCountBadge from '@/components/common/VoteCountBadge/VoteCountBadge';
+import TimeSectionHeader from '@/features/schedule/components/TimeSectionHeader';
+import TopSlotsContent from '@/features/schedule/components/TopSlotsContent';
 import BottomSheet from '@/components/common/BottomSheet/BottomSheet';
 import Skeleton from '@/components/ui/Skeleton';
-import { useHostReschedule } from '@/hooks/useHostReschedule';
+import { useHostReschedule } from '@/features/schedule/hooks/useHostReschedule';
 
 const CTA_LABEL = {
   create: '슬롯 열기',

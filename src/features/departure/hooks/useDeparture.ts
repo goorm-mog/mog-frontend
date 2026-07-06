@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { fetchRoomMembers } from '@/api/schedule';
+import { fetchRoomMembers } from '@/features/schedule/api/schedule';
 import { fetchDepartures } from '@/features/departure/api/departure';
 import { getMyUserId } from '@/lib/auth-storage';
 import type { DepartureEntry } from '@/features/departure/types/departure';

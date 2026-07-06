@@ -3,7 +3,7 @@ import { format, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import SelectionCard from '@/components/common/SelectionCard/SelectionCard';
 import { TIME_SECTION_MAP } from '@/constants/time';
-import type { RoomMember, ScheduleSlot } from '@/types/schedule';
+import type { RoomMember, ScheduleSlot } from '@/features/schedule/types/schedule';
 
 interface TopSlotsContentProps {
   topSlots: ScheduleSlot[];

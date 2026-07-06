@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import MemberAvatar from '@/components/common/MemberAvatar/MemberAvatar';
-import VoteCountBadge from '@/pages/Reschedule/components/Time/VoteCountBadge';
+import VoteCountBadge from '@/components/common/VoteCountBadge/VoteCountBadge';
 import type { DepartureProfileMember } from '@/features/departure/hooks/useDeparture';
 import type { DepartureEntry } from '@/features/departure/types/departure';
 
