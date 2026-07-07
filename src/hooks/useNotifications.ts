@@ -17,25 +17,49 @@ export function useNotifications() {
     setUnreadCount(nextUnreadCount);
   }, []);
 
-  const loadNotifications = useCallback(async () => {
-    try {
-      const data = await fetchNotifications();
-      applyList(data.notifications, data.unreadCount);
+  const loadNotifications = useCallback(() => {
+    return fetchNotifications()
+      .then((data) => {
+        applyList(data.notifications, data.unreadCount);
 
-      if (isInitialLoadRef.current) {
-        data.notifications.forEach((item) => knownNotificationIdsRef.current.add(item.notificationId));
-        isInitialLoadRef.current = false;
-      }
-    } catch {
-      applyList([], 0);
-    } finally {
-      setIsLoading(false);
-    }
+        if (isInitialLoadRef.current) {
+          data.notifications.forEach((item) => knownNotificationIdsRef.current.add(item.notificationId));
+          isInitialLoadRef.current = false;
+        }
+      })
+      .catch(() => {
+        applyList([], 0);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, [applyList]);
 
   useEffect(() => {
-    void loadNotifications();
-  }, [loadNotifications]);
+    let ignore = false;
+
+    fetchNotifications()
+      .then((data) => {
+        if (ignore) return;
+
+        applyList(data.notifications, data.unreadCount);
+
+        if (isInitialLoadRef.current) {
+          data.notifications.forEach((item) => knownNotificationIdsRef.current.add(item.notificationId));
+          isInitialLoadRef.current = false;
+        }
+      })
+      .catch(() => {
+        if (!ignore) applyList([], 0);
+      })
+      .finally(() => {
+        if (!ignore) setIsLoading(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [applyList]);
 
   useEffect(() => {
     if (import.meta.env.VITE_MSW_ENABLED === 'true') return;
