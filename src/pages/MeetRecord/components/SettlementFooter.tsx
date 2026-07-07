@@ -9,6 +9,7 @@ type SettlementFooterProps = {
   isSaveDisabled?: boolean;
   errorMessage?: string | null;
   onSave: () => void;
+  onSettle: () => void;
 };
 
 function SettlementFooter({
@@ -17,6 +18,7 @@ function SettlementFooter({
   isSaveDisabled = false,
   errorMessage = null,
   onSave,
+  onSettle,
 }: SettlementFooterProps) {
   return (
     <footer
@@ -53,6 +55,8 @@ function SettlementFooter({
             size="lg"
             fullWidth={false}
             className={`${typography.body} min-w-[86px] transition active:scale-[0.98]`}
+            disabled={isSaving || isSaveDisabled}
+            onClick={onSettle}
           >
             정산
           </Button>

@@ -11,6 +11,7 @@ import { colors } from '../../../constants/colors';
 type ReceiptListProps = {
   receipts: ReceiptCardData[];
   payerOptions: readonly ReceiptPayerOption[];
+  resetKey: number;
   pendingScrollReceiptId: string | null;
   onAddReceipt: () => void;
   onReceiptChange: (receiptId: string, receipt: Partial<ReceiptCardData>) => void;
@@ -21,6 +22,7 @@ type ReceiptListProps = {
 function ReceiptList({
   receipts,
   payerOptions,
+  resetKey,
   pendingScrollReceiptId,
   onAddReceipt,
   onReceiptChange,
@@ -51,7 +53,7 @@ function ReceiptList({
       <div className="flex flex-col gap-7 mt-5">
         {receipts.map((receipt) => (
           <ReceiptCard
-            key={receipt.roundLabel}
+            key={`${resetKey}-${receipt.roundLabel}`}
             receipt={receipt}
             payerOptions={payerOptions}
             onReceiptChange={onReceiptChange}

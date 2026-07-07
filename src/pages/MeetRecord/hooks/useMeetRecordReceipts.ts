@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   createMeetingRecord,
   deleteMeetingRecord,
@@ -34,13 +34,8 @@ export function useMeetRecordReceipts({
   );
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [receiptsVersion, setReceiptsVersion] = useState(0);
   const nextReceiptSeqRef = useRef(getNextReceiptSeq(initialReceipts));
-
-  useEffect(() => {
-    setReceiptCards(initialReceipts);
-    setDeletedRecordIds([]);
-    nextReceiptSeqRef.current = getNextReceiptSeq(initialReceipts);
-  }, [initialReceipts]);
 
   const totalAmount = useMemo(
     () => receiptCards.reduce((sum, receipt) => sum + receipt.totalAmount, 0),
@@ -91,6 +86,7 @@ export function useMeetRecordReceipts({
     setReceiptCards(nextReceipts);
     setDeletedRecordIds([]);
     nextReceiptSeqRef.current = getNextReceiptSeq(nextReceipts);
+    setReceiptsVersion((version) => version + 1);
   }, [roomId, roomMembers]);
 
   const saveReceipts = useCallback(async () => {
@@ -98,6 +94,10 @@ export function useMeetRecordReceipts({
     setSaveError(null);
 
     try {
+      if (roomId <= 0) {
+        throw new Error('올바른 약속 ID가 없습니다.');
+      }
+
       const invalidReceipt = receiptCards.find(
         (receipt) =>
           receipt.placeName.trim().length === 0 ||
@@ -145,6 +145,7 @@ export function useMeetRecordReceipts({
 
   return {
     receiptCards,
+    receiptsVersion,
     totalAmount,
     pendingScrollReceiptId,
     isSaving,

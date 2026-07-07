@@ -31,6 +31,7 @@ function MeetRecord() {
   const [initialReceipts, setInitialReceipts] = useState<ReceiptCardData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadVersion, setLoadVersion] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -74,6 +75,7 @@ function MeetRecord() {
             .sort((a, b) => a.seq - b.seq)
             .map((record) => mapMeetingRecordToReceipt(record, members)),
         );
+        setLoadVersion((version) => version + 1);
       } catch (error) {
         if (!isMounted) return;
 
@@ -96,24 +98,6 @@ function MeetRecord() {
     };
   }, [roomId]);
 
-  const {
-    receiptCards,
-    totalAmount,
-    pendingScrollReceiptId,
-    isSaving,
-    saveError,
-    addReceipt,
-    updateReceipt,
-    deleteReceipt,
-    saveReceipts,
-    clearPendingScrollReceipt,
-  } = useMeetRecordReceipts({
-    roomId: roomId ?? 0,
-    roomMembers,
-    initialReceipts,
-  });
-  const payerOptions = useMemo(() => toPayerOptions(roomMembers), [roomMembers]);
-
   return (
     <main
       className="min-h-dvh"
@@ -135,35 +119,83 @@ function MeetRecord() {
           dateText={formatMeetDate(confirmedSchedule)}
         />
 
-        {isLoading ? (
-          <div className="grid min-h-0 flex-1 place-items-center px-5 text-center">
-            기록을 불러오는 중입니다.
-          </div>
-        ) : loadError ? (
-          <div className="grid min-h-0 flex-1 place-items-center px-5 text-center">
-            {loadError}
-          </div>
+        {isLoading || loadError || roomId == null ? (
+          <>
+            <div className="grid min-h-0 flex-1 place-items-center px-5 text-center">
+              {isLoading ? '기록을 불러오는 중입니다.' : (loadError ?? '올바른 약속 ID가 없습니다.')}
+            </div>
+            <SettlementFooter
+              totalAmount={0}
+              isSaveDisabled
+              onSave={() => {}}
+              onSettle={() => {}}
+            />
+          </>
         ) : (
-          <ReceiptList
-            receipts={receiptCards}
-            payerOptions={payerOptions}
-            pendingScrollReceiptId={pendingScrollReceiptId}
-            onAddReceipt={addReceipt}
-            onReceiptChange={updateReceipt}
-            onDeleteReceipt={deleteReceipt}
-            onScrollComplete={clearPendingScrollReceipt}
+          <MeetRecordEditor
+            key={loadVersion}
+            roomId={roomId}
+            roomMembers={roomMembers}
+            initialReceipts={initialReceipts}
           />
         )}
-
-        <SettlementFooter
-          totalAmount={totalAmount}
-          isSaving={isSaving}
-          isSaveDisabled={roomId == null || Boolean(loadError)}
-          errorMessage={saveError}
-          onSave={saveReceipts}
-        />
       </div>
     </main>
+  );
+}
+
+type MeetRecordEditorProps = {
+  roomId: number;
+  roomMembers: MeetRecordMember[];
+  initialReceipts: ReceiptCardData[];
+};
+
+function MeetRecordEditor({
+  roomId,
+  roomMembers,
+  initialReceipts,
+}: MeetRecordEditorProps) {
+  const navigate = useNavigate();
+  const {
+    receiptCards,
+    receiptsVersion,
+    totalAmount,
+    pendingScrollReceiptId,
+    isSaving,
+    saveError,
+    addReceipt,
+    updateReceipt,
+    deleteReceipt,
+    saveReceipts,
+    clearPendingScrollReceipt,
+  } = useMeetRecordReceipts({
+    roomId,
+    roomMembers,
+    initialReceipts,
+  });
+  const payerOptions = useMemo(() => toPayerOptions(roomMembers), [roomMembers]);
+
+  return (
+    <>
+      <ReceiptList
+        receipts={receiptCards}
+        payerOptions={payerOptions}
+        resetKey={receiptsVersion}
+        pendingScrollReceiptId={pendingScrollReceiptId}
+        onAddReceipt={addReceipt}
+        onReceiptChange={updateReceipt}
+        onDeleteReceipt={deleteReceipt}
+        onScrollComplete={clearPendingScrollReceipt}
+      />
+
+      <SettlementFooter
+        totalAmount={totalAmount}
+        isSaving={isSaving}
+        errorMessage={saveError}
+        onSave={saveReceipts}
+        onSettle={() => navigate(`/${roomId}/settlement`)}
+      />
+    </>
   );
 }
 
