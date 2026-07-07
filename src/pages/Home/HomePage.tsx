@@ -11,6 +11,8 @@ import CreateAppointmentSheet from '@/pages/Home/components/CreateAppointmentShe
 import CreateRoomSheet from '@/pages/Home/components/CreateRoomSheet';
 import DeleteGroupDialog from '@/pages/Home/components/DeleteGroupDialog';
 import HomeSidebar from '@/pages/Home/components/HomeSidebar';
+import NotificationListSheet from '@/pages/Home/components/NotificationListSheet';
+import { useNotifications } from '@/hooks/useNotifications';
 import {
   HOME_ARCHIVAL_ITEMS,
   HOME_DEFAULT_SELECTED,
@@ -23,6 +25,12 @@ import { HOME_GROUPS, type HomeGroup } from '@/pages/Home/constants/groupMockDat
 
 function HomePage() {
   const navigate = useNavigate();
+  const {
+    notifications,
+    hasUnreadNotifications,
+    isLoading: isNotificationsLoading,
+    openNotifications,
+  } = useNotifications();
   const [activeTab, setActiveTab] = useState<HomeTab>('all');
   const [selectedDate, setSelectedDate] = useState(HOME_DEFAULT_SELECTED);
   const [isCreateAppointmentOpen, setIsCreateAppointmentOpen] = useState(false);
@@ -30,6 +38,7 @@ function HomePage() {
   const [isCreateRoomOpen, setIsCreateRoomOpen] = useState(false);
   const [isEditRoomOpen, setIsEditRoomOpen] = useState(false);
   const [isDeleteRoomOpen, setIsDeleteRoomOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [groups, setGroups] = useState<HomeGroup[]>(HOME_GROUPS);
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(HOME_GROUPS[0]?.id ?? null);
 
@@ -41,6 +50,11 @@ function HomePage() {
   );
 
   const selectedGroup = groups.find((group) => group.id === selectedGroupId) ?? null;
+
+  const handleNotificationClick = () => {
+    setIsNotificationOpen(true);
+    void openNotifications();
+  };
 
   const openCreateRoomSheet = () => {
     setIsSidebarOpen(false);
@@ -80,8 +94,9 @@ function HomePage() {
     <div className="flex min-h-screen flex-col bg-background">
       <TopAppBar
         showBack
-        hasNotificationBadge
+        hasNotificationBadge={hasUnreadNotifications}
         onBack={() => navigate('/login')}
+        onNotificationClick={handleNotificationClick}
         onMenuClick={() => setIsSidebarOpen(true)}
       />
 
@@ -154,6 +169,14 @@ function HomePage() {
           </section>
         )}
       </main>
+
+      {isNotificationOpen ? (
+        <NotificationListSheet
+          notifications={notifications}
+          isLoading={isNotificationsLoading}
+          onClose={() => setIsNotificationOpen(false)}
+        />
+      ) : null}
 
       {isSidebarOpen ? (
         <HomeSidebar

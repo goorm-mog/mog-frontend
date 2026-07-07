@@ -1,4 +1,5 @@
 import { HTTP_ERRORS } from '@/constants/errors';
+import { getAccessToken } from '@/lib/auth-storage';
 
 export class ApiError extends Error {
   readonly status: number;
@@ -13,9 +14,12 @@ export class ApiError extends Error {
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '';
 
 export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
+  const accessToken = getAccessToken();
+
   const response = await fetch(`${API_BASE}${path}`, {
     headers: {
       'Content-Type': 'application/json',
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...options?.headers,
     },
     ...options,
