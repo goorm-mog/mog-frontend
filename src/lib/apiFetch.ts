@@ -3,15 +3,36 @@ import { getAccessToken } from '@/lib/auth-storage';
 
 export class ApiError extends Error {
   readonly status: number;
+  readonly code?: string;
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, code?: string) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
+    this.code = code;
   }
 }
 
+type ErrorResponseBody = {
+  code?: string;
+  message?: string;
+};
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '';
+
+async function parseErrorResponse(response: Response): Promise<ErrorResponseBody | null> {
+  try {
+    const body = await response.clone().json();
+
+    if (body && typeof body === 'object') {
+      return body as ErrorResponseBody;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
 
 export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const accessToken = getAccessToken();
@@ -26,8 +47,12 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
   });
 
   if (!response.ok) {
-    const message = HTTP_ERRORS[response.status] ?? '알 수 없는 오류가 발생했습니다.';
-    throw new ApiError(response.status, message);
+    const errorBody = await parseErrorResponse(response);
+    const message =
+      errorBody?.message ??
+      HTTP_ERRORS[response.status] ??
+      '알 수 없는 오류가 발생했습니다.';
+    throw new ApiError(response.status, message, errorBody?.code);
   }
 
   return response.json() as Promise<T>;
