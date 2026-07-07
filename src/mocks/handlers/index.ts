@@ -5,6 +5,7 @@ import { scheduleHandlers } from './schedule';
 import { departureHandlers } from './departure';
 import { settlementHandlers } from './settlement';
 import { groupHandlers } from './group';
+import { roomHandlers } from './room';
 import { meetingRecordHandlers } from './meetingRecord';
 
 export const handlers = [
@@ -15,5 +16,6 @@ export const handlers = [
   ...departureHandlers,
   ...settlementHandlers,
   ...groupHandlers,
+  ...roomHandlers,
   ...meetingRecordHandlers,
 ];

@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '@/api/auth';
 import { createGroup, deleteGroup, fetchGroupDetail, fetchGroups, updateGroup } from '@/api/group';
+import { createRoom } from '@/api/room';
 import { ApiError } from '@/lib/apiFetch';
 import TopAppBar from '@/components/common/TopAppBar/TopAppBar';
 import Calendar from '@/components/common/Calendar/Calendar';
@@ -13,6 +14,7 @@ import HomeTabNav from '@/pages/Home/components/HomeTabNav';
 import CreateAppointmentSheet from '@/pages/Home/components/CreateAppointmentSheet';
 import CreateRoomSheet from '@/pages/Home/components/CreateRoomSheet';
 import DeleteGroupDialog from '@/pages/Home/components/DeleteGroupDialog';
+import type { CreateAppointmentFormValues } from '@/pages/Home/components/CreateAppointmentSheet';
 import HomeSidebar from '@/pages/Home/components/HomeSidebar';
 import NotificationListSheet from '@/pages/Home/components/NotificationListSheet';
 import { useNotifications } from '@/hooks/useNotifications';
@@ -49,6 +51,7 @@ function HomePage() {
   const [selectedGroupRole, setSelectedGroupRole] = useState<GroupRole | null>(null);
   const [isGroupsLoading, setIsGroupsLoading] = useState(true);
   const [isGroupMutating, setIsGroupMutating] = useState(false);
+  const [isCreatingAppointment, setIsCreatingAppointment] = useState(false);
 
   const selectedDateKey = format(selectedDate, 'yyyy-MM-dd');
 
@@ -192,6 +195,26 @@ function HomePage() {
     } finally {
       setIsSidebarOpen(false);
       navigate('/login');
+    }
+  };
+
+  const handleCreateAppointment = async ({ name }: CreateAppointmentFormValues) => {
+    if (selectedGroupId === null) {
+      showToast('약속을 만들 그룹을 먼저 선택해 주세요');
+      return;
+    }
+
+    setIsCreatingAppointment(true);
+
+    try {
+      const created = await createRoom(selectedGroupId, { roomName: name });
+      setIsCreateAppointmentOpen(false);
+      navigate(`/reschedule/host/${created.roomId}`);
+    } catch (error: unknown) {
+      const message = error instanceof ApiError ? error.message : '약속을 만들지 못했어요';
+      showToast(message);
+    } finally {
+      setIsCreatingAppointment(false);
     }
   };
 
@@ -342,8 +365,11 @@ function HomePage() {
 
       {isCreateAppointmentOpen ? (
         <CreateAppointmentSheet
+          isLoading={isCreatingAppointment}
           onClose={() => setIsCreateAppointmentOpen(false)}
-          onSubmit={() => setIsCreateAppointmentOpen(false)}
+          onSubmit={(values) => {
+            void handleCreateAppointment(values);
+          }}
         />
       ) : null}
     </div>
