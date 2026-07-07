@@ -25,18 +25,13 @@ export type RecordParticipant = {
 };
 
 export type MeetingRecord = {
-  roomId?: number;
   recordId: number;
   seq: number;
   placeName: string;
-  address?: string;
-  memo: string;
+  memo: string | null;
   totalCost: number;
-  totalPrice?: number;
-  menuItems?: { menuName: string; count: number; price: number }[];
   payer: RecordPayer | null;
   participants: RecordParticipant[];
-  photoCount?: number;
   createdAt: string;
 };
 

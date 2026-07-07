@@ -60,10 +60,7 @@ function createSettlementResponse(roomId: number): SettlementResponse | null {
     settlementId:
       mockDb.settlements.find((item) => item.roomId === roomId)?.settlementId ??
       Date.now(),
-    totalCost: records.reduce(
-      (total, record) => total + (record.totalPrice ?? record.totalCost),
-      0,
-    ),
+    totalCost: records.reduce((total, record) => total + record.totalPrice, 0),
     isConfirmed: false,
     confirmedAt: null,
     memberSettlements,

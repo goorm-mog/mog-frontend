@@ -63,7 +63,7 @@ export const MEET_DETAIL = {
 export const SETTLEMENT_ROUNDS: SettlementRound[] = [
   ...meetingRecordsDb.map((record) => {
     const placeMeta = PLACE_META_BY_SEQ[record.seq as keyof typeof PLACE_META_BY_SEQ];
-    const menu = (record.menuItems ?? [])
+    const menu = record.menuItems
       .map(({ menuName, count }) => `${menuName} ${count}`)
       .join(', ');
 
@@ -79,7 +79,7 @@ export const SETTLEMENT_ROUNDS: SettlementRound[] = [
         : '-',
       participants: record.participants.map((participant) => participant.nickname).join(', '),
       memo: record.memo || '-',
-      imageCount: record.photoCount ?? 0,
+      imageCount: record.photoCount,
     };
   }),
 ];
