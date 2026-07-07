@@ -6,6 +6,7 @@ import { typography } from '../../../constants/typography';
 type SettlementFooterProps = {
   totalAmount: number;
   isSaving?: boolean;
+  isSaveDisabled?: boolean;
   errorMessage?: string | null;
   onSave: () => void;
 };
@@ -13,6 +14,7 @@ type SettlementFooterProps = {
 function SettlementFooter({
   totalAmount,
   isSaving = false,
+  isSaveDisabled = false,
   errorMessage = null,
   onSave,
 }: SettlementFooterProps) {
@@ -41,7 +43,7 @@ function SettlementFooter({
               backgroundColor: colors.background,
               color: colors.darkBorder,
             }}
-            disabled={isSaving}
+            disabled={isSaving || isSaveDisabled}
             onClick={onSave}
           >
             {isSaving ? '저장 중' : '저장'}

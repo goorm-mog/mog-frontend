@@ -23,7 +23,7 @@ import { colors } from '../../constants/colors';
 function MeetRecord() {
   const navigate = useNavigate();
   const { roomId: roomIdParam } = useParams();
-  const roomId = Number(roomIdParam ?? 45);
+  const roomId = parseRoomId(roomIdParam);
   const [roomName, setRoomName] = useState('약속 기록');
   const [roomMembers, setRoomMembers] = useState<MeetRecordMember[]>([]);
   const [confirmedSchedule, setConfirmedSchedule] =
@@ -40,6 +40,10 @@ function MeetRecord() {
       setLoadError(null);
 
       try {
+        if (roomId == null) {
+          throw new Error('올바른 약속 ID가 없습니다.');
+        }
+
         const [room, recordsResponse, schedule] = await Promise.all([
           fetchRoomStatus(roomId),
           fetchMeetingRecords(roomId),
@@ -104,7 +108,7 @@ function MeetRecord() {
     saveReceipts,
     clearPendingScrollReceipt,
   } = useMeetRecordReceipts({
-    roomId,
+    roomId: roomId ?? 0,
     roomMembers,
     initialReceipts,
   });
@@ -154,12 +158,20 @@ function MeetRecord() {
         <SettlementFooter
           totalAmount={totalAmount}
           isSaving={isSaving}
+          isSaveDisabled={roomId == null || Boolean(loadError)}
           errorMessage={saveError}
           onSave={saveReceipts}
         />
       </div>
     </main>
   );
+}
+
+function parseRoomId(roomIdParam: string | undefined) {
+  if (!roomIdParam) return null;
+
+  const roomId = Number(roomIdParam);
+  return Number.isInteger(roomId) && roomId > 0 ? roomId : null;
 }
 
 export default MeetRecord;
