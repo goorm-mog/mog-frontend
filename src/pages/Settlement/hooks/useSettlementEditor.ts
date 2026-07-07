@@ -1,9 +1,8 @@
 import { useCallback, useMemo, useState } from 'react';
-import {
-  SETTLEMENT_MEMBERS,
-  SETTLEMENT_PLACE_PAYERS,
-  SETTLEMENT_SUMMARY,
-} from '@/pages/Settlement/constants/settlementMockData';
+import type {
+  SettlementMemberBurden,
+  SettlementPlacePayer,
+} from '@/pages/Settlement/types';
 import {
   buildMySettlementTransferRows,
   calculateIncludedTargetAmount,
@@ -19,23 +18,35 @@ import {
   saveSettlementDraft,
 } from '@/pages/Settlement/utils/settlementDraftStorage';
 
-function useSettlementEditor() {
+type UseSettlementEditorParams = {
+  members: SettlementMemberBurden[];
+  placePayers: SettlementPlacePayer[];
+  roomId: number;
+  currentRoomMemberId?: number;
+};
+
+function useSettlementEditor({
+  members,
+  placePayers,
+  roomId,
+  currentRoomMemberId,
+}: UseSettlementEditorParams) {
   const initialPlaceSettlements = useMemo(
-    () => createInitialPlaceSettlements(SETTLEMENT_MEMBERS, SETTLEMENT_PLACE_PAYERS),
-    [],
+    () => createInitialPlaceSettlements(members, placePayers),
+    [members, placePayers],
   );
   const originalMySettlementTransfers = useMemo(
     () =>
       calculateMySettlementTransfers(
         initialPlaceSettlements,
-        SETTLEMENT_MEMBERS,
-        SETTLEMENT_SUMMARY.currentRoomMemberId,
+        members,
+        currentRoomMemberId,
       ),
-    [initialPlaceSettlements],
+    [currentRoomMemberId, initialPlaceSettlements, members],
   );
   const draftStorageKey = useMemo(
-    () => getSettlementDraftStorageKey(SETTLEMENT_SUMMARY.roomName),
-    [],
+    () => getSettlementDraftStorageKey(roomId),
+    [roomId],
   );
   const [placeSettlements, setPlaceSettlements] = useState(() =>
     readSavedSettlementDraft(draftStorageKey, initialPlaceSettlements),
@@ -43,8 +54,8 @@ function useSettlementEditor() {
   const [expandedPlaceIds, setExpandedPlaceIds] = useState<Set<string>>(() => new Set());
 
   const settlementMembers = useMemo(
-    () => calculateMembersFromPlaces(placeSettlements, SETTLEMENT_MEMBERS),
-    [placeSettlements],
+    () => calculateMembersFromPlaces(placeSettlements, members),
+    [members, placeSettlements],
   );
   const allocatedTotalAmount = useMemo(
     () =>
@@ -67,10 +78,10 @@ function useSettlementEditor() {
     () =>
       calculateMySettlementTransfers(
         placeSettlements,
-        SETTLEMENT_MEMBERS,
-        SETTLEMENT_SUMMARY.currentRoomMemberId,
+        members,
+        currentRoomMemberId,
       ),
-    [placeSettlements],
+    [currentRoomMemberId, members, placeSettlements],
   );
   const mySettlementTransferRows = useMemo(
     () =>
@@ -151,11 +162,11 @@ function useSettlementEditor() {
 
   const saveCurrentDraft = useCallback(() => {
     saveSettlementDraft({
-      roomName: SETTLEMENT_SUMMARY.roomName,
+      roomId,
       savedAt: new Date().toISOString(),
       places: placeSettlements,
     });
-  }, [placeSettlements]);
+  }, [placeSettlements, roomId]);
 
   return {
     placeSettlements,

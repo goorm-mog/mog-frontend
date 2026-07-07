@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import Button from '@/components/common/Button/Button';
 import { useToast } from '@/hooks/useToast';
 import MemberBurdenSection from '@/pages/Settlement/components/MemberBurdenSection';
@@ -9,7 +9,11 @@ import SettlementCompletionDialog from '@/pages/Settlement/components/Settlement
 import SettlementConfirmDialog from '@/pages/Settlement/components/SettlementConfirmDialog';
 import SettlementHeader from '@/pages/Settlement/components/SettlementHeader';
 import SettlementHero from '@/pages/Settlement/components/SettlementHero';
-import { SETTLEMENT_SUMMARY } from '@/pages/Settlement/constants/settlementMockData';
+import {
+  SETTLEMENT_MEMBERS,
+  SETTLEMENT_PLACE_PAYERS,
+  SETTLEMENT_SUMMARY,
+} from '@/pages/Settlement/constants/settlementMockData';
 import useSettlementCompletion from '@/pages/Settlement/hooks/useSettlementCompletion';
 import useSettlementEditor from '@/pages/Settlement/hooks/useSettlementEditor';
 import { formatSettlementWon } from '@/pages/Settlement/utils/format';
@@ -37,6 +41,9 @@ async function copyTextToClipboard(text: string) {
 }
 
 function SettlementPage() {
+  const { roomId: roomIdParam } = useParams<{ roomId: string }>();
+  const parsedRoomId = Number(roomIdParam);
+  const roomId = Number.isNaN(parsedRoomId) ? 45 : parsedRoomId;
   const navigate = useNavigate();
   const { showToast } = useToast();
   const navigateToMeetDetail = useCallback(() => {
@@ -78,7 +85,12 @@ function SettlementPage() {
     updatePlaceParticipantAmount,
     applyPlaceRemainderToMember,
     saveCurrentDraft,
-  } = useSettlementEditor();
+  } = useSettlementEditor({
+    members: SETTLEMENT_MEMBERS,
+    placePayers: SETTLEMENT_PLACE_PAYERS,
+    roomId,
+    currentRoomMemberId: SETTLEMENT_SUMMARY.currentRoomMemberId,
+  });
   const saveDraft = useCallback(() => {
     try {
       saveCurrentDraft();
