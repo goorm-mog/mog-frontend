@@ -124,6 +124,8 @@ function SettlementContent({
     togglePlaceIncluded,
     updatePlaceParticipantAmount,
     applyPlaceRemainderToMember,
+    redistributePlaceEvenly,
+    redistributingPlaceId,
     saveCurrentDraft,
   } = useSettlementEditor({
     members,
@@ -155,6 +157,17 @@ function SettlementContent({
       setIsConfirmingSettlement(false);
     }
   }, [completeSettlement, roomId, showToast]);
+  const handleRedistributePlace = useCallback(
+    async (placeId: string) => {
+      try {
+        await redistributePlaceEvenly(placeId);
+        showToast('1/N 분배가 적용되었습니다.', 'success');
+      } catch (error) {
+        showToast(getSettlementErrorMessage(error), 'error');
+      }
+    },
+    [redistributePlaceEvenly, showToast],
+  );
 
   return (
     <main className="flex h-screen flex-col overflow-hidden bg-background text-text">
@@ -178,6 +191,8 @@ function SettlementContent({
             onTogglePlaceIncluded={togglePlaceIncluded}
             onUpdateParticipantAmount={updatePlaceParticipantAmount}
             onApplyRemainderToMember={applyPlaceRemainderToMember}
+            onRedistributePlace={handleRedistributePlace}
+            redistributingPlaceId={redistributingPlaceId}
           />
 
           <MemberBurdenSection

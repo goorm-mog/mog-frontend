@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { splitSettlementAmount } from '@/features/settlement/api/settlement';
 import type {
   SettlementMemberBurden,
   SettlementPlacePayer,
@@ -52,6 +53,9 @@ function useSettlementEditor({
     readSavedSettlementDraft(draftStorageKey, initialPlaceSettlements),
   );
   const [expandedPlaceIds, setExpandedPlaceIds] = useState<Set<string>>(() => new Set());
+  const [redistributingPlaceId, setRedistributingPlaceId] = useState<string | null>(
+    null,
+  );
 
   const settlementMembers = useMemo(
     () => calculateMembersFromPlaces(placeSettlements, members),
@@ -160,6 +164,54 @@ function useSettlementEditor({
     );
   };
 
+  const redistributePlaceEvenly = useCallback(
+    async (placeId: string) => {
+      const targetPlace = placeSettlements.find((place) => place.id === placeId);
+
+      if (!targetPlace || !targetPlace.included) return;
+
+      try {
+        setRedistributingPlaceId(placeId);
+        const splitResult = await splitSettlementAmount({
+          totalAmount: targetPlace.targetAmount,
+          members: targetPlace.participants.map((participant) => participant.name),
+        });
+        const amountsByName = splitResult.splits.reduce<Map<string, number[]>>(
+          (amountMap, split) => {
+            const amounts = amountMap.get(split.name) ?? [];
+            amounts.push(split.amount);
+            amountMap.set(split.name, amounts);
+
+            return amountMap;
+          },
+          new Map(),
+        );
+
+        setPlaceSettlements((currentPlaces) =>
+          currentPlaces.map((place) =>
+            place.id === placeId
+              ? {
+                  ...place,
+                  participants: place.participants.map((participant) => {
+                    const splitAmounts = amountsByName.get(participant.name) ?? [];
+                    const amount = splitAmounts.shift();
+
+                    return {
+                      ...participant,
+                      amount: amount ?? participant.amount,
+                    };
+                  }),
+                }
+              : place,
+          ),
+        );
+      } finally {
+        setRedistributingPlaceId(null);
+      }
+    },
+    [placeSettlements],
+  );
+
   const saveCurrentDraft = useCallback(() => {
     saveSettlementDraft({
       roomId,
@@ -176,10 +228,12 @@ function useSettlementEditor({
     includedPlaceCount,
     remainingAmount,
     mySettlementTransferRows,
+    redistributingPlaceId,
     togglePlaceExpanded,
     togglePlaceIncluded,
     updatePlaceParticipantAmount,
     applyPlaceRemainderToMember,
+    redistributePlaceEvenly,
     saveCurrentDraft,
   };
 }
