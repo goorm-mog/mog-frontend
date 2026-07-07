@@ -159,6 +159,7 @@ function MeetRecordEditor({
   const {
     receiptCards,
     receiptsVersion,
+    hasUnsavedChanges,
     totalAmount,
     pendingScrollReceiptId,
     isSaving,
@@ -193,7 +194,16 @@ function MeetRecordEditor({
         isSaving={isSaving}
         errorMessage={saveError}
         onSave={saveReceipts}
-        onSettle={() => navigate(`/${roomId}/settlement`)}
+        onSettle={() => {
+          if (
+            hasUnsavedChanges &&
+            !window.confirm('저장하지 않은 변경사항이 있습니다. 정산 화면으로 이동할까요?')
+          ) {
+            return;
+          }
+
+          navigate(`/${roomId}/settlement`);
+        }}
       />
     </>
   );

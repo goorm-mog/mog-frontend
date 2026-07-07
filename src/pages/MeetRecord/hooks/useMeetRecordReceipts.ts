@@ -41,6 +41,12 @@ export function useMeetRecordReceipts({
     () => receiptCards.reduce((sum, receipt) => sum + receipt.totalAmount, 0),
     [receiptCards],
   );
+  const hasUnsavedChanges = useMemo(
+    () =>
+      deletedRecordIds.length > 0 ||
+      JSON.stringify(receiptCards) !== JSON.stringify(initialReceipts),
+    [deletedRecordIds.length, initialReceipts, receiptCards],
+  );
 
   const updateReceipt = useCallback(
     (receiptId: string, receiptUpdate: Partial<ReceiptCardData>) => {
@@ -92,6 +98,7 @@ export function useMeetRecordReceipts({
   const saveReceipts = useCallback(async () => {
     setIsSaving(true);
     setSaveError(null);
+    let didStartServerMutation = false;
 
     try {
       if (roomId <= 0) {
@@ -107,6 +114,8 @@ export function useMeetRecordReceipts({
       if (invalidReceipt) {
         throw new Error('장소와 참가자를 확인해주세요.');
       }
+
+      didStartServerMutation = true;
 
       for (const recordId of deletedRecordIds) {
         await deleteMeetingRecord(roomId, recordId);
@@ -129,6 +138,10 @@ export function useMeetRecordReceipts({
         error instanceof Error ? error.message : '기록 저장 중 오류가 발생했습니다.';
       setSaveError(message);
 
+      if (!didStartServerMutation) {
+        return;
+      }
+
       try {
         await refreshReceipts();
       } catch {
@@ -146,6 +159,7 @@ export function useMeetRecordReceipts({
   return {
     receiptCards,
     receiptsVersion,
+    hasUnsavedChanges,
     totalAmount,
     pendingScrollReceiptId,
     isSaving,
