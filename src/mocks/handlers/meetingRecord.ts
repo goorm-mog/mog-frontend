@@ -4,7 +4,7 @@ import type {
   MeetingRecordListApiResponse,
   RoomStatusApiResponse,
   RoomStatus,
-} from '@/types/meetDetail';
+} from '@/features/meetDetail/types';
 
 const BASE = import.meta.env.VITE_API_BASE_URL ?? '';
 

@@ -1,13 +1,13 @@
 import { ClipboardList } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { fetchMeetDetail } from '@/api/meetDetail';
 import Button from '@/components/common/Button/Button';
 import StepHeader from '@/components/common/Header/StepHeader/StepHeader';
 import TopAppBar from '@/components/common/TopAppBar/TopAppBar';
+import { fetchMeetDetail } from '@/features/meetDetail/api/meetDetail';
+import type { MeetDetailData } from '@/features/meetDetail/types';
 import { ApiError } from '@/lib/apiFetch';
 import SettlementCard from '@/pages/MeetDetail/components/SettlementCard';
-import type { MeetDetailData } from '@/types/meetDetail';
 
 function MeetDetailPage() {
   const navigate = useNavigate();

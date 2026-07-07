@@ -1,12 +1,12 @@
 import { apiFetch, apiFetchNullOn404 } from '@/lib/apiFetch';
 import type { ApiResponse, SettlementResponse } from '@/features/settlement/types/settlement';
+import { toMeetDetailData } from '@/features/meetDetail/mapper';
 import type {
   ConfirmedScheduleResponse,
   MeetDetailData,
   MeetingRecordListApiResponse,
   RoomStatusApiResponse,
-} from '@/types/meetDetail';
-import { toMeetDetailData } from '@/types/meetDetail';
+} from '@/features/meetDetail/types';
 
 export async function fetchRoomStatus(roomId: number) {
   const response = await apiFetch<RoomStatusApiResponse>(`/api/v1/groups/rooms/${roomId}`);

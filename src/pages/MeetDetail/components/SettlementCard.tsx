@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import type { SettlementRound } from '@/types/meetDetail';
+import type { SettlementRound } from '@/features/meetDetail/types';
 
 const detailRows = [
   { label: '주소', key: 'address' },
