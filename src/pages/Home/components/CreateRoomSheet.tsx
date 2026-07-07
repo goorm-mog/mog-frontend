@@ -8,6 +8,7 @@ export type GroupNameSheetMode = 'create' | 'edit';
 type CreateRoomSheetProps = {
   mode?: GroupNameSheetMode;
   initialName?: string;
+  isLoading?: boolean;
   onClose: () => void;
   onSubmit: (name: string) => void;
 };
@@ -15,6 +16,7 @@ type CreateRoomSheetProps = {
 function CreateRoomSheet({
   mode = 'create',
   initialName = '',
+  isLoading = false,
   onClose,
   onSubmit,
 }: CreateRoomSheetProps) {
@@ -25,7 +27,7 @@ function CreateRoomSheet({
   const submitLabel = mode === 'create' ? '만들기' : '저장';
 
   const handleSubmit = () => {
-    if (!canSubmit) return;
+    if (!canSubmit || isLoading) return;
     onSubmit(name.trim());
   };
 
@@ -80,17 +82,17 @@ function CreateRoomSheet({
         </div>
 
         <footer className="flex gap-3 px-6 pb-6 pt-4">
-          <Button variant="dark" size="lg" onClick={onClose} className="flex-1">
+          <Button variant="dark" size="lg" onClick={onClose} disabled={isLoading} className="flex-1">
             취소
           </Button>
           <Button
             variant="point"
             size="lg"
-            disabled={!canSubmit}
+            disabled={!canSubmit || isLoading}
             onClick={handleSubmit}
             className="flex-1"
           >
-            {submitLabel}
+            {isLoading ? '처리 중...' : submitLabel}
           </Button>
         </footer>
       </div>
