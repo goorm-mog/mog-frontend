@@ -49,14 +49,12 @@ function MeetRecord() {
         if (!isMounted) return;
 
         const members = room.members.map((member) => {
-          const memberWithIds = member as typeof member & {
-            roomMemberId?: number;
-            groupMemberId?: number;
-          };
+          if (!Number.isFinite(member.roomMemberId)) {
+            throw new Error('방 멤버 식별자(roomMemberId)가 응답에 없습니다.');
+          }
 
           return {
-            roomMemberId:
-              memberWithIds.roomMemberId ?? memberWithIds.groupMemberId ?? member.userId,
+            roomMemberId: member.roomMemberId,
             nickname: member.nickname,
             bankName: member.bankName ?? null,
             accountNumber: member.accountNumber ?? null,

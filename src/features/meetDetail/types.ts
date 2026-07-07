@@ -8,8 +8,7 @@ export interface RoomStatusResponse {
   status: RoomStatus;
   currentStep: number;
   members: {
-    roomMemberId?: number;
-    groupMemberId?: number;
+    roomMemberId: number;
     userId: number;
     nickname: string;
     bankName?: string | null;
