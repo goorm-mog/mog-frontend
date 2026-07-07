@@ -15,9 +15,8 @@ function MeetDetailPage() {
   const roomId = Number(roomIdParam);
   const isValidRoomId = Number.isFinite(roomId);
   const [meetDetail, setMeetDetail] = useState<MeetDetailData | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(
-    isValidRoomId ? null : '방 정보를 확인할 수 없습니다.',
-  );
+  const [loadedRoomId, setLoadedRoomId] = useState<number | null>(null);
+  const [errorState, setErrorState] = useState<{ roomId: number; message: string } | null>(null);
 
   useEffect(() => {
     if (!isValidRoomId) return;
@@ -28,13 +27,15 @@ function MeetDetailPage() {
       .then((data) => {
         if (ignore) return;
         setMeetDetail(data);
-        setErrorMessage(null);
+        setLoadedRoomId(roomId);
+        setErrorState(null);
       })
       .catch((error: unknown) => {
         if (ignore) return;
         const message =
           error instanceof ApiError ? error.message : '약속 상세 정보를 불러오지 못했어요';
-        setErrorMessage(message);
+        setLoadedRoomId(roomId);
+        setErrorState({ roomId, message });
       });
 
     return () => {
@@ -42,7 +43,13 @@ function MeetDetailPage() {
     };
   }, [isValidRoomId, roomId]);
 
-  const isLoading = isValidRoomId && meetDetail === null && errorMessage === null;
+  const currentMeetDetail = loadedRoomId === roomId ? meetDetail : null;
+  const errorMessage = !isValidRoomId
+    ? '방 정보를 확인할 수 없습니다.'
+    : errorState?.roomId === roomId
+      ? errorState.message
+      : null;
+  const isLoading = isValidRoomId && currentMeetDetail === null && errorMessage === null;
 
   return (
     <>
@@ -63,10 +70,10 @@ function MeetDetailPage() {
           <div className="grid min-h-[112px] grid-cols-[1fr_130px]">
             <div className="flex flex-col justify-center gap-2 px-6">
               <h1 className="text-[23px] leading-[28px] font-semibold text-text">
-                {meetDetail?.summary.title ?? '약속 상세'}
+                {currentMeetDetail?.summary.title ?? '약속 상세'}
               </h1>
               <p className="text-caption text-dark-border">
-                {meetDetail?.summary.datetime ?? '불러오는 중'}
+                {currentMeetDetail?.summary.datetime ?? '불러오는 중'}
               </p>
             </div>
 
@@ -76,9 +83,9 @@ function MeetDetailPage() {
                 size="md"
                 fullWidth={false}
                 className="gap-2 text-[16px] font-semibold"
-                disabled={!meetDetail}
+                disabled={!currentMeetDetail}
                 onClick={() => {
-                  if (meetDetail) navigate(`/${meetDetail.summary.roomId}/mog-card`);
+                  if (currentMeetDetail) navigate(`/${currentMeetDetail.summary.roomId}/mog-card`);
                 }}
               >
                 <ClipboardList size={18} strokeWidth={2.2} />
@@ -92,7 +99,7 @@ function MeetDetailPage() {
             <div className="flex items-center gap-4">
               <span className="text-[14px] leading-[17px] font-medium text-text">1인당</span>
               <span className="text-[22px] leading-[27px] font-semibold text-text">
-                {meetDetail?.summary.perPersonCost ?? '₩ 0'}
+                {currentMeetDetail?.summary.perPersonCost ?? '₩ 0'}
               </span>
             </div>
           </div>
@@ -105,8 +112,8 @@ function MeetDetailPage() {
             </p>
           ) : errorMessage ? (
             <p className="py-8 text-center text-xs text-dark-border">{errorMessage}</p>
-          ) : meetDetail && meetDetail.rounds.length > 0 ? (
-            meetDetail.rounds.map((round) => <SettlementCard key={round.id} round={round} />)
+          ) : currentMeetDetail && currentMeetDetail.rounds.length > 0 ? (
+            currentMeetDetail.rounds.map((round) => <SettlementCard key={round.id} round={round} />)
           ) : (
             <p className="py-8 text-center text-xs text-dark-border">아직 기록된 내역이 없습니다.</p>
           )}
