@@ -7,7 +7,7 @@ import { typography } from '../../../constants/typography';
 type PayerSelectProps = {
   payerText: string;
   options: readonly ReceiptPayerOption[];
-  onSelectPayer: (payerText: string) => void;
+  onSelectPayer: (payer: ReceiptPayerOption) => void;
 };
 
 function PayerSelect({ payerText, options, onSelectPayer }: PayerSelectProps) {
@@ -33,8 +33,8 @@ function PayerSelect({ payerText, options, onSelectPayer }: PayerSelectProps) {
     };
   }, [isOpen]);
 
-  const handleSelect = (payerLabel: string) => {
-    onSelectPayer(payerLabel);
+  const handleSelect = (payer: ReceiptPayerOption) => {
+    onSelectPayer(payer);
     setIsOpen(false);
   };
 
@@ -77,7 +77,7 @@ function PayerSelect({ payerText, options, onSelectPayer }: PayerSelectProps) {
               aria-selected={option.label === payerText}
               className={`${typography.caption} block h-10 w-full px-3 text-left transition hover:bg-[rgb(233_227_214_/_0.52)]`}
               style={{ color: colors.border }}
-              onClick={() => handleSelect(option.label)}
+              onClick={() => handleSelect(option)}
             >
               {option.label}
             </button>

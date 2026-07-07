@@ -14,6 +14,7 @@ export function mapSettlementToMemberBurdens(
   const payerByMemberId = new Map(
     settlement.memberSettlements
       .flatMap((member) => member.detail.map((detail) => detail.payer))
+      .filter((payer) => payer != null)
       .map((payer) => [payer.roomMemberId, payer]),
   );
 
@@ -49,6 +50,7 @@ export function mapSettlementToPlacePayers(
   for (const member of settlement.memberSettlements) {
     for (const detail of member.detail) {
       if (payerByPlaceName.has(detail.placeName)) continue;
+      if (!detail.payer) continue;
 
       payerByPlaceName.set(detail.placeName, {
         placeName: detail.placeName,

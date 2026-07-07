@@ -61,9 +61,9 @@ const mapReceiptPlaces = (
   meetingRecords.map((record) => ({
     id: record.recordId,
     placeName: record.placeName,
-    address: record.address,
-    totalCost: formatWon(record.totalPrice),
-    items: record.menuItems.map(({ menuName, count, price }) => ({
+    address: record.address ?? '-',
+    totalCost: formatWon(record.totalPrice ?? record.totalCost),
+    items: (record.menuItems ?? []).map(({ menuName, count, price }) => ({
       name: count > 1 ? `${menuName} x ${count}` : menuName,
       amount: formatAmount(count * price),
     })),
@@ -79,8 +79,11 @@ export function getMogReceiptByRoomId(roomId: number): MogReceipt | null {
   }
 
   const participants = getParticipantNames(meetingRecords);
-  const photoCount = sumByRecord(meetingRecords, (record) => record.photoCount);
-  const totalCost = sumByRecord(meetingRecords, (record) => record.totalPrice);
+  const photoCount = sumByRecord(meetingRecords, (record) => record.photoCount ?? 0);
+  const totalCost = sumByRecord(
+    meetingRecords,
+    (record) => record.totalPrice ?? record.totalCost,
+  );
 
   return {
     title: RECEIPT_TITLE,

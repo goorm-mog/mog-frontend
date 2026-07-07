@@ -1,7 +1,6 @@
 import { http, HttpResponse, type HttpHandler } from 'msw';
 import { mockDb } from '@/mocks/fixtures/mockDb';
 import type {
-  MeetingRecordListApiResponse,
   RoomStatusApiResponse,
   RoomStatus,
 } from '@/features/meetDetail/types';
@@ -33,8 +32,11 @@ export const meetingRecordHandlers: HttpHandler[] = [
         status: normalizeRoomStatus(room.status),
         currentStep: mockDb.meetingRecords.filter((record) => record.roomId === roomId).length,
         members: room.members.map((member) => ({
+          roomMemberId: member.roomMemberId,
           userId: member.userId,
           nickname: member.nickname,
+          bankName: member.bankName,
+          accountNumber: member.accountNumber,
           isJoined: true,
         })),
       },
@@ -43,29 +45,4 @@ export const meetingRecordHandlers: HttpHandler[] = [
     return HttpResponse.json(response);
   }),
 
-  http.get(`${BASE}/api/v1/rooms/:roomId/records`, ({ params }) => {
-    const roomId = Number(params.roomId);
-    const records = mockDb.meetingRecords.filter((record) => record.roomId === roomId);
-
-    const response: MeetingRecordListApiResponse = {
-      status: 200,
-      code: 'SUCCESS',
-      message: '만남 기록 목록을 조회했습니다.',
-      data: {
-        photos: [],
-        records: records.map((record) => ({
-          recordId: record.recordId,
-          seq: record.seq,
-          placeName: record.placeName,
-          memo: record.memo,
-          totalCost: record.totalPrice,
-          payer: record.payer,
-          participants: record.participants.map((participant) => ({ ...participant })),
-          createdAt: record.createdAt,
-        })),
-      },
-    };
-
-    return HttpResponse.json(response);
-  }),
 ];

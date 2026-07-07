@@ -14,8 +14,8 @@ export type RoomRecordPhoto = {
 export type RecordPayer = {
   roomMemberId: number;
   nickname: string;
-  bankName: string;
-  accountNumber: string;
+  bankName: string | null;
+  accountNumber: string | null;
 };
 
 export type RecordParticipant = {
@@ -25,13 +25,18 @@ export type RecordParticipant = {
 };
 
 export type MeetingRecord = {
+  roomId?: number;
   recordId: number;
   seq: number;
   placeName: string;
+  address?: string;
   memo: string;
   totalCost: number;
+  totalPrice?: number;
+  menuItems?: { menuName: string; count: number; price: number }[];
   payer: RecordPayer | null;
   participants: RecordParticipant[];
+  photoCount?: number;
   createdAt: string;
 };
 
@@ -44,7 +49,7 @@ export type MeetingRecordsResponse = ApiResponse<MeetingRecordsData>;
 
 export type MeetingRecordResponse = ApiResponse<MeetingRecord>;
 
-export type DeleteMeetingRecordResponse = ApiResponse<string>;
+export type DeleteMeetingRecordResponse = ApiResponse<string | null | undefined>;
 
 export type OcrItem = {
   name: string;
@@ -62,8 +67,8 @@ export type OcrResponse = ApiResponse<OcrData>;
 
 export type UpsertRecordPayerRequest = {
   roomMemberId: number;
-  bankName: string;
-  accountNumber: string;
+  bankName: string | null;
+  accountNumber: string | null;
 };
 
 export type UpsertRecordParticipantRequest = {

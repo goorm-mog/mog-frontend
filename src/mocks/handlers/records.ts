@@ -148,7 +148,7 @@ const parseImageFormData = async (request: Request) => {
 };
 
 export const recordsHandlers: HttpHandler[] = [
-  http.get(`${BASE}/rooms/:roomId/records`, ({ params }) => {
+  http.get(`${BASE}/api/v1/rooms/:roomId/records`, ({ params }) => {
     const roomId = Number(params.roomId);
     const roomData = getRoomData(roomId);
     const response: MeetingRecordsResponse = createResponse(
@@ -162,7 +162,7 @@ export const recordsHandlers: HttpHandler[] = [
     return HttpResponse.json(response);
   }),
 
-  http.post(`${BASE}/rooms/:roomId/records`, async ({ params, request }) => {
+  http.post(`${BASE}/api/v1/rooms/:roomId/records`, async ({ params, request }) => {
     const roomId = Number(params.roomId);
     const roomData = getRoomData(roomId);
     const body = (await request.json()) as CreateMeetingRecordRequest;
@@ -189,7 +189,7 @@ export const recordsHandlers: HttpHandler[] = [
     return HttpResponse.json(response);
   }),
 
-  http.delete(`${BASE}/rooms/:roomId/records/:recordId`, ({ params }) => {
+  http.delete(`${BASE}/api/v1/rooms/:roomId/records/:recordId`, ({ params }) => {
     const roomId = Number(params.roomId);
     const recordId = Number(params.recordId);
     const roomData = getRoomData(roomId);
@@ -210,7 +210,7 @@ export const recordsHandlers: HttpHandler[] = [
     return HttpResponse.json(response);
   }),
 
-  http.patch(`${BASE}/rooms/:roomId/records/:recordId`, async ({ params, request }) => {
+  http.patch(`${BASE}/api/v1/rooms/:roomId/records/:recordId`, async ({ params, request }) => {
     const roomId = Number(params.roomId);
     const recordId = Number(params.recordId);
     const roomData = getRoomData(roomId);
@@ -240,7 +240,7 @@ export const recordsHandlers: HttpHandler[] = [
     return HttpResponse.json(response);
   }),
 
-  http.post(`${BASE}/rooms/:roomId/records/ocr`, async ({ request }) => {
+  http.post(`${BASE}/api/v1/rooms/:roomId/records/ocr`, async ({ request }) => {
     const result = await parseImageFormData(request);
 
     if (result.error) {

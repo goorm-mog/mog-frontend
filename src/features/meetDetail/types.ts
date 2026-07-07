@@ -8,8 +8,12 @@ export interface RoomStatusResponse {
   status: RoomStatus;
   currentStep: number;
   members: {
+    roomMemberId?: number;
+    groupMemberId?: number;
     userId: number;
     nickname: string;
+    bankName?: string | null;
+    accountNumber?: string | null;
     isJoined: boolean;
   }[];
 }
@@ -29,8 +33,8 @@ export interface ConfirmedScheduleResponse {
 export interface MeetingRecordPayer {
   roomMemberId: number;
   nickname: string;
-  bankName: string;
-  accountNumber: string;
+  bankName: string | null;
+  accountNumber: string | null;
 }
 
 export interface MeetingRecordParticipant {

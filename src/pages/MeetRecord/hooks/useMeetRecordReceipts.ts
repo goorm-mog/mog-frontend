@@ -1,21 +1,24 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
-import type { MockDb } from '@/mocks/fixtures';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  createMeetingRecord,
+  deleteMeetingRecord,
+  fetchMeetingRecords,
+  updateMeetingRecord,
+} from '@/api/records';
 import type { ReceiptCardData } from '@/pages/MeetRecord/types';
 import {
   createEmptyReceipt,
   getNextReceiptSeq,
 } from '@/pages/MeetRecord/utils/receiptFactory';
 import {
-  getMeetRecordStorageKey,
-  readSavedReceipts,
-  saveMeetRecord,
-} from '@/pages/MeetRecord/utils/meetRecordStorage';
-
-type RoomMember = MockDb['roomMembers'][number];
+  mapMeetingRecordToReceipt,
+  toMeetingRecordRequest,
+  type MeetRecordMember,
+} from '@/pages/MeetRecord/utils/meetRecordMapper';
 
 type UseMeetRecordReceiptsParams = {
   roomId: number;
-  roomMembers: readonly RoomMember[];
+  roomMembers: readonly MeetRecordMember[];
   initialReceipts: ReceiptCardData[];
 };
 
@@ -24,18 +27,24 @@ export function useMeetRecordReceipts({
   roomMembers,
   initialReceipts,
 }: UseMeetRecordReceiptsParams) {
-  const storageKey = useMemo(() => getMeetRecordStorageKey(roomId), [roomId]);
-  const [receiptCards, setReceiptCards] = useState<ReceiptCardData[]>(() =>
-    readSavedReceipts(storageKey, initialReceipts),
-  );
+  const [receiptCards, setReceiptCards] = useState<ReceiptCardData[]>(initialReceipts);
+  const [deletedRecordIds, setDeletedRecordIds] = useState<number[]>([]);
   const [pendingScrollReceiptId, setPendingScrollReceiptId] = useState<string | null>(
     null,
   );
-  const nextReceiptSeqRef = useRef(getNextReceiptSeq(receiptCards));
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const nextReceiptSeqRef = useRef(getNextReceiptSeq(initialReceipts));
 
-  const totalAmount = receiptCards.reduce(
-    (sum, receipt) => sum + receipt.totalAmount,
-    0,
+  useEffect(() => {
+    setReceiptCards(initialReceipts);
+    setDeletedRecordIds([]);
+    nextReceiptSeqRef.current = getNextReceiptSeq(initialReceipts);
+  }, [initialReceipts]);
+
+  const totalAmount = useMemo(
+    () => receiptCards.reduce((sum, receipt) => sum + receipt.totalAmount, 0),
+    [receiptCards],
   );
 
   const updateReceipt = useCallback(
@@ -50,9 +59,18 @@ export function useMeetRecordReceipts({
   );
 
   const deleteReceipt = useCallback((receiptId: string) => {
-    setReceiptCards((currentReceipts) =>
-      currentReceipts.filter((receipt) => receipt.roundLabel !== receiptId),
-    );
+    setReceiptCards((currentReceipts) => {
+      const deletedReceipt = currentReceipts.find(
+        (receipt) => receipt.roundLabel === receiptId,
+      );
+
+      if (deletedReceipt?.recordId != null) {
+        const recordId = deletedReceipt.recordId;
+        setDeletedRecordIds((currentIds) => [...currentIds, recordId]);
+      }
+
+      return currentReceipts.filter((receipt) => receipt.roundLabel !== receiptId);
+    });
   }, []);
 
   const addReceipt = useCallback(() => {
@@ -63,15 +81,54 @@ export function useMeetRecordReceipts({
     setPendingScrollReceiptId(nextReceipt.roundLabel);
   }, [roomMembers]);
 
-  const saveReceipts = useCallback(() => {
-    saveMeetRecord({
-      roomId,
-      savedAt: new Date().toISOString(),
-      receipts: receiptCards,
-      totalAmount,
-    });
-    window.alert('저장되었습니다');
-  }, [receiptCards, roomId, totalAmount]);
+  const saveReceipts = useCallback(async () => {
+    setIsSaving(true);
+    setSaveError(null);
+
+    try {
+      const invalidReceipt = receiptCards.find(
+        (receipt) =>
+          receipt.placeName.trim().length === 0 ||
+          receipt.participants.every((participant) => !participant.selected),
+      );
+
+      if (invalidReceipt) {
+        throw new Error('장소와 참가자를 확인해주세요.');
+      }
+
+      await Promise.all(
+        deletedRecordIds.map((recordId) => deleteMeetingRecord(roomId, recordId)),
+      );
+
+      await Promise.all(
+        receiptCards.map((receipt) => {
+          const request = toMeetingRecordRequest(receipt);
+
+          if (receipt.recordId == null) {
+            return createMeetingRecord(roomId, request);
+          }
+
+          return updateMeetingRecord(roomId, receipt.recordId, request);
+        }),
+      );
+
+      const response = await fetchMeetingRecords(roomId);
+      setReceiptCards(
+        response.data.records
+          .slice()
+          .sort((a, b) => a.seq - b.seq)
+          .map((record) => mapMeetingRecordToReceipt(record, roomMembers)),
+      );
+      setDeletedRecordIds([]);
+      window.alert('저장되었습니다');
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : '기록 저장 중 오류가 발생했습니다.';
+      setSaveError(message);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [deletedRecordIds, receiptCards, roomId, roomMembers]);
 
   const clearPendingScrollReceipt = useCallback(() => {
     setPendingScrollReceiptId(null);
@@ -81,6 +138,8 @@ export function useMeetRecordReceipts({
     receiptCards,
     totalAmount,
     pendingScrollReceiptId,
+    isSaving,
+    saveError,
     addReceipt,
     updateReceipt,
     deleteReceipt,

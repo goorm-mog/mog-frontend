@@ -92,5 +92,6 @@ function formatWon(amount: number) {
 
 function formatPayer(payer: MeetingRecordPayer | null) {
   if (!payer) return '-';
+  if (!payer.bankName || !payer.accountNumber) return payer.nickname;
   return `${payer.nickname}(${payer.bankName} : ${payer.accountNumber})`;
 }

@@ -190,8 +190,13 @@ function ReceiptCard({
         <PayerSelect
           payerText={receipt.payerPlaceholder}
           options={payerOptions}
-          onSelectPayer={(payerPlaceholder) =>
-            onReceiptChange(receipt.roundLabel, { payerPlaceholder })
+          onSelectPayer={(payer) =>
+            onReceiptChange(receipt.roundLabel, {
+              payerPlaceholder: payer.label,
+              payerRoomMemberId: payer.id,
+              payerBankName: payer.bankName ?? null,
+              payerAccountNumber: payer.accountNumber ?? null,
+            })
           }
         />
       </FormRow>

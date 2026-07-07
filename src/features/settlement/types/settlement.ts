@@ -8,15 +8,15 @@ export interface ApiResponse<T> {
 export interface SettlementPayerResponse {
   roomMemberId: number;
   nickname: string;
-  bankName: string;
-  accountNumber: string;
+  bankName: string | null;
+  accountNumber: string | null;
 }
 
 export interface SettlementDetailResponse {
   seq: number;
   placeName: string;
   amount: number;
-  payer: SettlementPayerResponse;
+  payer: SettlementPayerResponse | null;
   createdAt?: string;
 }
 

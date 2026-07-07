@@ -1,8 +1,6 @@
-import type { MockDb } from '@/mocks/fixtures';
 import { receiptCopy } from '@/pages/MeetRecord/constants/receiptCopy';
 import type { ReceiptCardData } from '@/pages/MeetRecord/types';
-
-type RoomMember = MockDb['roomMembers'][number];
+import type { MeetRecordMember } from '@/pages/MeetRecord/utils/meetRecordMapper';
 
 function getReceiptSeq(receipt: ReceiptCardData) {
   return Number.parseInt(receipt.roundLabel, 10) || 0;
@@ -14,7 +12,7 @@ export function getNextReceiptSeq(receipts: readonly ReceiptCardData[]) {
 
 export function createEmptyReceipt(
   seq: number,
-  roomMembers: readonly RoomMember[],
+  roomMembers: readonly MeetRecordMember[],
 ): ReceiptCardData {
   return {
     roundLabel: `${seq}차`,

@@ -63,7 +63,7 @@ export const MEET_DETAIL = {
 export const SETTLEMENT_ROUNDS: SettlementRound[] = [
   ...meetingRecordsDb.map((record) => {
     const placeMeta = PLACE_META_BY_SEQ[record.seq as keyof typeof PLACE_META_BY_SEQ];
-    const menu = record.menuItems
+    const menu = (record.menuItems ?? [])
       .map(({ menuName, count }) => `${menuName} ${count}`)
       .join(', ');
 
@@ -74,10 +74,12 @@ export const SETTLEMENT_ROUNDS: SettlementRound[] = [
       address: placeMeta?.address ?? '-',
       menu,
       totalCost: formatWon(getSettlementAmountBySeq(record.seq)),
-      payer: `${record.payer.nickname}(${record.payer.bankName} : ${record.payer.accountNumber})`,
+      payer: record.payer
+        ? `${record.payer.nickname}(${record.payer.bankName ?? '-'} : ${record.payer.accountNumber ?? '-'})`
+        : '-',
       participants: record.participants.map((participant) => participant.nickname).join(', '),
       memo: record.memo || '-',
-      imageCount: record.photoCount,
+      imageCount: record.photoCount ?? 0,
     };
   }),
 ];
