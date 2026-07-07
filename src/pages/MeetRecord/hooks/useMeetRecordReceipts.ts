@@ -28,6 +28,8 @@ export function useMeetRecordReceipts({
   initialReceipts,
 }: UseMeetRecordReceiptsParams) {
   const [receiptCards, setReceiptCards] = useState<ReceiptCardData[]>(initialReceipts);
+  const [savedReceiptCards, setSavedReceiptCards] =
+    useState<ReceiptCardData[]>(initialReceipts);
   const [deletedRecordIds, setDeletedRecordIds] = useState<number[]>([]);
   const [pendingScrollReceiptId, setPendingScrollReceiptId] = useState<string | null>(
     null,
@@ -44,8 +46,8 @@ export function useMeetRecordReceipts({
   const hasUnsavedChanges = useMemo(
     () =>
       deletedRecordIds.length > 0 ||
-      JSON.stringify(receiptCards) !== JSON.stringify(initialReceipts),
-    [deletedRecordIds.length, initialReceipts, receiptCards],
+      JSON.stringify(receiptCards) !== JSON.stringify(savedReceiptCards),
+    [deletedRecordIds.length, receiptCards, savedReceiptCards],
   );
 
   const updateReceipt = useCallback(
@@ -90,6 +92,7 @@ export function useMeetRecordReceipts({
       .map((record) => mapMeetingRecordToReceipt(record, roomMembers));
 
     setReceiptCards(nextReceipts);
+    setSavedReceiptCards(nextReceipts);
     setDeletedRecordIds([]);
     nextReceiptSeqRef.current = getNextReceiptSeq(nextReceipts);
     setReceiptsVersion((version) => version + 1);
