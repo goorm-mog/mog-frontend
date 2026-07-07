@@ -81,6 +81,18 @@ export function useMeetRecordReceipts({
     setPendingScrollReceiptId(nextReceipt.roundLabel);
   }, [roomMembers]);
 
+  const refreshReceipts = useCallback(async () => {
+    const response = await fetchMeetingRecords(roomId);
+    const nextReceipts = response.data.records
+      .slice()
+      .sort((a, b) => a.seq - b.seq)
+      .map((record) => mapMeetingRecordToReceipt(record, roomMembers));
+
+    setReceiptCards(nextReceipts);
+    setDeletedRecordIds([]);
+    nextReceiptSeqRef.current = getNextReceiptSeq(nextReceipts);
+  }, [roomId, roomMembers]);
+
   const saveReceipts = useCallback(async () => {
     setIsSaving(true);
     setSaveError(null);
@@ -96,39 +108,36 @@ export function useMeetRecordReceipts({
         throw new Error('장소와 참가자를 확인해주세요.');
       }
 
-      await Promise.all(
-        deletedRecordIds.map((recordId) => deleteMeetingRecord(roomId, recordId)),
-      );
+      for (const recordId of deletedRecordIds) {
+        await deleteMeetingRecord(roomId, recordId);
+      }
 
-      await Promise.all(
-        receiptCards.map((receipt) => {
-          const request = toMeetingRecordRequest(receipt);
+      for (const receipt of receiptCards) {
+        const request = toMeetingRecordRequest(receipt);
 
-          if (receipt.recordId == null) {
-            return createMeetingRecord(roomId, request);
-          }
+        if (receipt.recordId == null) {
+          await createMeetingRecord(roomId, request);
+        } else {
+          await updateMeetingRecord(roomId, receipt.recordId, request);
+        }
+      }
 
-          return updateMeetingRecord(roomId, receipt.recordId, request);
-        }),
-      );
-
-      const response = await fetchMeetingRecords(roomId);
-      setReceiptCards(
-        response.data.records
-          .slice()
-          .sort((a, b) => a.seq - b.seq)
-          .map((record) => mapMeetingRecordToReceipt(record, roomMembers)),
-      );
-      setDeletedRecordIds([]);
+      await refreshReceipts();
       window.alert('저장되었습니다');
     } catch (error) {
       const message =
         error instanceof Error ? error.message : '기록 저장 중 오류가 발생했습니다.';
       setSaveError(message);
+
+      try {
+        await refreshReceipts();
+      } catch {
+        setSaveError(`${message} 다시 불러오기에 실패했습니다.`);
+      }
     } finally {
       setIsSaving(false);
     }
-  }, [deletedRecordIds, receiptCards, roomId, roomMembers]);
+  }, [deletedRecordIds, receiptCards, refreshReceipts, roomId]);
 
   const clearPendingScrollReceipt = useCallback(() => {
     setPendingScrollReceiptId(null);
