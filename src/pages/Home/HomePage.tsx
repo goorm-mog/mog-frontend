@@ -1,6 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { logout } from '@/api/auth';
+import { createGroup, deleteGroup, fetchGroupDetail, fetchGroups, updateGroup } from '@/api/group';
+import { ApiError } from '@/lib/apiFetch';
 import TopAppBar from '@/components/common/TopAppBar/TopAppBar';
 import Calendar from '@/components/common/Calendar/Calendar';
 import ScheduleCard from '@/components/common/ScheduleCard/ScheduleCard';
@@ -13,6 +16,8 @@ import DeleteGroupDialog from '@/pages/Home/components/DeleteGroupDialog';
 import HomeSidebar from '@/pages/Home/components/HomeSidebar';
 import NotificationListSheet from '@/pages/Home/components/NotificationListSheet';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useToast } from '@/hooks/useToast';
+import type { GroupRole, HomeGroup } from '@/types/group';
 import {
   HOME_ARCHIVAL_ITEMS,
   HOME_DEFAULT_SELECTED,
@@ -21,10 +26,10 @@ import {
   HOME_SCHEDULES,
   type HomeTab,
 } from '@/pages/Home/constants/homeMockData';
-import { HOME_GROUPS, type HomeGroup } from '@/pages/Home/constants/groupMockData';
 
 function HomePage() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const {
     notifications,
     hasUnreadNotifications,
@@ -39,8 +44,11 @@ function HomePage() {
   const [isEditRoomOpen, setIsEditRoomOpen] = useState(false);
   const [isDeleteRoomOpen, setIsDeleteRoomOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [groups, setGroups] = useState<HomeGroup[]>(HOME_GROUPS);
-  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(HOME_GROUPS[0]?.id ?? null);
+  const [groups, setGroups] = useState<HomeGroup[]>([]);
+  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
+  const [selectedGroupRole, setSelectedGroupRole] = useState<GroupRole | null>(null);
+  const [isGroupsLoading, setIsGroupsLoading] = useState(true);
+  const [isGroupMutating, setIsGroupMutating] = useState(false);
 
   const selectedDateKey = format(selectedDate, 'yyyy-MM-dd');
 
@@ -50,6 +58,67 @@ function HomePage() {
   );
 
   const selectedGroup = groups.find((group) => group.id === selectedGroupId) ?? null;
+
+  const loadGroups = useCallback(async () => {
+    const nextGroups = await fetchGroups();
+    setGroups(nextGroups);
+    setSelectedGroupId((current) => {
+      if (current !== null && nextGroups.some((group) => group.id === current)) {
+        return current;
+      }
+      return nextGroups[0]?.id ?? null;
+    });
+    return nextGroups;
+  }, []);
+
+  useEffect(() => {
+    let ignore = false;
+
+    fetchGroups()
+      .then((nextGroups) => {
+        if (ignore) return;
+        setGroups(nextGroups);
+        setSelectedGroupId(nextGroups[0]?.id ?? null);
+      })
+      .catch((error: unknown) => {
+        if (ignore) return;
+        const message = error instanceof ApiError ? error.message : '그룹 목록을 불러오지 못했어요';
+        showToast(message);
+        setGroups([]);
+        setSelectedGroupId(null);
+        setSelectedGroupRole(null);
+      })
+      .finally(() => {
+        if (!ignore) setIsGroupsLoading(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [showToast]);
+
+  useEffect(() => {
+    if (selectedGroupId === null) return;
+
+    let ignore = false;
+
+    fetchGroupDetail(selectedGroupId)
+      .then((detail) => {
+        if (!ignore) setSelectedGroupRole(detail.myRole);
+      })
+      .catch(() => {
+        if (!ignore) setSelectedGroupRole(null);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [selectedGroupId]);
+
+  const handleSelectGroup = (groupId: number) => {
+    setSelectedGroupId(groupId);
+    setSelectedGroupRole(null);
+  };
 
   const handleNotificationClick = () => {
     setIsNotificationOpen(true);
@@ -61,33 +130,69 @@ function HomePage() {
     setIsCreateRoomOpen(true);
   };
 
-  const handleCreateRoom = (name: string) => {
-    const nextId = Math.max(0, ...groups.map((group) => group.id)) + 1;
-    const newGroup: HomeGroup = { id: nextId, name, memberCount: 1 };
-    setGroups((prev) => [...prev, newGroup]);
-    setSelectedGroupId(nextId);
-    setIsCreateRoomOpen(false);
+  const handleCreateRoom = async (name: string) => {
+    setIsGroupMutating(true);
+
+    try {
+      const created = await createGroup({ groupName: name });
+      await loadGroups();
+      setSelectedGroupId(created.groupId);
+      setSelectedGroupRole('LEADER');
+      setIsCreateRoomOpen(false);
+    } catch (error: unknown) {
+      const message = error instanceof ApiError ? error.message : '그룹을 만들지 못했어요';
+      showToast(message);
+    } finally {
+      setIsGroupMutating(false);
+    }
   };
 
-  const handleEditRoom = (name: string) => {
+  const handleEditRoom = async (name: string) => {
     if (selectedGroupId === null) return;
 
-    setGroups((prev) =>
-      prev.map((group) => (group.id === selectedGroupId ? { ...group, name } : group)),
-    );
-    setIsEditRoomOpen(false);
+    setIsGroupMutating(true);
+
+    try {
+      await updateGroup(selectedGroupId, { groupName: name });
+      await loadGroups();
+      setIsEditRoomOpen(false);
+    } catch (error: unknown) {
+      const message = error instanceof ApiError ? error.message : '그룹 이름을 수정하지 못했어요';
+      showToast(message);
+    } finally {
+      setIsGroupMutating(false);
+    }
   };
 
-  const handleDeleteRoom = () => {
+  const handleDeleteRoom = async () => {
     if (selectedGroupId === null) return;
 
-    setGroups((prev) => {
-      const next = prev.filter((group) => group.id !== selectedGroupId);
-      setSelectedGroupId(next[0]?.id ?? null);
-      return next;
-    });
-    setIsDeleteRoomOpen(false);
-    setIsSidebarOpen(false);
+    setIsGroupMutating(true);
+
+    try {
+      await deleteGroup(selectedGroupId);
+      const nextGroups = await loadGroups();
+      setSelectedGroupId(nextGroups[0]?.id ?? null);
+      setIsDeleteRoomOpen(false);
+      setIsSidebarOpen(false);
+    } catch (error: unknown) {
+      const message = error instanceof ApiError ? error.message : '그룹을 삭제하지 못했어요';
+      showToast(message);
+    } finally {
+      setIsGroupMutating(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error: unknown) {
+      const message = error instanceof ApiError ? error.message : '로그아웃에 실패했어요';
+      showToast(message);
+    } finally {
+      setIsSidebarOpen(false);
+      navigate('/login');
+    }
   };
 
   return (
@@ -183,24 +288,32 @@ function HomePage() {
           isOpen={isSidebarOpen}
           groups={groups}
           selectedGroupId={selectedGroupId}
+          selectedGroupRole={selectedGroupRole}
+          isLoading={isGroupsLoading}
           onClose={() => setIsSidebarOpen(false)}
-          onSelectGroup={setSelectedGroupId}
+          onSelectGroup={handleSelectGroup}
           onCreateGroup={openCreateRoomSheet}
           onEditGroup={() => {
-            if (selectedGroupId === null) return;
+            if (selectedGroupRole !== 'LEADER' || selectedGroupId === null) return;
             setIsEditRoomOpen(true);
           }}
           onDeleteGroup={() => {
-            if (selectedGroupId === null) return;
+            if (selectedGroupRole !== 'LEADER' || selectedGroupId === null) return;
             setIsDeleteRoomOpen(true);
+          }}
+          onLogout={() => {
+            void handleLogout();
           }}
         />
       ) : null}
 
       {isCreateRoomOpen ? (
         <CreateRoomSheet
+          isLoading={isGroupMutating}
           onClose={() => setIsCreateRoomOpen(false)}
-          onSubmit={handleCreateRoom}
+          onSubmit={(name) => {
+            void handleCreateRoom(name);
+          }}
         />
       ) : null}
 
@@ -209,8 +322,11 @@ function HomePage() {
           key={selectedGroup.id}
           mode="edit"
           initialName={selectedGroup.name}
+          isLoading={isGroupMutating}
           onClose={() => setIsEditRoomOpen(false)}
-          onSubmit={handleEditRoom}
+          onSubmit={(name) => {
+            void handleEditRoom(name);
+          }}
         />
       ) : null}
 
@@ -218,7 +334,9 @@ function HomePage() {
         <DeleteGroupDialog
           groupName={selectedGroup.name}
           onClose={() => setIsDeleteRoomOpen(false)}
-          onConfirm={handleDeleteRoom}
+          onConfirm={() => {
+            void handleDeleteRoom();
+          }}
         />
       ) : null}
 

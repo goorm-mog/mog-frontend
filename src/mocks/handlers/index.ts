@@ -4,6 +4,7 @@ import { notificationHandlers } from './notification';
 import { scheduleHandlers } from './schedule';
 import { departureHandlers } from './departure';
 import { settlementHandlers } from './settlement';
+import { groupHandlers } from './group';
 
 export const handlers = [
   ...authHandlers,
@@ -12,4 +13,5 @@ export const handlers = [
   ...notificationHandlers,
   ...departureHandlers,
   ...settlementHandlers,
+  ...groupHandlers,
 ];

@@ -1,17 +1,20 @@
 import { useState } from 'react';
-import { List, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { List, LogOut, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { HomeGroup } from '@/pages/Home/constants/groupMockData';
+import type { GroupRole, HomeGroup } from '@/types/group';
 
 type HomeSidebarProps = {
   isOpen: boolean;
   groups: HomeGroup[];
   selectedGroupId: number | null;
+  selectedGroupRole: GroupRole | null;
+  isLoading?: boolean;
   onClose: () => void;
   onSelectGroup: (groupId: number) => void;
   onCreateGroup: () => void;
   onEditGroup: () => void;
   onDeleteGroup: () => void;
+  onLogout: () => void;
 };
 
 const menuItemClass = 'flex w-full items-center gap-3 px-2 py-3 text-left text-body text-text';
@@ -20,17 +23,20 @@ function HomeSidebar({
   isOpen,
   groups,
   selectedGroupId,
+  selectedGroupRole,
+  isLoading = false,
   onClose,
   onSelectGroup,
   onCreateGroup,
   onEditGroup,
   onDeleteGroup,
+  onLogout,
 }: HomeSidebarProps) {
   const [isRoomListExpanded, setIsRoomListExpanded] = useState(true);
 
   if (!isOpen) return null;
 
-  const hasSelection = selectedGroupId !== null;
+  const canManageGroup = selectedGroupRole === 'LEADER';
 
   return (
     <div
@@ -83,8 +89,17 @@ function HomeSidebar({
                 </button>
               </li>
 
-              {isRoomListExpanded
-                ? groups.map((group) => {
+              {isRoomListExpanded ? (
+                isLoading ? (
+                  <li>
+                    <p className="px-2 py-3 pl-[30px] text-caption text-dark-border">불러오는 중...</p>
+                  </li>
+                ) : groups.length === 0 ? (
+                  <li>
+                    <p className="px-2 py-3 pl-[30px] text-caption text-dark-border">그룹이 없어요</p>
+                  </li>
+                ) : (
+                  groups.map((group) => {
                     const isSelected = selectedGroupId === group.id;
 
                     return (
@@ -103,7 +118,8 @@ function HomeSidebar({
                       </li>
                     );
                   })
-                : null}
+                )
+              ) : null}
 
               <li>
                 <button type="button" className={cn(menuItemClass, 'pb-5 pt-3')} onClick={onCreateGroup}>
@@ -116,37 +132,38 @@ function HomeSidebar({
                 <div className="h-px w-full bg-border/50" />
               </li>
 
-              <li>
-                <button
-                  type="button"
-                  disabled={!hasSelection}
-                  className={cn(
-                    menuItemClass,
-                    'pb-3 pt-5 disabled:cursor-not-allowed disabled:opacity-40',
-                  )}
-                  onClick={onEditGroup}
-                >
-                  <Pencil size={18} strokeWidth={2} className="shrink-0" />
-                  수정
-                </button>
-              </li>
+              {canManageGroup ? (
+                <>
+                  <li>
+                    <button
+                      type="button"
+                      className={cn(menuItemClass, 'pb-3 pt-5')}
+                      onClick={onEditGroup}
+                    >
+                      <Pencil size={18} strokeWidth={2} className="shrink-0" />
+                      수정
+                    </button>
+                  </li>
 
-              <li>
-                <button
-                  type="button"
-                  disabled={!hasSelection}
-                  className={cn(
-                    menuItemClass,
-                    'text-alert disabled:cursor-not-allowed disabled:opacity-40',
-                  )}
-                  onClick={onDeleteGroup}
-                >
-                  <Trash2 size={16} strokeWidth={2} className="shrink-0" />
-                  삭제
-                </button>
-              </li>
+                  <li>
+                    <button
+                      type="button"
+                      className={cn(menuItemClass, 'text-alert')}
+                      onClick={onDeleteGroup}
+                    >
+                      <Trash2 size={16} strokeWidth={2} className="shrink-0" />
+                      삭제
+                    </button>
+                  </li>
+                </>
+              ) : null}
             </ul>
           </nav>
+
+          <button type="button" className={cn(menuItemClass, 'mt-6')} onClick={onLogout}>
+            <LogOut size={18} strokeWidth={2} className="shrink-0" />
+            로그아웃
+          </button>
         </div>
       </aside>
     </div>
