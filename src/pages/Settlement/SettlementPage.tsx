@@ -54,6 +54,25 @@ type SettlementContentProps = {
   placePayers: SettlementPlacePayer[];
 };
 
+function getSettlementErrorMessage(error: unknown) {
+  if (error instanceof ApiError) {
+    switch (error.code) {
+      case 'SETTLEMENT_NOT_FOUND':
+        return '정산 정보가 아직 생성되지 않았습니다.';
+      case 'NO_RECORDS':
+        return '등록된 차수 기록이 없어 정산을 계산할 수 없습니다.';
+      case 'NOT_HOST':
+        return '방장만 정산을 완료할 수 있습니다.';
+      case 'ALREADY_CONFIRMED':
+        return '이미 완료된 정산입니다.';
+      default:
+        return error.message;
+    }
+  }
+
+  return '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+}
+
 function SettlementContent({
   roomId,
   summary,
@@ -210,12 +229,17 @@ function SettlementPage() {
       try {
         setIsLoading(true);
         setErrorMessage(null);
+        setSettlement(null);
 
         let settlementResponse;
         try {
           settlementResponse = await fetchSettlement(roomId);
         } catch (error) {
-          if (error instanceof ApiError && error.status === 404) {
+          if (
+            error instanceof ApiError &&
+            error.status === 404 &&
+            (!error.code || error.code === 'SETTLEMENT_NOT_FOUND')
+          ) {
             settlementResponse = await calculateSettlement(roomId);
           } else {
             throw error;
@@ -247,11 +271,7 @@ function SettlementPage() {
       } catch (error) {
         if (ignore) return;
 
-        setErrorMessage(
-          error instanceof Error
-            ? error.message
-            : '정산 정보를 불러오지 못했습니다.',
-        );
+        setErrorMessage(getSettlementErrorMessage(error));
       } finally {
         if (!ignore) setIsLoading(false);
       }
