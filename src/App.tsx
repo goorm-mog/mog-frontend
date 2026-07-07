@@ -6,6 +6,7 @@ import LoginPage from '@/pages/Login/LoginPage';
 import HostReschedule from '@/pages/Reschedule/HostReschedule';
 import ParticipantReschedule from '@/pages/Reschedule/ParticipantReschedule';
 import DeparturePage from '@/pages/Reschedule/DeparturePage';
+import MidpointPage from '@/pages/Reschedule/MidpointPage';
 import MeetDetailPage from '@/pages/MeetDetail/MeetDetailPage';
 import MeetRecord from '@/pages/MeetRecord/MeetRecord';
 import MogCardPage from '@/pages/MogCard/MogCardPage';
@@ -24,6 +25,8 @@ function App() {
           <Route path="/reschedule/participant/:roomId" element={<ParticipantReschedule />} />
           <Route path="/departure/host/:roomId" element={<DeparturePage />} />
           <Route path="/departure/participant/:roomId" element={<DeparturePage />} />
+          <Route path="/midpoint/host/:roomId" element={<MidpointPage />} />
+          <Route path="/midpoint/participant/:roomId" element={<MidpointPage />} />
           <Route path="/meet-detail" element={<MeetDetailPage />} />
           <Route path="/meet-record" element={<MeetRecord />} />
           <Route path="/:roomId/mog-card" element={<MogCardPage />} />

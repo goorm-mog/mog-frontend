@@ -43,7 +43,7 @@ export function useDeparture(roomId: number) {
         setDepartures(departuresRes.departures);
         setMyDeparture(departuresRes.departures.find((d) => d.userId === myUserId) ?? null);
         setSubmittedCount(departuresRes.submittedCount);
-        setTotalParticipants(departuresRes.totalParticipants);
+        setTotalParticipants(membersRes.members.length);
         setIsLoading(false);
       })
       .catch(() => {

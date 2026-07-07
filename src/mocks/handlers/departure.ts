@@ -11,15 +11,13 @@ let nextDepartureId = 100;
 export const departureHandlers: HttpHandler[] = [
   http.get(`${BASE}/rooms/:roomId/departure`, ({ params }) => {
     const roomId = Number(params.roomId);
-    const totalParticipants = mockDb.roomMembers.filter((m) => m.roomId === roomId).length;
     const roomDepartures = mutableDepartures.filter((d) => d.roomId === roomId);
 
     const response: DepartureListResponse = {
       roomId,
-      totalParticipants,
       submittedCount: roomDepartures.length,
-      departures: roomDepartures.map(({ departureId, userId, nickname, placeName, address, latitude, longitude, transportType }) => ({
-        departureId, userId, nickname, placeName, address, latitude, longitude, transportType,
+      departures: roomDepartures.map(({ departureId, userId, placeName, address, latitude, longitude, transportType }) => ({
+        departureId, userId, placeName, address, latitude, longitude, transportType,
       })),
     };
     return HttpResponse.json(response);

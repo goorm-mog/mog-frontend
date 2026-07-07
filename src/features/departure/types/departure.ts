@@ -3,7 +3,6 @@ export type TransportType = 'WALK' | 'CAR' | 'PUBLIC';
 export interface DepartureEntry {
   departureId: number;
   userId: number;
-  nickname: string;
   placeName: string;
   address: string;
   latitude: number;
@@ -13,7 +12,6 @@ export interface DepartureEntry {
 
 export interface DepartureListResponse {
   roomId: number;
-  totalParticipants: number;
   submittedCount: number;
   departures: DepartureEntry[];
 }
