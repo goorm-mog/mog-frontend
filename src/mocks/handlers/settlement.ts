@@ -12,6 +12,7 @@ import type {
 const BASE = import.meta.env.VITE_API_BASE_URL ?? '';
 
 const mutableSettlements: Record<number, SettlementResponse> = {};
+const settlementNotFoundOnceRoomIds = new Set([45]);
 
 function createApiResponse<T>(data: T, message = 'success'): ApiResponse<T> {
   return {
@@ -30,22 +31,22 @@ function createSettlementResponse(roomId: number): SettlementResponse | null {
 
   const memberSettlements: SettlementMemberResponse[] = room.members.map((member) => {
     const detail = records.reduce<SettlementDetailResponse[]>((details, record) => {
-        const participant = record.participants.find(
-          (item) => item.roomMemberId === member.roomMemberId,
-        );
+      const participant = record.participants.find(
+        (item) => item.roomMemberId === member.roomMemberId,
+      );
 
-        if (!participant) return details;
+      if (!participant) return details;
 
-        details.push({
-          seq: record.seq,
-          placeName: record.placeName,
-          amount: participant.amount,
-          payer: record.payer,
-          createdAt: record.createdAt,
-        });
+      details.push({
+        seq: record.seq,
+        placeName: record.placeName,
+        amount: participant.amount,
+        payer: record.payer,
+        createdAt: record.createdAt,
+      });
 
-        return details;
-      }, []);
+      return details;
+    }, []);
 
     return {
       roomMemberId: member.roomMemberId,
@@ -56,7 +57,9 @@ function createSettlementResponse(roomId: number): SettlementResponse | null {
   });
 
   return {
-    settlementId: mockDb.settlements.find((item) => item.roomId === roomId)?.settlementId ?? Date.now(),
+    settlementId:
+      mockDb.settlements.find((item) => item.roomId === roomId)?.settlementId ??
+      Date.now(),
     totalCost: records.reduce((total, record) => total + record.totalPrice, 0),
     isConfirmed: false,
     confirmedAt: null,
@@ -67,6 +70,21 @@ function createSettlementResponse(roomId: number): SettlementResponse | null {
 export const settlementHandlers: HttpHandler[] = [
   http.get(`${BASE}/api/v1/rooms/:roomId/settlement`, ({ params }) => {
     const roomId = Number(params.roomId);
+
+    if (settlementNotFoundOnceRoomIds.has(roomId)) {
+      settlementNotFoundOnceRoomIds.delete(roomId);
+
+      return HttpResponse.json(
+        {
+          status: 404,
+          code: 'SETTLEMENT_NOT_FOUND',
+          message: '정산이 존재하지 않습니다.',
+          data: null,
+        },
+        { status: 404 },
+      );
+    }
+
     const settlement = mutableSettlements[roomId] ?? createSettlementResponse(roomId);
 
     if (!settlement) {
