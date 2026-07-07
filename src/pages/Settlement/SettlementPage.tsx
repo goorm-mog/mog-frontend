@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Button from '@/components/common/Button/Button';
-import { calculateSettlement, fetchSettlement } from '@/features/settlement/api/settlement';
+import {
+  calculateSettlement,
+  confirmSettlement,
+  fetchSettlement,
+} from '@/features/settlement/api/settlement';
 import {
   mapSettlementToMemberBurdens,
   mapSettlementToPlacePayers,
@@ -81,6 +85,7 @@ function SettlementContent({
 }: SettlementContentProps) {
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const [isConfirmingSettlement, setIsConfirmingSettlement] = useState(false);
   const navigateToMeetDetail = useCallback(() => {
     navigate('/meet-detail');
   }, [navigate]);
@@ -139,6 +144,17 @@ function SettlementContent({
     ...summary,
     statusText: isSettlementCompleted ? '정산 완료' : summary.statusText,
   };
+  const handleConfirmSettlement = useCallback(async () => {
+    try {
+      setIsConfirmingSettlement(true);
+      await confirmSettlement(roomId);
+      completeSettlement();
+    } catch (error) {
+      showToast(getSettlementErrorMessage(error), 'error');
+    } finally {
+      setIsConfirmingSettlement(false);
+    }
+  }, [completeSettlement, roomId, showToast]);
 
   return (
     <main className="flex h-screen flex-col overflow-hidden bg-background text-text">
@@ -192,7 +208,8 @@ function SettlementContent({
       {isConfirmOpen ? (
         <SettlementConfirmDialog
           onClose={closeSettlementConfirm}
-          onConfirm={completeSettlement}
+          onConfirm={handleConfirmSettlement}
+          isConfirming={isConfirmingSettlement}
         />
       ) : null}
 
