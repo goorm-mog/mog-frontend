@@ -53,6 +53,7 @@ async function copyTextToClipboard(text: string) {
 
 type SettlementContentProps = {
   roomId: number;
+  settlementId: number;
   summary: SettlementSummary;
   members: SettlementMemberBurden[];
   placePayers: SettlementPlacePayer[];
@@ -79,6 +80,7 @@ function getSettlementErrorMessage(error: unknown) {
 
 function SettlementContent({
   roomId,
+  settlementId,
   summary,
   members,
   placePayers,
@@ -129,6 +131,7 @@ function SettlementContent({
     members,
     placePayers,
     roomId,
+    settlementId,
     currentRoomMemberId: summary.currentRoomMemberId,
   });
   const saveDraft = useCallback(() => {
@@ -241,6 +244,7 @@ function SettlementPage() {
   const roomId = Number(roomIdParam);
   const isValidRoomId = Number.isFinite(roomId);
   const [settlement, setSettlement] = useState<{
+    settlementId: number;
     summary: SettlementSummary;
     members: SettlementMemberBurden[];
     placePayers: SettlementPlacePayer[];
@@ -279,6 +283,7 @@ function SettlementPage() {
         if (ignore) return;
 
         setSettlement({
+          settlementId: settlementResponse.settlementId,
           summary: {
             ...SETTLEMENT_SUMMARY,
             statusText: settlementResponse.isConfirmed ? '정산 완료' : '정산 대기',
@@ -345,6 +350,7 @@ function SettlementPage() {
   return (
     <SettlementContent
       roomId={roomId}
+      settlementId={settlement.settlementId}
       summary={settlement.summary}
       members={settlement.members}
       placePayers={settlement.placePayers}

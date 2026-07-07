@@ -2,12 +2,13 @@ import type { PlaceSettlement } from '@/pages/Settlement/types';
 
 type SavedSettlementDraft = {
   roomId: number;
+  settlementId: number;
   savedAt: string;
   places: PlaceSettlement[];
 };
 
-export function getSettlementDraftStorageKey(roomId: number) {
-  return `settlement-draft:${roomId}`;
+export function getSettlementDraftStorageKey(roomId: number, settlementId: number) {
+  return `settlement-draft:${roomId}:${settlementId}`;
 }
 
 export function readSavedSettlementDraft(
@@ -43,7 +44,7 @@ export function hasSavedSettlementDraft(storageKey: string) {
 
 export function saveSettlementDraft(draft: SavedSettlementDraft) {
   window.localStorage.setItem(
-    getSettlementDraftStorageKey(draft.roomId),
+    getSettlementDraftStorageKey(draft.roomId, draft.settlementId),
     JSON.stringify(draft),
   );
 }

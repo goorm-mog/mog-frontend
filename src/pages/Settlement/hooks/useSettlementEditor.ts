@@ -24,6 +24,7 @@ type UseSettlementEditorParams = {
   members: SettlementMemberBurden[];
   placePayers: SettlementPlacePayer[];
   roomId: number;
+  settlementId: number;
   currentRoomMemberId?: number;
 };
 
@@ -31,6 +32,7 @@ function useSettlementEditor({
   members,
   placePayers,
   roomId,
+  settlementId,
   currentRoomMemberId,
 }: UseSettlementEditorParams) {
   const initialPlaceSettlements = useMemo(
@@ -38,8 +40,8 @@ function useSettlementEditor({
     [members, placePayers],
   );
   const draftStorageKey = useMemo(
-    () => getSettlementDraftStorageKey(roomId),
-    [roomId],
+    () => getSettlementDraftStorageKey(roomId, settlementId),
+    [roomId, settlementId],
   );
   const [placeSettlements, setPlaceSettlements] = useState(() =>
     readSavedSettlementDraft(draftStorageKey, initialPlaceSettlements),
@@ -237,10 +239,11 @@ function useSettlementEditor({
   const saveCurrentDraft = useCallback(() => {
     saveSettlementDraft({
       roomId,
+      settlementId,
       savedAt: new Date().toISOString(),
       places: placeSettlements,
     });
-  }, [placeSettlements, roomId]);
+  }, [placeSettlements, roomId, settlementId]);
 
   return {
     placeSettlements,
