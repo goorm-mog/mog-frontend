@@ -3,6 +3,7 @@ import { chatHandlers } from './chat';
 import { notificationHandlers } from './notification';
 import { scheduleHandlers } from './schedule';
 import { departureHandlers } from './departure';
+import { settlementHandlers } from './settlement';
 
 export const handlers = [
   ...authHandlers,
@@ -10,4 +11,5 @@ export const handlers = [
   ...chatHandlers,
   ...notificationHandlers,
   ...departureHandlers,
+  ...settlementHandlers,
 ];

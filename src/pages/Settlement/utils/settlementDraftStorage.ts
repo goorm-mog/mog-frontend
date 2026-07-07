@@ -33,6 +33,14 @@ export function readSavedSettlementDraft(
   }
 }
 
+export function hasSavedSettlementDraft(storageKey: string) {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  return window.localStorage.getItem(storageKey) !== null;
+}
+
 export function saveSettlementDraft(draft: SavedSettlementDraft) {
   window.localStorage.setItem(
     getSettlementDraftStorageKey(draft.roomId),

@@ -15,8 +15,6 @@ type PlaceAdjustmentSectionProps = {
   onTogglePlaceIncluded: (placeId: string) => void;
   onUpdateParticipantAmount: (placeId: string, memberId: number, amount: number) => void;
   onApplyRemainderToMember: (placeId: string, memberId: number) => void;
-  onRedistributePlace: (placeId: string) => void;
-  redistributingPlaceId?: string | null;
 };
 
 function PlaceAdjustmentSection({
@@ -28,8 +26,6 @@ function PlaceAdjustmentSection({
   onTogglePlaceIncluded,
   onUpdateParticipantAmount,
   onApplyRemainderToMember,
-  onRedistributePlace,
-  redistributingPlaceId,
 }: PlaceAdjustmentSectionProps) {
   return (
     <>
@@ -131,18 +127,7 @@ function PlaceAdjustmentSection({
 
               {isExpanded ? (
                 <>
-                  <div className="mt-5 flex justify-end border-t border-dashed border-border pt-4">
-                    <button
-                      type="button"
-                      className="rounded-[5px] bg-dark-background px-3 py-2 text-[12px] leading-[15px] font-semibold text-dark-border disabled:opacity-50"
-                      disabled={!place.included || redistributingPlaceId === place.id}
-                      onClick={() => onRedistributePlace(place.id)}
-                    >
-                      {redistributingPlaceId === place.id ? '재분배 중...' : '1/N 재분배'}
-                    </button>
-                  </div>
-
-                  <dl className="mt-4 flex flex-col gap-3">
+                  <dl className="mt-5 flex flex-col gap-3 border-t border-dashed border-border pt-4">
                     {place.participants.map((participant) => (
                       <div
                         key={participant.memberId}

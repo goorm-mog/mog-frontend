@@ -124,8 +124,6 @@ function SettlementContent({
     togglePlaceIncluded,
     updatePlaceParticipantAmount,
     applyPlaceRemainderToMember,
-    redistributePlaceEvenly,
-    redistributingPlaceId,
     saveCurrentDraft,
   } = useSettlementEditor({
     members,
@@ -147,6 +145,11 @@ function SettlementContent({
     statusText: isSettlementCompleted ? '정산 완료' : summary.statusText,
   };
   const handleConfirmSettlement = useCallback(async () => {
+    if (hasRemainingAmount) {
+      showToast('잔액이 0원이 되어야 정산을 완료할 수 있습니다.', 'error');
+      return;
+    }
+
     try {
       setIsConfirmingSettlement(true);
       await confirmSettlement(roomId);
@@ -156,18 +159,7 @@ function SettlementContent({
     } finally {
       setIsConfirmingSettlement(false);
     }
-  }, [completeSettlement, roomId, showToast]);
-  const handleRedistributePlace = useCallback(
-    async (placeId: string) => {
-      try {
-        await redistributePlaceEvenly(placeId);
-        showToast('1/N 분배가 적용되었습니다.', 'success');
-      } catch (error) {
-        showToast(getSettlementErrorMessage(error), 'error');
-      }
-    },
-    [redistributePlaceEvenly, showToast],
-  );
+  }, [completeSettlement, hasRemainingAmount, roomId, showToast]);
 
   return (
     <main className="flex h-screen flex-col overflow-hidden bg-background text-text">
@@ -191,8 +183,6 @@ function SettlementContent({
             onTogglePlaceIncluded={togglePlaceIncluded}
             onUpdateParticipantAmount={updatePlaceParticipantAmount}
             onApplyRemainderToMember={applyPlaceRemainderToMember}
-            onRedistributePlace={handleRedistributePlace}
-            redistributingPlaceId={redistributingPlaceId}
           />
 
           <MemberBurdenSection
@@ -209,14 +199,23 @@ function SettlementContent({
       </section>
 
       <footer className="fixed bottom-0 left-1/2 z-40 w-full max-w-[430px] -translate-x-1/2 border-t border-border/70 bg-background px-[14px] pt-3 pb-5">
+        {hasRemainingAmount && !isSettlementCompleted ? (
+          <p className="mb-2 text-center text-[12px] leading-[16px] font-semibold text-alert">
+            잔액이 남아있어요!
+          </p>
+        ) : null}
         <Button
           variant="dark"
           size="lg"
           className="text-[16px] font-semibold disabled:opacity-55"
-          disabled={isSettlementCompleted}
+          disabled={isSettlementCompleted || hasRemainingAmount}
           onClick={openSettlementConfirm}
         >
-          {isSettlementCompleted ? '정산 완료' : '정산 완료하기'}
+          {isSettlementCompleted
+            ? '정산 완료'
+            : hasRemainingAmount
+              ? '잔액을 맞춰주세요'
+              : '정산 완료하기'}
         </Button>
       </footer>
 
@@ -230,7 +229,6 @@ function SettlementContent({
 
       {isCompletionOpen ? (
         <SettlementCompletionDialog
-          remainingAmount={remainingAmount}
           countdownSeconds={countdownSeconds}
         />
       ) : null}
