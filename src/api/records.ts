@@ -43,6 +43,5 @@ export function analyzeReceiptOcr(roomId: number, image: File) {
   return apiFetch<OcrResponse>(`/api/v1/rooms/${roomId}/records/ocr`, {
     method: 'POST',
     body,
-    headers: {},
   });
 }
