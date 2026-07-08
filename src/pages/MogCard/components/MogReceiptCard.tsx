@@ -17,7 +17,7 @@ const MogReceiptCard = forwardRef<HTMLElement, MogReceiptCardProps>(
     return (
       <article
         ref={ref}
-        className="relative mx-auto min-h-[980px] w-full max-w-[370px] overflow-hidden px-[34px] pt-[124px] pb-[132px] text-text drop-shadow-[0_10px_16px_rgb(0_0_0_/_26%)]"
+        className="relative mx-auto min-h-[980px] w-full max-w-[398px] overflow-hidden px-[30px] pt-[124px] pb-[132px] text-text drop-shadow-[0_10px_16px_rgb(0_0_0_/_26%)]"
       >
         <ReceiptRoughEffectFilters />
         <ReceiptPaperBackground />
@@ -168,18 +168,18 @@ function ReceiptGrainOverlay() {
 
 function ReceiptHeader({ receipt }: MogReceiptCardProps) {
   return (
-    <header className="mb-10">
+    <header className="mb-8">
       <h2
         className={`${typography.logo} text-center tracking-normal`}
-        style={{ fontSize: 62, lineHeight: '62px' }}
+        style={{ fontSize: 58, lineHeight: '58px' }}
       >
         {receipt.title}
       </h2>
 
-      <div className={`${typography.body2} mt-[62px] leading-[22px] text-text`}>
+      <div className="mt-[58px] font-dm-mono text-[13px] leading-[20px] font-medium tracking-normal text-text">
         <p>인원 : {receipt.participantCount}</p>
         <p>{receipt.participants}</p>
-        <p className="mt-5">{receipt.datetime}</p>
+        <p className="mt-4">{receipt.datetime}</p>
       </div>
     </header>
   );
@@ -187,7 +187,7 @@ function ReceiptHeader({ receipt }: MogReceiptCardProps) {
 
 function ReceiptPlaces({ places }: { places: MogReceiptPlace[] }) {
   return (
-    <div className="py-8">
+    <div className="py-6">
       {places.map((place, index) => (
         <ReceiptPlace
           key={place.id}
@@ -208,24 +208,26 @@ function ReceiptPlace({
 }) {
   return (
     <section>
-      <div className="grid grid-cols-[1fr_auto] gap-4">
+      <div className="grid grid-cols-[1fr_auto] gap-3">
         <div className="min-w-0">
-          <h3 className={typography.body}>{place.placeName}</h3>
-          <p className={`${typography.body2} mt-1 leading-[18px]`}>
+          <h3 className="font-pretendard text-[15px] leading-[18px] font-semibold tracking-normal">
+            {place.placeName}
+          </h3>
+          <p className="mt-1 font-dm-mono text-[11px] leading-[15px] font-medium tracking-normal text-text/80">
             {place.address}
           </p>
         </div>
 
-        <strong className={`${typography.body} pt-1 whitespace-nowrap`}>
+        <strong className="pt-1 font-dm-mono text-[13px] leading-[18px] font-semibold tracking-normal whitespace-nowrap tabular-nums">
           {place.totalCost}
         </strong>
       </div>
 
-      <dl className="mt-6 flex flex-col gap-2">
+      <dl className="mt-4 flex flex-col gap-1.5">
         {place.items.map((item) => (
           <div
             key={`${place.id}-${item.name}`}
-            className={`${typography.body2} grid grid-cols-[1fr_auto] gap-4 pl-[50px] leading-[18px]`}
+            className="grid grid-cols-[1fr_auto] gap-3 pl-[38px] font-dm-mono text-[12px] leading-[16px] font-medium tracking-normal"
           >
             <dt>{item.name}</dt>
             <dd className="font-medium tabular-nums">{item.amount}</dd>
@@ -233,7 +235,7 @@ function ReceiptPlace({
         ))}
       </dl>
 
-      {hasDivider ? <DottedDivider className="my-8" /> : null}
+      {hasDivider ? <DottedDivider className="my-6" /> : null}
     </section>
   );
 }
@@ -241,10 +243,12 @@ function ReceiptPlace({
 function ReceiptTotal({ totalCost }: { totalCost: string }) {
   return (
     <div
-      className={`${typography.body} grid grid-cols-[1fr_auto] items-center px-[2px] py-7 font-black`}
+      className="grid grid-cols-[1fr_auto] items-center px-[2px] py-6 font-pretendard text-[15px] leading-[18px] font-black tracking-normal"
     >
       <span>Total</span>
-      <strong>{totalCost}</strong>
+      <strong className="font-dm-mono text-[13px] leading-[18px] font-black tabular-nums">
+        {totalCost}
+      </strong>
     </div>
   );
 }

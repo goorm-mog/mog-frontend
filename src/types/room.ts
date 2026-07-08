@@ -35,12 +35,18 @@ export type RoomSummaryParticipant = {
   amount: number;
 };
 
+export type RoomSummaryRecordItem = {
+  name: string;
+  amount: number;
+};
+
 export type RoomSummaryRecord = {
   seq: number;
   placeName: string;
   address?: string | null;
   memo: string;
   totalCost: number;
+  items?: RoomSummaryRecordItem[];
   participants: RoomSummaryParticipant[];
 };
 

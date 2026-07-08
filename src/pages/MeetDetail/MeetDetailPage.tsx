@@ -91,7 +91,7 @@ function MeetDetailPage() {
                   }}
                 >
                   <ClipboardList size={18} strokeWidth={2.2} />
-                  로그
+                  모그
                 </Button>
               </div>
             </div>
