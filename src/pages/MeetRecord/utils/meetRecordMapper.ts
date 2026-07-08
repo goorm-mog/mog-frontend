@@ -1,10 +1,12 @@
 import type {
   CreateMeetingRecordRequest,
   MeetingRecord,
+  RecordMenuItem,
 } from '@/types/records';
 import { receiptCopy } from '@/pages/MeetRecord/constants/receiptCopy';
 import type {
   ReceiptCardData,
+  ReceiptItem,
   ReceiptPayerOption,
   ReceiptParticipant,
 } from '@/pages/MeetRecord/types';
@@ -32,9 +34,9 @@ export function mapMeetingRecordToReceipt(
     placePlaceholder: receiptCopy.placePlaceholder,
     menuPlaceholder: receiptCopy.menuPlaceholder,
     items:
-      record.totalCost > 0
-        ? [{ name: TOTAL_ITEM_NAME, count: 1, price: record.totalCost }]
-        : [],
+      record.menuItems && record.menuItems.length > 0
+        ? record.menuItems.map(toReceiptItem)
+        : createFallbackItems(record.totalCost),
     totalAmount: record.totalCost,
     participants: roomMembers.map(({ roomMemberId, nickname }) => ({
       id: roomMemberId,
@@ -69,6 +71,9 @@ export function toMeetingRecordRequest(
   return {
     placeName: receipt.placeName.trim(),
     address: receipt.placeAddress?.trim() || null,
+    menuItems: receipt.items
+      .filter((item) => item.name.trim().length > 0)
+      .map(toRecordMenuItem),
     memo: receipt.memo.trim(),
     payer:
       receipt.payerRoomMemberId == null
@@ -79,6 +84,26 @@ export function toMeetingRecordRequest(
             accountNumber: receipt.payerAccountNumber?.trim() || null,
           },
     participants: splitAmount(receipt.totalAmount, selectedParticipants),
+  };
+}
+
+function toReceiptItem(item: RecordMenuItem) {
+  return {
+    name: item.menuName,
+    count: item.count,
+    price: item.price,
+  };
+}
+
+function createFallbackItems(totalCost: number) {
+  return totalCost > 0 ? [{ name: TOTAL_ITEM_NAME, count: 1, price: totalCost }] : [];
+}
+
+function toRecordMenuItem(item: ReceiptItem): RecordMenuItem {
+  return {
+    menuName: item.name.trim(),
+    count: item.count,
+    price: item.price,
   };
 }
 
