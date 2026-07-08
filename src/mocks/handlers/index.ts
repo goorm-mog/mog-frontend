@@ -8,6 +8,7 @@ import { settlementHandlers } from './settlement';
 import { groupHandlers } from './group';
 import { roomHandlers } from './room';
 import { meetingRecordHandlers } from './meetingRecord';
+import { summaryHandlers } from './summary';
 
 export const handlers = [
   ...authHandlers,
@@ -19,5 +20,6 @@ export const handlers = [
   ...groupHandlers,
   ...roomHandlers,
   ...meetingRecordHandlers,
-  ...recordsHandlers
+  ...recordsHandlers,
+  ...summaryHandlers,
 ];

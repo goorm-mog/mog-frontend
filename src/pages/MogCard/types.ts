@@ -24,3 +24,42 @@ export type MogReceipt = {
   barcodeValue: string;
   footer: string;
 };
+
+export type SummaryParticipantResponse = {
+  nickname: string;
+  amount: number;
+};
+
+export type SummaryRecordResponse = {
+  seq: number;
+  placeName: string;
+  memo: string | null;
+  totalCost: number;
+  participants: SummaryParticipantResponse[];
+};
+
+export type SummaryMemberTotalResponse = {
+  nickname: string;
+  totalAmount: number;
+};
+
+export type SummarySettlementResponse = {
+  totalCost: number;
+  memberTotals: SummaryMemberTotalResponse[];
+};
+
+export type SummaryCardResponse = {
+  roomId: number;
+  confirmedDate: string | null;
+  confirmedPlace: string | null;
+  totalMemberCount: number;
+  members: string[];
+  photos: string[];
+  records: SummaryRecordResponse[];
+  settlement: SummarySettlementResponse;
+  cardImageUrl: string | null;
+};
+
+export type CardImageResponse = {
+  cardImageUrl: string;
+};

@@ -1,15 +1,18 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { Download, Share2, X } from 'lucide-react';
-import { useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { typography } from '@/constants/typography';
 import { useToast } from '@/hooks/useToast';
+import { ApiError } from '@/lib/apiFetch';
+import { fetchMogCard } from '@/pages/MogCard/api/mogCard';
 import MogReceiptCard from '@/pages/MogCard/components/MogReceiptCard';
 import {
   createReceiptImageFallbackWindow,
   downloadReceiptImage,
   shareReceiptImage,
 } from '@/pages/MogCard/utils/downloadReceiptImage';
-import { getMogReceiptByRoomId } from '@/pages/MogCard/utils/mogReceipt';
+import { toMogReceipt } from '@/pages/MogCard/utils/mogReceipt';
+import type { SummaryCardResponse } from '@/pages/MogCard/types';
 
 function MogCardPage() {
   const navigate = useNavigate();
@@ -18,12 +21,50 @@ function MogCardPage() {
   const receiptRef = useRef<HTMLElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  const [summary, setSummary] = useState<SummaryCardResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const numericRoomId = Number(roomId);
-  const receipt = Number.isFinite(numericRoomId)
-    ? getMogReceiptByRoomId(numericRoomId)
-    : null;
+  const receipt = useMemo(() => (summary ? toMogReceipt(summary) : null), [summary]);
   const isProcessing = isDownloading || isSharing;
-  const canUseReceiptAction = Boolean(receipt) && !isProcessing;
+  const canUseReceiptAction = Boolean(receipt) && !isProcessing && !isLoading;
+
+  useEffect(() => {
+    if (!Number.isFinite(numericRoomId)) {
+      setSummary(null);
+      setErrorMessage('잘못된 약속 정보입니다.');
+      setIsLoading(false);
+      return;
+    }
+
+    let ignore = false;
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    fetchMogCard(numericRoomId)
+      .then((data) => {
+        if (!ignore) {
+          setSummary(data);
+        }
+      })
+      .catch((error: unknown) => {
+        if (ignore) {
+          return;
+        }
+
+        setSummary(null);
+        setErrorMessage(getMogCardErrorMessage(error));
+      })
+      .finally(() => {
+        if (!ignore) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [numericRoomId]);
 
   const handleDownload = async () => {
     if (!receiptRef.current || !receipt || isDownloading) {
@@ -99,18 +140,40 @@ function MogCardPage() {
         </div>
 
         <div className="mt-10">
-          {receipt ? (
+          {isLoading ? (
+            <ReceiptStateMessage>영수증을 불러오는 중입니다.</ReceiptStateMessage>
+          ) : receipt ? (
             <MogReceiptCard ref={receiptRef} receipt={receipt} />
           ) : (
-            <div
-              className={`${typography.body2} mx-auto flex min-h-[542px] w-full max-w-[370px] items-center justify-center rounded-[5px] border border-border bg-background px-8 text-center text-dark-border`}
-            >
-              해당 약속의 영수증을 찾을 수 없습니다.
-            </div>
+            <ReceiptStateMessage>
+              {errorMessage ?? '해당 약속의 영수증을 찾을 수 없습니다.'}
+            </ReceiptStateMessage>
           )}
         </div>
       </div>
     </main>
+  );
+}
+
+function getMogCardErrorMessage(error: unknown) {
+  if (error instanceof ApiError) {
+    if (error.code === 'SETTLEMENT_NOT_CONFIRMED') {
+      return '정산 확정 후 모그카드를 만들 수 있어요.';
+    }
+
+    return error.message;
+  }
+
+  return '영수증을 불러오지 못했어요.';
+}
+
+function ReceiptStateMessage({ children }: { children: ReactNode }) {
+  return (
+    <div
+      className={`${typography.body2} mx-auto flex min-h-[542px] w-full max-w-[370px] items-center justify-center rounded-[5px] border border-border bg-background px-8 text-center text-dark-border`}
+    >
+      {children}
+    </div>
   );
 }
 
