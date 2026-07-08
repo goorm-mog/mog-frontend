@@ -46,14 +46,11 @@ function MenuEditor({
           <Plus className="size-6" strokeWidth={2.2} color={colors.text} />
         </button>
       </div>
-      <div
-        className={`${typography.caption} mt-3 space-y-1 px-3`}
-        style={{ color: colors.text }}
-      >
+      <div className={`${typography.caption} mt-3 space-y-1 px-1`} style={{ color: colors.text }}>
         {items.map((item) => (
           <div
             key={item.id}
-            className="grid grid-cols-[minmax(100px,1fr)_32px_64px_18px] items-center gap-2"
+            className="grid grid-cols-[minmax(0,1fr)_32px_minmax(74px,auto)_18px] items-center gap-1.5"
           >
             <span className="truncate">{item.name}</span>
             <input
@@ -65,7 +62,9 @@ function MenuEditor({
               style={{ color: colors.text }}
               aria-label={`${item.name} 수량`}
             />
-            <span className="text-right">{formatWon(item.price)}</span>
+            <span className="text-right tabular-nums whitespace-nowrap">
+              {formatWon(item.price)}
+            </span>
             <button
               type="button"
               className="grid size-[18px] place-items-center"

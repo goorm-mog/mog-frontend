@@ -24,14 +24,14 @@
 
 @layer base {
   html {
-    min-width: 390px;
+    min-width: 0;
     background-color: var(--color-background);
     @apply font-sans;
   }
 
   body {
     margin: 0;
-    min-width: 390px;
+    min-width: 0;
     background-color: var(--color-background);
     font-family: var(--font-pretendard);
     color: var(--color-text);
@@ -40,9 +40,10 @@
   }
 
   #root {
+    width: 100%;
     max-width: 430px;
     margin: 0 auto;
-    min-width: 390px;
+    min-width: 0;
     min-height: 844px;
     background-color: var(--color-background);
     box-shadow: 0 0 12px rgba(94, 88, 71, 0.2);

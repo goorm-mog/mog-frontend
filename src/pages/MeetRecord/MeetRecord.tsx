@@ -31,8 +31,9 @@ function MeetRecord() {
   const roomId = parseRoomId(roomIdParam);
   const [roomName, setRoomName] = useState('약속 기록');
   const [roomMembers, setRoomMembers] = useState<MeetRecordMember[]>([]);
-  const [confirmedSchedule, setConfirmedSchedule] =
-    useState<ConfirmedScheduleResponse | null>(null);
+  const [confirmedSchedule, setConfirmedSchedule] = useState<ConfirmedScheduleResponse | null>(
+    null,
+  );
   const [initialReceipts, setInitialReceipts] = useState<ReceiptCardData[]>([]);
   const [initialPhotos, setInitialPhotos] = useState<RoomRecordPhoto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -85,9 +86,7 @@ function MeetRecord() {
         if (!isMounted) return;
 
         setLoadError(
-          error instanceof Error
-            ? error.message
-            : '약속 기록을 불러오는 중 오류가 발생했습니다.',
+          error instanceof Error ? error.message : '약속 기록을 불러오는 중 오류가 발생했습니다.',
         );
       } finally {
         if (isMounted) {
@@ -105,29 +104,28 @@ function MeetRecord() {
 
   return (
     <main
-      className="min-h-dvh"
+      className="min-h-svh overflow-x-hidden"
       style={{ backgroundColor: colors.background, color: colors.text }}
     >
       <title>약속 기록</title>
 
       <div
-        className="mx-auto flex h-dvh min-h-[844px] w-full min-w-[390px] max-w-[430px] flex-col overflow-hidden"
+        className="mx-auto flex h-svh w-full min-w-0 max-w-[430px] flex-col overflow-hidden"
         style={{ backgroundColor: colors.background }}
       >
         <TopAppBar
-          title={roomName}
+          title="기록"
           showBack
           onBack={() => navigate(-1)}
           rightSlot={<span aria-hidden className="block size-4" />}
         />
         {isLoading || loadError || roomId == null ? (
           <>
-            <MeetSummary
-              title={roomName}
-              dateText={formatMeetDate(confirmedSchedule)}
-            />
+            <MeetSummary title={roomName} dateText={formatMeetDate(confirmedSchedule)} />
             <div className="grid min-h-0 flex-1 place-items-center px-5 text-center">
-              {isLoading ? '기록을 불러오는 중입니다.' : (loadError ?? '올바른 약속 ID가 없습니다.')}
+              {isLoading
+                ? '기록을 불러오는 중입니다.'
+                : (loadError ?? '올바른 약속 ID가 없습니다.')}
             </div>
             <SettlementFooter
               totalAmount={0}
@@ -206,7 +204,7 @@ function MeetRecordEditor({
     <>
       <section
         ref={contentScrollRef}
-        className="min-h-0 flex-1 overflow-y-auto pb-6 promise-scrollbar-hidden"
+        className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pb-[calc(24px+env(safe-area-inset-bottom))] promise-scrollbar-hidden [-webkit-overflow-scrolling:touch] overscroll-contain"
       >
         <div
           className="pointer-events-none sticky top-0 z-20 h-5"
@@ -224,10 +222,7 @@ function MeetRecordEditor({
         >
           <MeetSummary title={roomName} dateText={dateText} />
 
-          <section
-            className="mx-5 border-t pb-5 pt-5"
-            style={{ borderColor: colors.border }}
-          >
+          <section className="mx-5 border-t pb-5 pt-5" style={{ borderColor: colors.border }}>
             <PhotoPicker
               photos={roomPhotos}
               onUploadPhotos={uploadPhotos}

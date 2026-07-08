@@ -1,11 +1,5 @@
 import { Sparkles, X } from 'lucide-react';
-import {
-  useEffect,
-  useRef,
-  useState,
-  type ChangeEvent,
-  type ReactNode,
-} from 'react';
+import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
 import { analyzeReceiptOcr } from '@/api/records';
 import { usePlaceSearch } from '@/pages/MeetRecord/hooks/usePlaceSearch';
 import { useReceiptMenu } from '@/pages/MeetRecord/hooks/useReceiptMenu';
@@ -58,24 +52,14 @@ function ReceiptCard({
       items: receiptMenu.items.map(({ id: _id, ...item }) => item),
       totalAmount: receiptMenu.totalAmount,
     });
-  }, [
-    onReceiptChange,
-    receipt.roundLabel,
-    receiptMenu.items,
-    receiptMenu.totalAmount,
-  ]);
+  }, [onReceiptChange, receipt.roundLabel, receiptMenu.items, receiptMenu.totalAmount]);
 
   useEffect(() => {
     onReceiptChange(receipt.roundLabel, {
       placeName: placeSearch.query,
       placeAddress: placeSearch.selectedAddress,
     });
-  }, [
-    onReceiptChange,
-    placeSearch.query,
-    placeSearch.selectedAddress,
-    receipt.roundLabel,
-  ]);
+  }, [onReceiptChange, placeSearch.query, placeSearch.selectedAddress, receipt.roundLabel]);
 
   const handleSelectPlace = (place: PlaceSearchResult) => {
     placeSearch.selectPlace(place);
@@ -143,9 +127,7 @@ function ReceiptCard({
       receiptMenu.replaceItems(nextItems);
     } catch (error) {
       window.alert(
-        error instanceof Error
-          ? error.message
-          : '영수증을 분석하는 중 오류가 발생했습니다.',
+        error instanceof Error ? error.message : '영수증을 분석하는 중 오류가 발생했습니다.',
       );
     } finally {
       setIsOcrAnalyzing(false);
@@ -328,8 +310,11 @@ type FormRowProps = {
 
 function FormRow({ label, required = false, className = '', children }: FormRowProps) {
   return (
-    <div className={`grid grid-cols-[90px_1fr] items-start gap-4 px-2 ${className}`}>
-      <label className={`${typography.body} pt-3`} style={{ color: colors.text }}>
+    <div className={`grid grid-cols-[58px_minmax(0,1fr)] items-start gap-2 px-1 ${className}`}>
+      <label
+        className="pt-3 font-pretendard text-[13px] leading-[16px] font-semibold"
+        style={{ color: colors.text }}
+      >
         {label}
         {required ? (
           <span className="ml-1" style={{ color: colors.alert }}>
