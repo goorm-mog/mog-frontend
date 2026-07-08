@@ -26,6 +26,10 @@ function MogCardPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const numericRoomId = Number(roomId);
   const receipt = useMemo(() => (summary ? toMogReceipt(summary) : null), [summary]);
+  const emptyMessage =
+    summary && !summary.confirmedDate
+      ? '확정 일정이 있는 약속만 모그카드를 만들 수 있어요.'
+      : (errorMessage ?? '해당 약속의 영수증을 찾을 수 없습니다.');
   const isProcessing = isDownloading || isSharing;
   const canUseReceiptAction = Boolean(receipt) && !isProcessing && !isLoading;
 
@@ -145,9 +149,7 @@ function MogCardPage() {
           ) : receipt ? (
             <MogReceiptCard ref={receiptRef} receipt={receipt} />
           ) : (
-            <ReceiptStateMessage>
-              {errorMessage ?? '해당 약속의 영수증을 찾을 수 없습니다.'}
-            </ReceiptStateMessage>
+            <ReceiptStateMessage>{emptyMessage}</ReceiptStateMessage>
           )}
         </div>
       </div>
