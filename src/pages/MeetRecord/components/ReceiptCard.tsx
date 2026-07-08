@@ -1,5 +1,12 @@
 import { Sparkles, X } from 'lucide-react';
-import { useEffect, useState, type ReactNode } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type ReactNode,
+} from 'react';
+import { analyzeReceiptOcr } from '@/api/records';
 import { usePlaceSearch } from '@/pages/MeetRecord/hooks/usePlaceSearch';
 import { useReceiptMenu } from '@/pages/MeetRecord/hooks/useReceiptMenu';
 import type {
@@ -19,6 +26,7 @@ import PlaceField from './PlaceField';
 export type { ReceiptCardData } from '@/pages/MeetRecord/types';
 
 type ReceiptCardProps = {
+  roomId: number;
   receipt: ReceiptCardData;
   payerOptions: readonly ReceiptPayerOption[];
   onReceiptChange: (receiptId: string, receipt: Partial<ReceiptCardData>) => void;
@@ -26,6 +34,7 @@ type ReceiptCardProps = {
 };
 
 function ReceiptCard({
+  roomId,
   receipt,
   payerOptions,
   onReceiptChange,
@@ -33,6 +42,8 @@ function ReceiptCard({
 }: ReceiptCardProps) {
   const [participants, setParticipants] = useState(receipt.participants);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isOcrAnalyzing, setIsOcrAnalyzing] = useState(false);
+  const ocrInputRef = useRef<HTMLInputElement>(null);
   const placeSearch = usePlaceSearch(receipt.placeName);
   const receiptMenu = useReceiptMenu({
     initialItems: receipt.items,
@@ -73,11 +84,57 @@ function ReceiptCard({
     onDelete(receipt.roundLabel);
   };
 
+  const handleOcrImageSelect = async (event: ChangeEvent<HTMLInputElement>) => {
+    const image = event.target.files?.[0];
+    event.target.value = '';
+
+    if (!image) {
+      return;
+    }
+
+    setIsOcrAnalyzing(true);
+
+    try {
+      const response = await analyzeReceiptOcr(roomId, image);
+      const { storeName, totalAmount, items } = response.data;
+      const nextItems =
+        items.length > 0
+          ? items.map((item) => ({
+              name: item.name,
+              count: item.count ?? 1,
+              price: item.price,
+            }))
+          : [{ name: '총액', count: 1, price: totalAmount }];
+
+      if (storeName) {
+        placeSearch.setQuery(storeName);
+      }
+
+      receiptMenu.replaceItems(nextItems);
+    } catch (error) {
+      window.alert(
+        error instanceof Error
+          ? error.message
+          : '영수증을 분석하는 중 오류가 발생했습니다.',
+      );
+    } finally {
+      setIsOcrAnalyzing(false);
+    }
+  };
+
   return (
     <article
       className="receipt-paper relative min-h-[590px] px-5 pb-7 pt-10"
       data-receipt-id={receipt.roundLabel}
     >
+      <input
+        ref={ocrInputRef}
+        type="file"
+        className="sr-only"
+        accept="image/*"
+        onChange={handleOcrImageSelect}
+      />
+
       <div
         className="flex items-center justify-between border-b pb-5"
         style={{ borderColor: colors.border }}
@@ -90,7 +147,13 @@ function ReceiptCard({
         </span>
 
         <div className="flex items-center gap-3">
-          <button type="button" style={{ color: colors.darkBorder }} aria-label="자동 채우기">
+          <button
+            type="button"
+            style={{ color: colors.darkBorder }}
+            aria-label="영수증 OCR 자동 채우기"
+            disabled={isOcrAnalyzing}
+            onClick={() => ocrInputRef.current?.click()}
+          >
             <Sparkles className="size-[25px]" strokeWidth={1.8} />
           </button>
           <button

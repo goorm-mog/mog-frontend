@@ -9,6 +9,7 @@ import type {
 import { colors } from '../../../constants/colors';
 
 type ReceiptListProps = {
+  roomId: number;
   receipts: ReceiptCardData[];
   payerOptions: readonly ReceiptPayerOption[];
   resetKey: number;
@@ -20,6 +21,7 @@ type ReceiptListProps = {
 };
 
 function ReceiptList({
+  roomId,
   receipts,
   payerOptions,
   resetKey,
@@ -54,6 +56,7 @@ function ReceiptList({
         {receipts.map((receipt) => (
           <ReceiptCard
             key={`${resetKey}-${receipt.roundLabel}`}
+            roomId={roomId}
             receipt={receipt}
             payerOptions={payerOptions}
             onReceiptChange={onReceiptChange}

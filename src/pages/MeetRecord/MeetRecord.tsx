@@ -179,6 +179,7 @@ function MeetRecordEditor({
   return (
     <>
       <ReceiptList
+        roomId={roomId}
         receipts={receiptCards}
         payerOptions={payerOptions}
         resetKey={receiptsVersion}
