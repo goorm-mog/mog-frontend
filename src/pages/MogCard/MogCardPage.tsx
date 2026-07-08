@@ -14,6 +14,12 @@ import {
 import { toMogReceipt } from '@/pages/MogCard/utils/mogReceipt';
 import type { SummaryCardResponse } from '@/pages/MogCard/types';
 
+type SummaryState = {
+  roomId: number | null;
+  summary: SummaryCardResponse | null;
+  errorMessage: string | null;
+};
+
 function MogCardPage() {
   const navigate = useNavigate();
   const { showToast } = useToast();
@@ -21,10 +27,21 @@ function MogCardPage() {
   const receiptRef = useRef<HTMLElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
-  const [summary, setSummary] = useState<SummaryCardResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [summaryState, setSummaryState] = useState<SummaryState>({
+    roomId: null,
+    summary: null,
+    errorMessage: null,
+  });
   const numericRoomId = Number(roomId);
+  const isValidRoomId = Number.isFinite(numericRoomId);
+  const hasCurrentSummaryState = summaryState.roomId === numericRoomId;
+  const summary = hasCurrentSummaryState ? summaryState.summary : null;
+  const errorMessage = !isValidRoomId
+    ? '잘못된 약속 정보입니다.'
+    : hasCurrentSummaryState
+      ? summaryState.errorMessage
+      : null;
+  const isLoading = isValidRoomId && !hasCurrentSummaryState;
   const receipt = useMemo(() => (summary ? toMogReceipt(summary) : null), [summary]);
   const emptyMessage =
     summary && !summary.confirmedDate
@@ -34,21 +51,18 @@ function MogCardPage() {
   const canUseReceiptAction = Boolean(receipt) && !isProcessing && !isLoading;
 
   useEffect(() => {
-    if (!Number.isFinite(numericRoomId)) {
-      setSummary(null);
-      setErrorMessage('잘못된 약속 정보입니다.');
-      setIsLoading(false);
-      return;
-    }
+    if (!isValidRoomId) return;
 
     let ignore = false;
-    setIsLoading(true);
-    setErrorMessage(null);
 
     fetchMogCard(numericRoomId)
       .then((data) => {
         if (!ignore) {
-          setSummary(data);
+          setSummaryState({
+            roomId: numericRoomId,
+            summary: data,
+            errorMessage: null,
+          });
         }
       })
       .catch((error: unknown) => {
@@ -56,19 +70,17 @@ function MogCardPage() {
           return;
         }
 
-        setSummary(null);
-        setErrorMessage(getMogCardErrorMessage(error));
-      })
-      .finally(() => {
-        if (!ignore) {
-          setIsLoading(false);
-        }
+        setSummaryState({
+          roomId: numericRoomId,
+          summary: null,
+          errorMessage: getMogCardErrorMessage(error),
+        });
       });
 
     return () => {
       ignore = true;
     };
-  }, [numericRoomId]);
+  }, [isValidRoomId, numericRoomId]);
 
   const handleDownload = async () => {
     if (!receiptRef.current || !receipt || isDownloading) {
