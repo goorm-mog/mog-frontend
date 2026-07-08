@@ -1,14 +1,11 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { Download, Share2, X } from 'lucide-react';
+import { Share2, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { typography } from '@/constants/typography';
 import { useToast } from '@/hooks/useToast';
 import MogReceiptCard from '@/pages/MogCard/components/MogReceiptCard';
 import { useMogCardSummary } from '@/pages/MogCard/hooks/useMogCardSummary';
-import {
-  downloadReceiptImage,
-  shareReceiptImage,
-} from '@/pages/MogCard/utils/downloadReceiptImage';
+import { shareReceiptImage } from '@/pages/MogCard/utils/downloadReceiptImage';
 import { toMogReceipt } from '@/pages/MogCard/utils/mogReceipt';
 
 const RECEIPT_SCREEN_BACKGROUND = '#4d4b48';
@@ -18,9 +15,7 @@ function MogCardPage() {
   const { showToast } = useToast();
   const { roomId } = useParams<{ roomId: string }>();
   const receiptRef = useRef<HTMLElement>(null);
-  const [isDownloading, setIsDownloading] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
-  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const numericRoomId = Number(roomId);
   const isValidRoomId = Number.isFinite(numericRoomId);
   const { summary, errorMessage, isLoading } = useMogCardSummary(
@@ -32,8 +27,7 @@ function MogCardPage() {
     summary && !summary.confirmedDate
       ? '확정 일정이 있는 약속만 모그카드를 만들 수 있어요.'
       : (errorMessage ?? '해당 약속의 영수증을 찾을 수 없습니다.');
-  const isProcessing = isDownloading || isSharing;
-  const canUseReceiptAction = Boolean(receipt) && !isProcessing && !isLoading;
+  const canUseReceiptAction = Boolean(receipt) && !isSharing && !isLoading;
 
   useEffect(() => {
     const root = document.getElementById('root');
@@ -62,46 +56,8 @@ function MogCardPage() {
     };
   }, []);
 
-  useEffect(() => {
-    return () => {
-      if (previewImageUrl) {
-        URL.revokeObjectURL(previewImageUrl);
-      }
-    };
-  }, [previewImageUrl]);
-
-  const handleDownload = async () => {
-    if (!receiptRef.current || !receipt || isDownloading) {
-      return;
-    }
-
-    setIsDownloading(true);
-
-    try {
-      const result = await downloadReceiptImage(
-        receiptRef.current,
-        getReceiptFileName(receipt.downloadFileName),
-      );
-
-      if (result.status === 'preview') {
-        setPreviewImageUrl((currentUrl) => {
-          if (currentUrl) {
-            URL.revokeObjectURL(currentUrl);
-          }
-
-          return result.objectUrl;
-        });
-      }
-    } catch (error) {
-      console.error(error);
-      showToast('영수증 이미지를 저장하지 못했어요.');
-    } finally {
-      setIsDownloading(false);
-    }
-  };
-
   const handleShare = async () => {
-    if (!receiptRef.current || !receipt || isProcessing) {
+    if (!receiptRef.current || !receipt || isSharing) {
       return;
     }
 
@@ -122,16 +78,6 @@ function MogCardPage() {
     } finally {
       setIsSharing(false);
     }
-  };
-
-  const handleClosePreview = () => {
-    setPreviewImageUrl((currentUrl) => {
-      if (currentUrl) {
-        URL.revokeObjectURL(currentUrl);
-      }
-
-      return null;
-    });
   };
 
   return (
@@ -160,13 +106,6 @@ function MogCardPage() {
 
           <div className="flex items-center gap-3">
             <ActionButton
-              label="다운로드"
-              onClick={handleDownload}
-              disabled={!canUseReceiptAction}
-            >
-              <Download size={21} strokeWidth={2.1} />
-            </ActionButton>
-            <ActionButton
               label="공유"
               onClick={handleShare}
               disabled={!canUseReceiptAction}
@@ -186,14 +125,6 @@ function MogCardPage() {
           )}
         </div>
       </div>
-
-      {previewImageUrl ? (
-        <ReceiptImagePreviewModal
-          imageUrl={previewImageUrl}
-          fileName={receipt?.downloadFileName ?? 'mog.png'}
-          onClose={handleClosePreview}
-        />
-      ) : null}
     </main>
   );
 }
@@ -231,44 +162,6 @@ function ActionButton({
     >
       {children}
     </button>
-  );
-}
-
-type ReceiptImagePreviewModalProps = {
-  imageUrl: string;
-  fileName: string;
-  onClose: () => void;
-};
-
-function ReceiptImagePreviewModal({
-  imageUrl,
-  fileName,
-  onClose,
-}: ReceiptImagePreviewModalProps) {
-  return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-[rgb(0_0_0_/_78%)] px-4 pt-[calc(18px+env(safe-area-inset-top))] pb-[calc(18px+env(safe-area-inset-bottom))]">
-      <div className="mx-auto flex w-full max-w-[398px] items-center justify-between">
-        <p className="font-pretendard text-[14px] leading-[20px] font-semibold text-background">
-          이미지를 길게 눌러 저장하세요.
-        </p>
-        <button
-          type="button"
-          className="flex size-10 items-center justify-center rounded-full bg-background text-text"
-          aria-label="저장 이미지 닫기"
-          onClick={onClose}
-        >
-          <X size={21} strokeWidth={2.2} />
-        </button>
-      </div>
-
-      <div className="mx-auto mt-4 min-h-0 w-full max-w-[398px] flex-1 overflow-y-auto">
-        <img
-          src={imageUrl}
-          alt={fileName}
-          className="block h-auto w-full select-auto rounded-[2px]"
-        />
-      </div>
-    </div>
   );
 }
 
