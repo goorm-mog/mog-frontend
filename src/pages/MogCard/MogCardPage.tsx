@@ -81,9 +81,9 @@ function MogCardPage() {
   };
 
   return (
-    <main className="fixed inset-0 overflow-y-auto bg-[rgb(0_0_0_/_70%)] px-[31px] pt-[40px] pb-20">
-      <div className="mx-auto w-full max-w-[390px]">
-        <div className="mx-auto flex w-full max-w-[370px] items-center justify-between">
+    <main className="fixed inset-0 overflow-y-auto bg-[rgb(0_0_0_/_70%)] px-4 pt-[40px] pb-20">
+      <div className="mx-auto w-full max-w-[430px]">
+        <div className="mx-auto flex w-full max-w-[398px] items-center justify-between">
           <ActionButton label="닫기" onClick={() => navigate(-1)}>
             <X size={22} strokeWidth={2.2} />
           </ActionButton>
@@ -123,7 +123,7 @@ function MogCardPage() {
 function ReceiptStateMessage({ children }: { children: ReactNode }) {
   return (
     <div
-      className={`${typography.body2} mx-auto flex min-h-[542px] w-full max-w-[370px] items-center justify-center rounded-[5px] border border-border bg-background px-8 text-center text-dark-border`}
+      className={`${typography.body2} mx-auto flex min-h-[542px] w-full max-w-[398px] items-center justify-center rounded-[5px] border border-border bg-background px-8 text-center text-dark-border`}
     >
       {children}
     </div>
