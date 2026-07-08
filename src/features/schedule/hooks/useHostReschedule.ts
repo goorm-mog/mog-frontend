@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { confirmSchedule, fetchRoomMembers, fetchSlots, fetchSlotsIfExists, registerSlots, submitVotes } from '@/features/schedule/api/schedule';
 import { getMyUserId } from '@/lib/auth-storage';
@@ -12,6 +13,7 @@ export type HostStep = 'create' | 'vote' | 'confirm';
 
 export function useHostReschedule(roomId: number) {
   const { showToast } = useToast();
+  const navigate = useNavigate();
 
   const [step, setStep] = useState<HostStep>('create');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -184,6 +186,7 @@ export function useHostReschedule(roomId: number) {
         setIsSubmitting(true);
         await confirmSchedule(roomId, slotToConfirm.date, slotToConfirm.time);
         showToast('일정이 확정되었습니다.', 'success');
+        navigate(`/departure/host/${roomId}`);
       } catch (e) {
         showToast(e instanceof Error ? e.message : '일정 확정에 실패했습니다.', 'error');
       } finally {

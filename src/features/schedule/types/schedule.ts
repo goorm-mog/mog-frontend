@@ -26,11 +26,19 @@ export interface VoteResponse {
 export interface RoomMember {
   userId: number;
   nickname: string;
-  role: 'HOST' | 'MEMBER';
+  role: 'LEADER' | 'MEMBER';
   profileImageUrl?: string;
 }
 
 export interface RoomMembersResponse {
+  members: RoomMember[];
+}
+
+export interface RoomStatusResponse {
+  roomId: number;
+  roomName: string;
+  status: string;
+  currentStep: number;
   members: RoomMember[];
 }
 
@@ -39,7 +47,7 @@ export interface ConfirmScheduleResponse {
   roomId: number;
   date: string;
   time: string;
-  confirmedBy: { userId: number; nickname: string };
+  confirmedBy: number;
   kakaoEventId: string | null;
   confirmedAt: string;
 }

@@ -282,7 +282,7 @@ function ParticipantReschedule() {
           />
         </BottomSheet>
       ) : voteSubStep === 'adjust' ? (
-        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-97.5 px-6 py-4 bg-background z-50">
+        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-107.5 px-6 py-4 bg-background z-50">
           <button
             onClick={handleSubmit}
             disabled={!canSubmit || isSubmitting || isLoading}

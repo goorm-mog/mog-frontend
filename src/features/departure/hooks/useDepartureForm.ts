@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { registerDeparture, updateDeparture } from '@/features/departure/api/departure';
 import { ApiError } from '@/lib/apiFetch';
 import { useToast } from '@/hooks/useToast';
@@ -29,20 +29,20 @@ export function useDepartureForm({
   const [selectedPlace, setSelectedPlace] = useState<SelectedPlace | null>(null);
   const [transport, setTransport] = useState<TransportType | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [prevMyDepartureId, setPrevMyDepartureId] = useState(myDeparture?.departureId ?? null);
 
-  if (prevMyDepartureId !== (myDeparture?.departureId ?? null)) {
-    setPrevMyDepartureId(myDeparture?.departureId ?? null);
-    if (myDeparture && selectedMemberId === myUserId) {
-      setSelectedPlace({
-        placeName: myDeparture.placeName,
-        address: myDeparture.address,
-        latitude: myDeparture.latitude,
-        longitude: myDeparture.longitude,
-      });
-      setTransport(myDeparture.transportType);
-    }
-  }
+  // 내 출발지가 처음 로드될 때 폼에 채워줌 (ID 변경 시에만 동기화)
+  useEffect(() => {
+    if (!myDeparture || selectedMemberId !== myUserId) return;
+    setSelectedPlace({
+      placeName: myDeparture.placeName,
+      address: myDeparture.address,
+      latitude: myDeparture.latitude,
+      longitude: myDeparture.longitude,
+    });
+    setTransport(myDeparture.transportType);
+    // myDeparture 내용이 아닌 ID 변경 시에만 실행
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [myDeparture?.departureId]);
 
   const handleMemberSelect = (memberId: number, departure: DepartureEntry | null) => {
     setSelectedMemberId(memberId);
@@ -63,18 +63,17 @@ export function useDepartureForm({
   const selectedMemberDeparture = departures.find((d) => d.userId === selectedMemberId) ?? null;
   const isSelectedSelf = myUserId !== null && selectedMemberId === myUserId;
   const isEditing = selectedMemberDeparture !== null;
-  const isReadOnly = !isSelectedSelf && isEditing;
+  const isReadOnly = !isSelectedSelf;
 
   const handleSave = async () => {
-    if (!selectedPlace || !transport || !selectedMemberId) return;
+    if (!selectedPlace || !transport || !isSelectedSelf) return;
     setIsSaving(true);
     const body: RegisterDepartureRequest = {
       ...selectedPlace,
       transportType: transport,
-      ...(selectedMemberId !== myUserId && { targetUserId: selectedMemberId }),
     };
     try {
-      if (isSelectedSelf && isEditing) {
+      if (isEditing) {
         await updateDeparture(roomId, body);
       } else {
         await registerDeparture(roomId, body);

@@ -4,7 +4,7 @@ export const roomMembersDb = [
     roomId: 45,
     userId: 1,
     nickname: '김구름',
-    role: 'HOST',
+    role: 'LEADER',
     bankName: '신한은행',
     accountNumber: '110-1234-1234',
   },

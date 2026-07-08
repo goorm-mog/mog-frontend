@@ -35,7 +35,7 @@ export function useDeparture(roomId: number) {
           membersRes.members.map((m) => ({
             userId: m.userId,
             nickname: m.nickname,
-            isHost: m.role === 'HOST',
+            isHost: m.role === 'LEADER',
             isMe: m.userId === myUserId,
             isSubmitted: submittedUserIds.has(m.userId),
           })),

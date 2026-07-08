@@ -1,7 +1,7 @@
 import { http, HttpResponse, type HttpHandler } from 'msw';
 import { mockDb } from '@/mocks/fixtures/mockDb';
 import { confirmedSchedulesDb, scheduleSlotsDb } from '@/mocks/db/schedule';
-import type { RegisteredSlot, ScheduleSlot, SlotsResponse } from '@/features/schedule/types/schedule';
+import type { RegisteredSlot, RoomStatusResponse, ScheduleSlot, SlotsResponse } from '@/features/schedule/types/schedule';
 
 const BASE = import.meta.env.VITE_API_BASE_URL ?? '';
 
@@ -35,12 +35,12 @@ const mutableSlots: Record<number, MutableRoomSlots> = scheduleSlotsDb.reduce<Re
 
 let nextSlotId = 100;
 
-const confirmedSchedules: Record<number, { date: string; time: string; confirmedBy: { userId: number; nickname: string }; kakaoEventId: string | null; confirmedAt: string }> =
+const confirmedSchedules: Record<number, { date: string; time: string; confirmedBy: number; kakaoEventId: string | null; confirmedAt: string }> =
   confirmedSchedulesDb.reduce<typeof confirmedSchedules>((acc, c) => {
     acc[c.roomId] = {
       date: c.date,
       time: c.time,
-      confirmedBy: c.confirmedBy,
+      confirmedBy: typeof c.confirmedBy === 'number' ? c.confirmedBy : c.confirmedBy.userId,
       kakaoEventId: c.kakaoEventId,
       confirmedAt: c.confirmedAt,
     };
@@ -122,8 +122,9 @@ export const scheduleHandlers: HttpHandler[] = [
     return HttpResponse.json({ votedSlotIds });
   }),
 
-  http.get(`${BASE}/rooms/:roomId/members`, ({ params }) => {
+  http.get(`${BASE}/v1/groups/rooms/:roomId`, ({ params }) => {
     const roomId = Number(params.roomId);
+    const room = mockDb.rooms.find((r) => r.roomId === roomId);
     const members = [...mockDb.roomMembers]
       .filter((m) => m.roomId === roomId)
       .map(({ userId, nickname, role }) => ({
@@ -132,7 +133,14 @@ export const scheduleHandlers: HttpHandler[] = [
         role,
         profileImageUrl: mockDb.users.find((u) => u.userId === userId)?.profileImageUrl ?? '',
       }));
-    return HttpResponse.json({ members });
+    const response: RoomStatusResponse = {
+      roomId,
+      roomName: room?.roomName ?? '',
+      status: room?.status ?? 'PROCEEDING',
+      currentStep: 1,
+      members,
+    };
+    return HttpResponse.json(response);
   }),
 
   http.get(`${BASE}/rooms/:roomId/schedule/confirm`, ({ params }) => {
@@ -144,14 +152,14 @@ export const scheduleHandlers: HttpHandler[] = [
     return HttpResponse.json({ roomId, ...confirmed });
   }),
 
-  http.post(`${BASE}/rooms/:roomId/schedule/confirm`, async ({ params, request }) => {
+  http.patch(`${BASE}/rooms/:roomId/schedule/confirm`, async ({ params, request }) => {
     const roomId = Number(params.roomId);
     const { date, time } = (await request.json()) as { date: string; time: string };
     const confirmedAt = new Date().toISOString();
     confirmedSchedules[roomId] = {
       date,
       time,
-      confirmedBy: { userId: mockDb.auth.currentUser.userId, nickname: mockDb.auth.currentUser.nickname },
+      confirmedBy: mockDb.auth.currentUser.userId,
       kakaoEventId: null,
       confirmedAt,
     };
@@ -160,7 +168,7 @@ export const scheduleHandlers: HttpHandler[] = [
       roomId,
       date,
       time,
-      confirmedBy: confirmedSchedules[roomId].confirmedBy,
+      confirmedBy: mockDb.auth.currentUser.userId,
       kakaoEventId: null,
       confirmedAt,
     });

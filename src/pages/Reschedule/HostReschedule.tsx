@@ -281,7 +281,7 @@ function HostReschedule() {
       </div>
 
       {showFixedCTA ? (
-        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-97.5 px-6 py-4 bg-background">
+        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-107.5 px-6 py-4 bg-background">
           <button
             onClick={handleCTA}
             disabled={!canSubmit || isSubmitting}

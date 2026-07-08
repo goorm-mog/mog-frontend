@@ -101,6 +101,7 @@ export function useMidpointMapSetup(
 
     const visiblePlaces = selectedPlace ? [selectedPlace] : places;
     const map = mapInstanceRef.current;
+    const clickHandlers: Array<{ el: HTMLElement; fn: () => void }> = [];
 
     visiblePlaces.forEach((place) => {
       const pos = new window.kakao.maps.LatLng(place.latitude, place.longitude);
@@ -112,7 +113,9 @@ export function useMidpointMapSetup(
         zIndex: 3,
       }) as KakaoCustomOverlay;
       overlay.setMap(map);
-      content.addEventListener('click', () => onMarkerClick(place));
+      const handleClick = () => onMarkerClick(place);
+      content.addEventListener('click', handleClick);
+      clickHandlers.push({ el: content, fn: handleClick });
       midpointOverlaysRef.current.push({ overlay, place });
     });
 
@@ -126,6 +129,12 @@ export function useMidpointMapSetup(
         map.setBounds(bounds, 60, 60, 120, 60);
       }
     }
+
+    return () => {
+      clickHandlers.forEach(({ el, fn }) => el.removeEventListener('click', fn));
+      midpointOverlaysRef.current.forEach(({ overlay }) => overlay.setMap(null));
+      midpointOverlaysRef.current = [];
+    };
   }, [mapReady, places, selectedPlace, departures, onMarkerClick]);
 
   // 출발지 오버레이 동기화

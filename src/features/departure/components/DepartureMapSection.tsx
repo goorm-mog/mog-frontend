@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useKakaoPlaceSearch } from '@/hooks/useKakaoPlaceSearch';
 import { useKakaoMapSetup } from '@/features/departure/hooks/useKakaoMapSetup';
 import { useToast } from '@/hooks/useToast';
@@ -24,23 +24,20 @@ export default function DepartureMapSection({
   const { showToast } = useToast();
   const mapRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState(selectedPlace?.placeName ?? '');
-  const [prevSelectedPlace, setPrevSelectedPlace] = useState(selectedPlace);
-
-  if (prevSelectedPlace !== selectedPlace) {
-    setPrevSelectedPlace(selectedPlace);
-    setQuery(selectedPlace ? selectedPlace.placeName : '');
-  }
   const { search, results, isSearching, clear } = useKakaoPlaceSearch();
 
-  // 지도 클릭 핸들러에서 호출할 콜백 — onPlaceSelect + 로컬 상태 업데이트를 묶음
-  const applyPlaceRef = useRef<(place: SelectedPlace) => void>(() => {});
+  // 외부에서 selectedPlace가 바뀌면 검색창 동기화
   useEffect(() => {
-    applyPlaceRef.current = (place: SelectedPlace) => {
-      onPlaceSelect(place);
-      setQuery(place.placeName);
-      clear();
-    };
-  });
+    setQuery(selectedPlace?.placeName ?? '');
+  }, [selectedPlace]);
+
+  // 지도 클릭 핸들러 콜백 — 항상 최신 클로저를 유지하기 위해 ref에 직접 할당
+  const applyPlaceRef = useRef<(place: SelectedPlace) => void>(() => {});
+  applyPlaceRef.current = (place: SelectedPlace) => {
+    onPlaceSelect(place);
+    setQuery(place.placeName);
+    clear();
+  };
 
   const { mapInstanceRef, markerRef, mapReady } = useKakaoMapSetup(mapRef, applyPlaceRef);
 
@@ -76,15 +73,15 @@ export default function DepartureMapSection({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPlace, mapReady]);
 
-  const handleZoomIn = () => {
+  const handleZoomIn = useCallback(() => {
     const map = mapInstanceRef.current as KakaoMap;
-    map.setLevel(map.getLevel() - 1);
-  };
+    map?.setLevel(map.getLevel() - 1);
+  }, [mapInstanceRef]);
 
-  const handleZoomOut = () => {
+  const handleZoomOut = useCallback(() => {
     const map = mapInstanceRef.current as KakaoMap;
-    map.setLevel(map.getLevel() + 1);
-  };
+    map?.setLevel(map.getLevel() + 1);
+  }, [mapInstanceRef]);
 
   const handlePlaceSelect = (result: KakaoPlaceResult) => {
     const place: SelectedPlace = {

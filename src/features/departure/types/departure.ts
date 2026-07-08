@@ -22,7 +22,6 @@ export interface RegisterDepartureRequest {
   latitude: number;
   longitude: number;
   transportType: TransportType;
-  targetUserId?: number;
 }
 
 export interface RegisterDepartureResponse {

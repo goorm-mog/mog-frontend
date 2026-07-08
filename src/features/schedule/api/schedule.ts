@@ -1,5 +1,5 @@
 import { apiFetch, apiFetchNullOn404 } from '@/lib/apiFetch';
-import type { ConfirmScheduleResponse, RegisterSlotsResponse, RoomMembersResponse, SlotsResponse, VoteResponse } from '@/features/schedule/types/schedule';
+import type { ConfirmScheduleResponse, RegisterSlotsResponse, RoomMembersResponse, RoomStatusResponse, SlotsResponse, VoteResponse } from '@/features/schedule/types/schedule';
 
 export function fetchConfirmedSchedule(roomId: number) {
   return apiFetchNullOn404<ConfirmScheduleResponse>(`/rooms/${roomId}/schedule/confirm`);
@@ -27,13 +27,15 @@ export function submitVotes(roomId: number, slotIds: number[]) {
   });
 }
 
-export function fetchRoomMembers(roomId: number) {
-  return apiFetch<RoomMembersResponse>(`/rooms/${roomId}/members`);
+export function fetchRoomMembers(roomId: number): Promise<RoomMembersResponse> {
+  return apiFetch<RoomStatusResponse>(`/v1/groups/rooms/${roomId}`).then((data) => ({
+    members: data.members,
+  }));
 }
 
 export function confirmSchedule(roomId: number, date: string, time: string) {
   return apiFetch<ConfirmScheduleResponse>(`/rooms/${roomId}/schedule/confirm`, {
-    method: 'POST',
+    method: 'PATCH',
     body: JSON.stringify({ date, time }),
   });
 }
