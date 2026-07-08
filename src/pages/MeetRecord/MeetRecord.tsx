@@ -67,8 +67,6 @@ function MeetRecord() {
           return {
             roomMemberId: member.roomMemberId,
             nickname: member.nickname,
-            bankName: member.bankName ?? null,
-            accountNumber: member.accountNumber ?? null,
           };
         });
 

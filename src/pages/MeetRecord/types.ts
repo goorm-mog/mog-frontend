@@ -13,8 +13,6 @@ export type ReceiptParticipant = {
 export type ReceiptPayerOption = {
   id: number;
   label: string;
-  bankName?: string | null;
-  accountNumber?: string | null;
 };
 
 export type ReceiptCardData = {

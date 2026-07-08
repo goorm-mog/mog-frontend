@@ -11,8 +11,6 @@ export interface RoomStatusResponse {
     roomMemberId: number;
     userId: number;
     nickname: string;
-    bankName?: string | null;
-    accountNumber?: string | null;
     isJoined: boolean;
   }[];
 }

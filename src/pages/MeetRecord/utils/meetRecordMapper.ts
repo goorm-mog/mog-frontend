@@ -12,8 +12,6 @@ import type {
 export type MeetRecordMember = {
   roomMemberId: number;
   nickname: string;
-  bankName?: string | null;
-  accountNumber?: string | null;
 };
 
 const TOTAL_ITEM_NAME = '총액';
@@ -54,11 +52,9 @@ export function mapMeetingRecordToReceipt(
 export function toPayerOptions(
   roomMembers: readonly MeetRecordMember[],
 ): ReceiptPayerOption[] {
-  return roomMembers.map(({ roomMemberId, nickname, bankName, accountNumber }) => ({
+  return roomMembers.map(({ roomMemberId, nickname }) => ({
     id: roomMemberId,
-    label: formatMemberLabel({ nickname, bankName, accountNumber }),
-    bankName,
-    accountNumber,
+    label: nickname,
   }));
 }
 
@@ -77,8 +73,8 @@ export function toMeetingRecordRequest(
         ? null
         : {
             roomMemberId: receipt.payerRoomMemberId,
-            bankName: receipt.payerBankName ?? null,
-            accountNumber: receipt.payerAccountNumber ?? null,
+            bankName: receipt.payerBankName?.trim() || null,
+            accountNumber: receipt.payerAccountNumber?.trim() || null,
           },
     participants: splitAmount(receipt.totalAmount, selectedParticipants),
   };
@@ -100,20 +96,6 @@ function splitAmount(totalAmount: number, participants: readonly ReceiptParticip
 
 function formatPayerLabel(payer: {
   nickname: string;
-  bankName?: string | null;
-  accountNumber?: string | null;
 }) {
-  return formatMemberLabel(payer);
-}
-
-function formatMemberLabel(member: {
-  nickname: string;
-  bankName?: string | null;
-  accountNumber?: string | null;
-}) {
-  if (member.bankName && member.accountNumber) {
-    return `${member.nickname}(${member.bankName} : ${member.accountNumber})`;
-  }
-
-  return member.nickname;
+  return payer.nickname;
 }

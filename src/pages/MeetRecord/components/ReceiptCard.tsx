@@ -42,6 +42,9 @@ function ReceiptCard({
   const [participants, setParticipants] = useState(receipt.participants);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isOcrAnalyzing, setIsOcrAnalyzing] = useState(false);
+  const [payerAccountText, setPayerAccountText] = useState(() =>
+    formatPayerAccountText(receipt.payerBankName, receipt.payerAccountNumber),
+  );
   const ocrInputRef = useRef<HTMLInputElement>(null);
   const placeSearch = usePlaceSearch(receipt.placeName);
   const receiptMenu = useReceiptMenu({
@@ -81,6 +84,17 @@ function ReceiptCard({
 
   const handleDeleteConfirm = () => {
     onDelete(receipt.roundLabel);
+  };
+
+  const handlePayerAccountChange = (value: string) => {
+    setPayerAccountText(value);
+
+    const [bankName = '', ...accountParts] = value.trimStart().split(/\s+/);
+
+    onReceiptChange(receipt.roundLabel, {
+      payerBankName: bankName,
+      payerAccountNumber: accountParts.join(' '),
+    });
   };
 
   const handleOcrImageSelect = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -248,7 +262,7 @@ function ReceiptCard({
         />
       </FormRow>
 
-      <FormRow label="계좌">
+      <FormRow label="정산자" required>
         <PayerSelect
           payerText={receipt.payerPlaceholder}
           options={payerOptions}
@@ -256,10 +270,19 @@ function ReceiptCard({
             onReceiptChange(receipt.roundLabel, {
               payerPlaceholder: payer.label,
               payerRoomMemberId: payer.id,
-              payerBankName: payer.bankName ?? null,
-              payerAccountNumber: payer.accountNumber ?? null,
             })
           }
+        />
+      </FormRow>
+
+      <FormRow label="계좌" required className="pt-4">
+        <input
+          type="text"
+          className={`${typography.caption} h-10 w-full border-b bg-transparent px-3 outline-none placeholder:text-[inherit]`}
+          style={{ borderColor: colors.darkBorder, color: colors.border }}
+          placeholder="은행명 계좌번호"
+          value={payerAccountText}
+          onChange={(event) => handlePayerAccountChange(event.target.value)}
         />
       </FormRow>
 
@@ -313,3 +336,10 @@ function DashedDivider({ className = '' }: DashedDividerProps) {
 }
 
 export default ReceiptCard;
+
+function formatPayerAccountText(
+  bankName: string | null | undefined,
+  accountNumber: string | null | undefined,
+) {
+  return [bankName, accountNumber].filter(Boolean).join(' ');
+}
