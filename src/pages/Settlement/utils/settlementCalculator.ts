@@ -9,10 +9,7 @@ import type {
 export const calculateMemberTotalAmount = (member: SettlementMemberBurden) =>
   member.details.reduce((total, detail) => total + detail.amount, 0);
 
-export const calculateEvenShareAmounts = (
-  targetAmount: number,
-  participantCount: number,
-) => {
+export const calculateEvenShareAmounts = (targetAmount: number, participantCount: number) => {
   if (participantCount === 0) return [];
 
   const baseAmount = Math.trunc(targetAmount / participantCount);
@@ -32,17 +29,15 @@ export const createInitialPlaceSettlements = (
   for (const member of members) {
     for (const detail of member.details) {
       const payer = payerByPlaceName.get(detail.placeName);
-      const place =
-        placesByName.get(detail.placeName) ??
-        {
-          id: detail.placeName,
-          placeName: detail.placeName,
-          payerId: payer?.payerId ?? null,
-          payerName: payer?.payerName ?? '-',
-          targetAmount: 0,
-          included: true,
-          participants: [],
-        };
+      const place = placesByName.get(detail.placeName) ?? {
+        id: detail.placeName,
+        placeName: detail.placeName,
+        payerId: payer?.payerId ?? null,
+        payerName: payer?.payerName ?? '-',
+        targetAmount: 0,
+        included: payer != null,
+        participants: [],
+      };
 
       place.targetAmount += detail.amount;
       place.participants.push({
@@ -90,9 +85,7 @@ export const calculateMembersFromPlaces = (
         place.participants.some((participant) => participant.memberId === member.id),
       )
       .map((place) => {
-        const participant = place.participants.find(
-          (item) => item.memberId === member.id,
-        );
+        const participant = place.participants.find((item) => item.memberId === member.id);
 
         return {
           id: `${member.id}-${place.id}`,
@@ -170,8 +163,8 @@ export const calculateMySettlementTransfers = (
       return {
         id: `net-${counterpartyId}`,
         transferKey: `net-${counterpartyId}`,
-        from: direction === 'send' ? currentMember?.name ?? '-' : counterparty?.name ?? '-',
-        to: direction === 'send' ? counterparty?.name ?? '-' : currentMember?.name ?? '-',
+        from: direction === 'send' ? (currentMember?.name ?? '-') : (counterparty?.name ?? '-'),
+        to: direction === 'send' ? (counterparty?.name ?? '-') : (currentMember?.name ?? '-'),
         amount,
         bankText: receiver?.bankText ?? '-',
         accountText: receiver?.accountText ?? '-',
