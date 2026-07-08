@@ -46,6 +46,10 @@ export type MeetingRecordResponse = ApiResponse<MeetingRecord>;
 
 export type DeleteMeetingRecordResponse = ApiResponse<string | null | undefined>;
 
+export type RoomPhotoResponse = ApiResponse<RoomRecordPhoto>;
+
+export type DeleteRoomPhotoResponse = ApiResponse<string | null | undefined>;
+
 export type OcrItem = {
   name: string;
   count: number | null;

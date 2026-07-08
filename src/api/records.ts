@@ -2,9 +2,11 @@ import { apiFetch } from '@/lib/apiFetch';
 import type {
   CreateMeetingRecordRequest,
   DeleteMeetingRecordResponse,
+  DeleteRoomPhotoResponse,
   MeetingRecordResponse,
   MeetingRecordsResponse,
   OcrResponse,
+  RoomPhotoResponse,
   UpdateMeetingRecordRequest,
 } from '@/types/records';
 
@@ -32,6 +34,22 @@ export function updateMeetingRecord(
 
 export function deleteMeetingRecord(roomId: number, recordId: number) {
   return apiFetch<DeleteMeetingRecordResponse>(`/api/v1/rooms/${roomId}/records/${recordId}`, {
+    method: 'DELETE',
+  });
+}
+
+export function uploadRoomPhoto(roomId: number, image: File) {
+  const body = new FormData();
+  body.append('image', image);
+
+  return apiFetch<RoomPhotoResponse>(`/api/v1/rooms/${roomId}/photos`, {
+    method: 'POST',
+    body,
+  });
+}
+
+export function deleteRoomPhoto(roomId: number, photoId: number) {
+  return apiFetch<DeleteRoomPhotoResponse>(`/api/v1/rooms/${roomId}/photos/${photoId}`, {
     method: 'DELETE',
   });
 }

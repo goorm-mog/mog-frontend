@@ -32,7 +32,6 @@ export type ReceiptCardData = {
   payerAccountNumber?: string | null;
   memo: string;
   memoPlaceholder: string;
-  photoCount: number;
 };
 
 export type PlaceSearchResult = {
