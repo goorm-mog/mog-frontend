@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { format } from 'date-fns';
+import { CalendarDays } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '@/api/auth';
 import { createGroup, deleteGroup, fetchGroupDetail, fetchGroups, updateGroup } from '@/api/group';
-import { createRoom } from '@/api/room';
+import { createRoom, fetchGroupRooms, fetchRoomSummary } from '@/api/room';
 import { ApiError } from '@/lib/apiFetch';
 import TopAppBar from '@/components/common/TopAppBar/TopAppBar';
 import Calendar from '@/components/common/Calendar/Calendar';
@@ -20,14 +21,31 @@ import NotificationListSheet from '@/pages/Home/components/NotificationListSheet
 import { useNotifications } from '@/hooks/useNotifications';
 import { useToast } from '@/hooks/useToast';
 import type { GroupRole, HomeGroup } from '@/types/group';
+import type { RoomInfo, RoomSummary } from '@/types/room';
 import {
-  HOME_ARCHIVAL_ITEMS,
   HOME_DEFAULT_SELECTED,
   HOME_INITIAL_MONTH,
-  HOME_MARKED_DATES,
-  HOME_SCHEDULES,
   type HomeTab,
 } from '@/pages/Home/constants/homeMockData';
+
+const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'] as const;
+
+function parsePromiseDate(promiseDate: string | null): Date | null {
+  if (!promiseDate) return null;
+  const date = new Date(promiseDate);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatArchivalDatetime(confirmedDate: string | null): string {
+  const date = confirmedDate ? parsePromiseDate(confirmedDate) : null;
+  if (!date) return '날짜 미정';
+  const weekday = WEEKDAY_LABELS[date.getDay()];
+  return `${format(date, 'yyyy.MM.dd')} (${weekday}) ${format(date, 'HH:mm')}`;
+}
+
+function formatCurrency(amount: number | null | undefined): string {
+  return `₩${(amount ?? 0).toLocaleString('ko-KR')}`;
+}
 
 function HomePage() {
   const navigate = useNavigate();
@@ -52,12 +70,32 @@ function HomePage() {
   const [isGroupsLoading, setIsGroupsLoading] = useState(true);
   const [isGroupMutating, setIsGroupMutating] = useState(false);
   const [isCreatingAppointment, setIsCreatingAppointment] = useState(false);
+  const [rooms, setRooms] = useState<RoomInfo[]>([]);
+  const [roomSummaries, setRoomSummaries] = useState<Record<number, RoomSummary>>({});
+  const [isRoomsLoading, setIsRoomsLoading] = useState(false);
 
   const selectedDateKey = format(selectedDate, 'yyyy-MM-dd');
 
-  const schedulesForSelectedDate = useMemo(
-    () => HOME_SCHEDULES.filter((schedule) => schedule.date === selectedDateKey),
-    [selectedDateKey],
+  const markedDates = useMemo(
+    () =>
+      rooms
+        .map((room) => parsePromiseDate(room.promiseDate))
+        .filter((date): date is Date => date !== null),
+    [rooms],
+  );
+
+  const roomsForSelectedDate = useMemo(
+    () =>
+      rooms.filter((room) => {
+        const date = parsePromiseDate(room.promiseDate);
+        return date !== null && format(date, 'yyyy-MM-dd') === selectedDateKey;
+      }),
+    [rooms, selectedDateKey],
+  );
+
+  const completedRooms = useMemo(
+    () => rooms.filter((room) => room.status === 'COMPLETED'),
+    [rooms],
   );
 
   const selectedGroup = groups.find((group) => group.id === selectedGroupId) ?? null;
@@ -101,9 +139,15 @@ function HomePage() {
   }, [showToast]);
 
   useEffect(() => {
-    if (selectedGroupId === null) return;
+    if (selectedGroupId === null) {
+      setRooms([]);
+      setRoomSummaries({});
+      return;
+    }
 
     let ignore = false;
+    setIsRoomsLoading(true);
+    setRoomSummaries({});
 
     fetchGroupDetail(selectedGroupId)
       .then((detail) => {
@@ -113,10 +157,50 @@ function HomePage() {
         if (!ignore) setSelectedGroupRole(null);
       });
 
+    fetchGroupRooms(selectedGroupId)
+      .then((nextRooms) => {
+        if (ignore) return;
+        setRooms(nextRooms);
+      })
+      .catch((error: unknown) => {
+        if (ignore) return;
+        const message = error instanceof ApiError ? error.message : '약속 목록을 불러오지 못했어요';
+        showToast(message);
+        setRooms([]);
+      })
+      .finally(() => {
+        if (!ignore) setIsRoomsLoading(false);
+      });
+
     return () => {
       ignore = true;
     };
-  }, [selectedGroupId]);
+  }, [selectedGroupId, showToast]);
+
+  useEffect(() => {
+    if (completedRooms.length === 0) return;
+
+    let ignore = false;
+
+    Promise.all(
+      completedRooms.map((room) =>
+        fetchRoomSummary(room.roomId)
+          .then((summary) => [room.roomId, summary] as const)
+          .catch(() => null),
+      ),
+    ).then((entries) => {
+      if (ignore) return;
+      const next: Record<number, RoomSummary> = {};
+      for (const entry of entries) {
+        if (entry) next[entry[0]] = entry[1];
+      }
+      setRoomSummaries(next);
+    });
+
+    return () => {
+      ignore = true;
+    };
+  }, [completedRooms]);
 
   const handleSelectGroup = (groupId: number) => {
     setSelectedGroupId(groupId);
@@ -251,7 +335,7 @@ function HomePage() {
               appearance="home"
               initialMonth={HOME_INITIAL_MONTH}
               defaultSelected={[selectedDate]}
-              markedDates={HOME_MARKED_DATES}
+              markedDates={markedDates}
               onSelectionChange={(dates) => {
                 if (dates[0]) setSelectedDate(dates[0]);
               }}
@@ -262,33 +346,40 @@ function HomePage() {
         {activeTab === 'all' && (
           <section className="mt-9 border-t border-dashed border-border/30 pt-9">
             <div className="flex flex-col gap-3">
-              {schedulesForSelectedDate.map((schedule) => (
-                <ScheduleCard
-                  key={schedule.id}
-                  title={schedule.title}
-                  location={schedule.location}
-                  startTime={schedule.startTime}
-                  endTime={schedule.endTime}
-                  icon={schedule.icon}
-                  locationIcon={schedule.locationIcon}
-                />
-              ))}
+              {roomsForSelectedDate.length > 0 ? (
+                roomsForSelectedDate.map((room) => (
+                  <ScheduleCard key={room.roomId} title={room.roomName} icon={CalendarDays} />
+                ))
+              ) : (
+                <p className="py-6 text-center text-caption text-dark-border">
+                  선택한 날짜에 약속이 없어요
+                </p>
+              )}
             </div>
           </section>
         )}
 
         {activeTab === 'list' && (
           <section className="flex flex-col items-center gap-6 pt-2">
-            {HOME_ARCHIVAL_ITEMS.map((item) => (
-              <ArchivalCard
-                key={item.id}
-                title={item.title}
-                datetime={item.datetime}
-                location={item.location}
-                totalAmount={item.totalAmount}
-                meta={item.meta}
-              />
-            ))}
+            {isRoomsLoading ? (
+              <p className="py-10 text-caption text-dark-border">불러오는 중...</p>
+            ) : completedRooms.length > 0 ? (
+              completedRooms.map((room) => {
+                const summary = roomSummaries[room.roomId];
+                return (
+                  <ArchivalCard
+                    key={room.roomId}
+                    title={room.roomName}
+                    datetime={formatArchivalDatetime(summary?.confirmedDate ?? room.promiseDate)}
+                    location={summary?.confirmedPlace ?? '장소 미정'}
+                    totalAmount={formatCurrency(summary?.settlement?.totalCost)}
+                    meta={summary ? [{ label: '인원', value: `${summary.totalMemberCount}명` }] : []}
+                  />
+                );
+              })
+            ) : (
+              <p className="py-10 text-caption text-dark-border">완료된 약속이 없어요</p>
+            )}
 
             <footer className="flex w-full flex-col items-center gap-4 py-10">
               <p className="text-center text-xs text-[#4a463f]">실시간 채팅으로 문의하세요</p>

@@ -1,4 +1,5 @@
-import { setAuthSession, clearAuthSession, getAccessToken } from '@/lib/auth-storage';
+import { apiFetch } from '@/lib/apiFetch';
+import { setAuthSession, clearAuthSession } from '@/lib/auth-storage';
 import type { LoginResponse } from '@/types/auth';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '';
@@ -29,16 +30,10 @@ export async function loginWithKakao(): Promise<LoginResponse> {
 }
 
 export async function logout() {
-  const accessToken = getAccessToken();
-
   try {
-    await fetch(`${API_BASE}/api/v1/auth/logout`, {
+    await apiFetch('/api/v1/auth/logout', {
       method: 'POST',
       credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-      },
     });
   } finally {
     clearAuthSession();
