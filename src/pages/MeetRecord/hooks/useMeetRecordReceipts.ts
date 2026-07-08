@@ -2,10 +2,13 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   createMeetingRecord,
   deleteMeetingRecord,
+  deleteRoomPhoto,
   fetchMeetingRecords,
   updateMeetingRecord,
+  uploadRoomPhoto,
 } from '@/api/records';
 import type { ReceiptCardData } from '@/pages/MeetRecord/types';
+import type { RoomRecordPhoto } from '@/types/records';
 import {
   createEmptyReceipt,
   getNextReceiptSeq,
@@ -20,16 +23,19 @@ type UseMeetRecordReceiptsParams = {
   roomId: number;
   roomMembers: readonly MeetRecordMember[];
   initialReceipts: ReceiptCardData[];
+  initialPhotos: RoomRecordPhoto[];
 };
 
 export function useMeetRecordReceipts({
   roomId,
   roomMembers,
   initialReceipts,
+  initialPhotos,
 }: UseMeetRecordReceiptsParams) {
   const [receiptCards, setReceiptCards] = useState<ReceiptCardData[]>(initialReceipts);
   const [savedReceiptCards, setSavedReceiptCards] =
     useState<ReceiptCardData[]>(initialReceipts);
+  const [roomPhotos, setRoomPhotos] = useState<RoomRecordPhoto[]>(initialPhotos);
   const [deletedRecordIds, setDeletedRecordIds] = useState<number[]>([]);
   const [pendingScrollReceiptId, setPendingScrollReceiptId] = useState<string | null>(
     null,
@@ -93,10 +99,50 @@ export function useMeetRecordReceipts({
 
     setReceiptCards(nextReceipts);
     setSavedReceiptCards(nextReceipts);
+    setRoomPhotos(response.data.photos);
     setDeletedRecordIds([]);
     nextReceiptSeqRef.current = getNextReceiptSeq(nextReceipts);
     setReceiptsVersion((version) => version + 1);
   }, [roomId, roomMembers]);
+
+  const uploadPhotos = useCallback(
+    async (files: File[]) => {
+      if (files.length === 0) {
+        return;
+      }
+
+      if (roomId <= 0) {
+        throw new Error('올바른 약속 ID가 없습니다.');
+      }
+
+      const remainingCount = Math.max(0, 3 - roomPhotos.length);
+      const filesToUpload = files.slice(0, remainingCount);
+
+      if (filesToUpload.length === 0) {
+        throw new Error('사진은 최대 3장까지 업로드할 수 있습니다.');
+      }
+
+      for (const file of filesToUpload) {
+        const response = await uploadRoomPhoto(roomId, file);
+        setRoomPhotos((currentPhotos) => [...currentPhotos, response.data]);
+      }
+    },
+    [roomId, roomPhotos.length],
+  );
+
+  const deletePhoto = useCallback(
+    async (photoId: number) => {
+      if (roomId <= 0) {
+        throw new Error('올바른 약속 ID가 없습니다.');
+      }
+
+      await deleteRoomPhoto(roomId, photoId);
+      setRoomPhotos((currentPhotos) =>
+        currentPhotos.filter((photo) => photo.photoId !== photoId),
+      );
+    },
+    [roomId],
+  );
 
   const saveReceipts = useCallback(async () => {
     setIsSaving(true);
@@ -161,6 +207,7 @@ export function useMeetRecordReceipts({
 
   return {
     receiptCards,
+    roomPhotos,
     receiptsVersion,
     hasUnsavedChanges,
     totalAmount,
@@ -170,6 +217,8 @@ export function useMeetRecordReceipts({
     addReceipt,
     updateReceipt,
     deleteReceipt,
+    uploadPhotos,
+    deletePhoto,
     saveReceipts,
     clearPendingScrollReceipt,
   };

@@ -20,7 +20,6 @@ import MemoField from './MemoField';
 import MenuEditor from './MenuEditor';
 import ParticipantPicker from './ParticipantPicker';
 import PayerSelect from './PayerSelect';
-import PhotoPicker from './PhotoPicker';
 import PlaceField from './PlaceField';
 
 export type { ReceiptCardData } from '@/pages/MeetRecord/types';
@@ -273,10 +272,6 @@ function ReceiptCard({
           onMemoChange={(memo) => onReceiptChange(receipt.roundLabel, { memo })}
         />
       </FormRow>
-
-      <DashedDivider className="my-7" />
-
-      <PhotoPicker photoCount={receipt.photoCount} receiptId={receipt.roundLabel} />
     </article>
   );
 }

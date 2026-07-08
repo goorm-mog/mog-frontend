@@ -29,6 +29,5 @@ export function createEmptyReceipt(
     payerPlaceholder: receiptCopy.payerPlaceholder,
     memo: '',
     memoPlaceholder: receiptCopy.memoPlaceholder,
-    photoCount: 0,
   };
 }

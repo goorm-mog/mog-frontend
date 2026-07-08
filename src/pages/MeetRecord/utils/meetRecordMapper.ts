@@ -48,7 +48,6 @@ export function mapMeetingRecordToReceipt(
     payerAccountNumber: record.payer?.accountNumber ?? null,
     memo: record.memo ?? '',
     memoPlaceholder: receiptCopy.memoPlaceholder,
-    photoCount: 0,
   };
 }
 

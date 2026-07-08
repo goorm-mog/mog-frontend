@@ -4,6 +4,7 @@ import { mockDb } from '@/mocks/fixtures/mockDb';
 import type {
   CreateMeetingRecordRequest,
   DeleteMeetingRecordResponse,
+  DeleteRoomPhotoResponse,
   MeetingRecord,
   MeetingRecordResponse,
   MeetingRecordsData,
@@ -11,6 +12,7 @@ import type {
   OcrResponse,
   RecordParticipant,
   RecordPayer,
+  RoomPhotoResponse,
   UpdateMeetingRecordRequest,
   UpsertRecordPayerRequest,
   UpsertRecordParticipantRequest,
@@ -41,6 +43,8 @@ const recordsByRoomId: Record<number, MeetingRecordsData> = {
 let nextRecordId =
   Math.max(0, ...meetingRecordsResponseDb.data.records.map(({ recordId }) => recordId)) +
   1;
+let nextPhotoId =
+  Math.max(0, ...meetingRecordsResponseDb.data.photos.map(({ photoId }) => photoId)) + 1;
 
 const createResponse = <T>(data: T, message: string) => ({
   status: 0,
@@ -235,6 +239,56 @@ export const recordsHandlers: HttpHandler[] = [
     const response: MeetingRecordResponse = createResponse(
       cloneRecord(record),
       '만남 기록 수정 성공',
+    );
+
+    return HttpResponse.json(response);
+  }),
+
+  http.post(`${BASE}/api/v1/rooms/:roomId/photos`, async ({ params, request }) => {
+    const roomId = Number(params.roomId);
+    const roomData = getRoomData(roomId);
+    const result = await parseImageFormData(request);
+
+    if (result.error) {
+      return HttpResponse.json(result.error, { status: result.error.status });
+    }
+
+    if (roomData.photos.length >= 3) {
+      return HttpResponse.json(
+        createErrorResponse(400, '사진은 최대 3장까지 업로드할 수 있습니다.'),
+        { status: 400 },
+      );
+    }
+
+    const photo = {
+      photoId: nextPhotoId,
+      s3Url: `https://picsum.photos/seed/mog-room-${roomId}-upload-${nextPhotoId}/360/504`,
+      createdAt: new Date().toISOString(),
+    };
+
+    nextPhotoId += 1;
+    roomData.photos.push(photo);
+
+    const response: RoomPhotoResponse = createResponse(photo, '사진 업로드 성공');
+
+    return HttpResponse.json(response, { status: 201 });
+  }),
+
+  http.delete(`${BASE}/api/v1/rooms/:roomId/photos/:photoId`, ({ params }) => {
+    const roomId = Number(params.roomId);
+    const photoId = Number(params.photoId);
+    const roomData = getRoomData(roomId);
+    const nextPhotos = roomData.photos.filter((photo) => photo.photoId !== photoId);
+
+    if (nextPhotos.length === roomData.photos.length) {
+      return HttpResponse.json({ message: '사진 정보가 없습니다.' }, { status: 404 });
+    }
+
+    roomData.photos = nextPhotos;
+
+    const response: DeleteRoomPhotoResponse = createResponse(
+      '삭제되었습니다.',
+      '사진 삭제 성공',
     );
 
     return HttpResponse.json(response);
