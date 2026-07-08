@@ -3,6 +3,7 @@ import {
   meetingRecordPhotosDb,
   meetingRecordsDb,
   toMeetingRecordApiData,
+  toRoomRecordPhotoApiData,
 } from '@/mocks/db/meetingRecord';
 import { mockDb } from '@/mocks/fixtures/mockDb';
 import type {
@@ -43,7 +44,7 @@ const recordsByRoomId: Record<number, MeetingRecordsData> = meetingRecordsDb.red
   acc[record.roomId] ??= {
     photos: meetingRecordPhotosDb
       .filter((photo) => photo.roomId === record.roomId)
-      .map((photo) => ({ ...photo })),
+      .map(toRoomRecordPhotoApiData),
     records: [],
   };
   acc[record.roomId].records.push(cloneRecord(toMeetingRecordApiData(record)));
@@ -310,14 +311,17 @@ export const recordsHandlers: HttpHandler[] = [
       return HttpResponse.json(result.error, { status: result.error.status });
     }
 
+    const sampleRecord = meetingRecordsDb[0];
     const response: OcrResponse = createResponse(
       {
-        storeName: '합정 카페 A',
-        totalAmount: 28000,
-        items: [
-          { name: '김치전', count: 1, price: 14000 },
-          { name: '어묵탕', count: null, price: 14000 },
-        ],
+        storeName: sampleRecord?.placeName ?? null,
+        totalAmount: sampleRecord?.totalCost ?? 0,
+        items:
+          sampleRecord?.menuItems.map(({ menuName, count, price }) => ({
+            name: menuName,
+            count,
+            price,
+          })) ?? [],
       },
       '영수증 OCR 분석 성공',
     );

@@ -418,3 +418,13 @@ export const toMeetingRecordApiData = (record: MockMeetingRecord): MeetingRecord
   participants: record.participants,
   createdAt: record.createdAt,
 });
+
+export const toRoomRecordPhotoApiData = ({
+  photoId,
+  s3Url,
+  createdAt,
+}: MockRoomRecordPhoto): RoomRecordPhoto => ({
+  photoId,
+  s3Url,
+  createdAt,
+});

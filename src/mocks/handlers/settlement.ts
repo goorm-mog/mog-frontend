@@ -12,7 +12,6 @@ import type {
 const BASE = import.meta.env.VITE_API_BASE_URL ?? '';
 
 const mutableSettlements: Record<number, SettlementResponse> = {};
-const settlementNotFoundOnceRoomIds = new Set([45]);
 
 function createApiResponse<T>(data: T, message = 'success'): ApiResponse<T> {
   return {
@@ -70,21 +69,6 @@ function createSettlementResponse(roomId: number): SettlementResponse | null {
 export const settlementHandlers: HttpHandler[] = [
   http.get(`${BASE}/api/v1/rooms/:roomId/settlement`, ({ params }) => {
     const roomId = Number(params.roomId);
-
-    if (settlementNotFoundOnceRoomIds.has(roomId)) {
-      settlementNotFoundOnceRoomIds.delete(roomId);
-
-      return HttpResponse.json(
-        {
-          status: 404,
-          code: 'SETTLEMENT_NOT_FOUND',
-          message: '정산이 존재하지 않습니다.',
-          data: null,
-        },
-        { status: 404 },
-      );
-    }
-
     const settlement = mutableSettlements[roomId] ?? createSettlementResponse(roomId);
 
     if (!settlement) {
