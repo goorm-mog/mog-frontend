@@ -3,15 +3,6 @@ import { meetingRecordPhotosDb, meetingRecordsDb, roomsDb, settlementsDb } from 
 const WON_FORMATTER = new Intl.NumberFormat('ko-KR');
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const;
 
-const PLACE_META_BY_SEQ = {
-  1: {
-    address: '서울시 마포구 합정동 45',
-  },
-  2: {
-    address: '서울시 마포구 서교동 12',
-  },
-} as const;
-
 export type SettlementRound = {
   id: number;
   seq: number;
@@ -39,31 +30,46 @@ const formatMeetDate = (dateString: string) => {
   return `${year}. ${month}. ${day} (${WEEKDAYS[date.getDay()]}) ${displayHours}:${minutes} ${meridiem}`;
 };
 
+const getMeetDetailRoom = () => {
+  const room = roomsDb.find((room) => {
+    const hasSettlement = settlementsDb.some((settlement) => settlement.roomId === room.roomId);
+    const hasRecord = meetingRecordsDb.some((record) => record.roomId === room.roomId);
+    return hasSettlement && hasRecord;
+  });
+
+  if (!room) {
+    throw new Error('MeetDetail mock room data is missing.');
+  }
+
+  return room;
+};
+
+const meetRoom = getMeetDetailRoom();
+const meetSettlement = settlementsDb.find((settlement) => settlement.roomId === meetRoom.roomId);
+const meetRecords = meetingRecordsDb.filter((record) => record.roomId === meetRoom.roomId);
+
 const getSettlementAmountBySeq = (seq: number) =>
-  settlementsDb[0]?.memberSettlements.reduce((total, memberSettlement) => {
+  meetSettlement?.memberSettlements.reduce((total, memberSettlement) => {
     const detail = memberSettlement.detail.find((item) => item.seq === seq);
 
     return total + (detail?.amount ?? 0);
   }, 0) ?? 0;
-
-const meetRoom = roomsDb[0];
-const meetSettlement = settlementsDb[0];
-const meetRecords = meetingRecordsDb.filter((record) => record.roomId === meetRoom.roomId);
 
 export const MEET_DETAIL = {
   roomId: meetRoom.roomId,
   title: meetRoom.roomName,
   datetime: formatMeetDate(meetRoom.promiseDate),
   perPersonCost: formatWon(
-    Math.round(meetSettlement.totalCost / meetRoom.members.length),
+    Math.round((meetSettlement?.totalCost ?? 0) / meetRoom.members.length),
   ),
 };
 
-export const MEET_DETAIL_PHOTOS = meetingRecordPhotosDb;
+export const MEET_DETAIL_PHOTOS = meetingRecordPhotosDb.filter(
+  (photo) => photo.roomId === meetRoom.roomId,
+);
 
 export const SETTLEMENT_ROUNDS: SettlementRound[] = [
   ...meetRecords.map((record) => {
-    const placeMeta = PLACE_META_BY_SEQ[record.seq as keyof typeof PLACE_META_BY_SEQ];
     const menu = record.menuItems
       .map(({ menuName, count }) => `${menuName} ${count}`)
       .join(', ');
@@ -72,7 +78,7 @@ export const SETTLEMENT_ROUNDS: SettlementRound[] = [
       id: record.recordId,
       seq: record.seq,
       placeName: record.placeName,
-      address: placeMeta?.address ?? '-',
+      address: record.address,
       menu,
       totalCost: formatWon(getSettlementAmountBySeq(record.seq)),
       payer: record.payer

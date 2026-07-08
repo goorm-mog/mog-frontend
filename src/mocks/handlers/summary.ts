@@ -42,7 +42,9 @@ const createSummaryResponse = (roomId: number): SummaryCardResponse | null => {
     confirmedPlace: null,
     totalMemberCount: room.members.length,
     members: room.members.map((member) => member.nickname),
-    photos: meetingRecordPhotosDb.map((photo) => photo.s3Url),
+    photos: meetingRecordPhotosDb
+      .filter((photo) => photo.roomId === roomId)
+      .map((photo) => photo.s3Url),
     records: records.map((record) => ({
       seq: record.seq,
       placeName: record.placeName,

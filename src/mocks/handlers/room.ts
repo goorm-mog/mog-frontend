@@ -44,7 +44,9 @@ const buildSummary = (roomId: number): RoomSummary | null => {
     confirmedPlace: records[0]?.placeName ?? null,
     totalMemberCount: room.members.length,
     members: room.members.map((member) => member.nickname),
-    photos: meetingRecordPhotosDb.slice(0, 3).map((photo) => photo.s3Url),
+    photos: meetingRecordPhotosDb
+      .filter((photo) => photo.roomId === roomId)
+      .map((photo) => photo.s3Url),
     records: records.map((record) => ({
       seq: record.seq,
       placeName: record.placeName,

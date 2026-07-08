@@ -1,10 +1,13 @@
 import type {
   MeetingRecord,
-  MeetingRecordsResponse,
   RecordParticipant,
   RecordPayer,
   RoomRecordPhoto,
 } from '@/types/records';
+
+export type MockRoomRecordPhoto = RoomRecordPhoto & {
+  roomId: number;
+};
 
 export type MockMeetingRecord = {
   roomId: number;
@@ -22,49 +25,58 @@ export type MockMeetingRecord = {
   createdAt: string;
 };
 
-export const meetingRecordPhotosDb: RoomRecordPhoto[] = [
+export const meetingRecordPhotosDb: MockRoomRecordPhoto[] = [
   {
     photoId: 1,
+    roomId: 45,
     s3Url: 'https://picsum.photos/seed/mog-room-45-1/360/504',
     createdAt: '2026-07-08T19:10:00.000Z',
   },
   {
     photoId: 2,
+    roomId: 45,
     s3Url: 'https://picsum.photos/seed/mog-room-45-2/360/504',
     createdAt: '2026-07-08T20:20:00.000Z',
   },
   {
     photoId: 3,
+    roomId: 45,
     s3Url: 'https://picsum.photos/seed/mog-room-45-3/360/504',
     createdAt: '2026-07-08T21:30:00.000Z',
   },
   {
     photoId: 4,
+    roomId: 46,
     s3Url: 'https://picsum.photos/seed/mog-room-46-1/360/504',
     createdAt: '2026-07-03T14:40:00.000Z',
   },
   {
     photoId: 5,
+    roomId: 60,
     s3Url: 'https://picsum.photos/seed/mog-room-60-1/360/504',
     createdAt: '2026-07-20T12:10:00.000Z',
   },
   {
     photoId: 6,
+    roomId: 61,
     s3Url: 'https://picsum.photos/seed/mog-room-61-1/360/504',
     createdAt: '2026-06-30T19:50:00.000Z',
   },
   {
     photoId: 7,
+    roomId: 70,
     s3Url: 'https://picsum.photos/seed/mog-room-70-1/360/504',
     createdAt: '2026-07-10T12:30:00.000Z',
   },
   {
     photoId: 8,
+    roomId: 70,
     s3Url: 'https://picsum.photos/seed/mog-room-70-2/360/504',
     createdAt: '2026-07-10T18:20:00.000Z',
   },
   {
     photoId: 9,
+    roomId: 70,
     s3Url: 'https://picsum.photos/seed/mog-room-70-3/360/504',
     createdAt: '2026-07-11T10:15:00.000Z',
   },
@@ -406,15 +418,3 @@ export const toMeetingRecordApiData = (record: MockMeetingRecord): MeetingRecord
   participants: record.participants,
   createdAt: record.createdAt,
 });
-
-export const meetingRecordsResponseDb: MeetingRecordsResponse = {
-  status: 0,
-  code: 'OK',
-  message: '만남 기록 목록 조회 성공',
-  data: {
-    photos: meetingRecordPhotosDb,
-    records: meetingRecordsDb
-      .filter((record) => record.roomId === 45)
-      .map(toMeetingRecordApiData),
-  },
-};

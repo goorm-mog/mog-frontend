@@ -22,8 +22,26 @@ const formatMeetDate = (dateString: string) => {
   return `${month}. ${day} (${WEEKDAYS[date.getDay()]}) ${displayHours}:${minutes} ${meridiem}`;
 };
 
-const room = roomsDb[0];
-const settlement = settlementsDb[0];
+const getSettlementRoom = () => {
+  const room = roomsDb.find((item) => {
+    const hasSettlement = settlementsDb.some((settlement) => settlement.roomId === item.roomId);
+    const hasRecord = meetingRecordsDb.some((record) => record.roomId === item.roomId);
+    return hasSettlement && hasRecord;
+  });
+
+  if (!room) {
+    throw new Error('Settlement mock room data is missing.');
+  }
+
+  return room;
+};
+
+const room = getSettlementRoom();
+const settlement = settlementsDb.find((item) => item.roomId === room.roomId);
+
+if (!settlement) {
+  throw new Error('Settlement mock data is missing.');
+}
 const group = groupsDb.find(({ groupId }) => groupId === room.groupId);
 const records = meetingRecordsDb.filter(({ roomId }) => roomId === room.roomId);
 const currentRoomMember = room.members.find(

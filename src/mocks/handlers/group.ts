@@ -8,7 +8,7 @@ import type {
   GroupUpdateApiResponse,
 } from '@/types/group';
 import { getMyUserId } from '@/lib/auth-storage';
-import { groupsDb, roomsDb } from '@/mocks/db';
+import { currentUser, groupsDb, roomsDb, usersDb } from '@/mocks/db';
 
 const BASE = import.meta.env.VITE_API_BASE_URL ?? '';
 
@@ -46,6 +46,7 @@ export const groupHandlers: HttpHandler[] = [
     }
 
     const userId = getMyUserId() ?? 1;
+    const user = usersDb.find((item) => item.userId === userId) ?? currentUser;
     const myRole = group?.members.find((member) => member.userId === userId)?.role ?? 'MEMBER';
 
     const response: GroupDetailApiResponse = {
@@ -61,7 +62,7 @@ export const groupHandlers: HttpHandler[] = [
           userId,
           nickname,
           role,
-        })) ?? [{ userId, nickname: '김구름', role: myRole }],
+        })) ?? [{ userId, nickname: user.nickname, role: myRole }],
         rooms: roomsDb
           .filter((room) => room.groupId === groupId)
           .map(({ roomId, roomName, status, promiseDate }) => ({

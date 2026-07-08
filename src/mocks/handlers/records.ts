@@ -41,9 +41,9 @@ const recordsByRoomId: Record<number, MeetingRecordsData> = meetingRecordsDb.red
   Record<number, MeetingRecordsData>
 >((acc, record) => {
   acc[record.roomId] ??= {
-    photos: meetingRecordPhotosDb.slice(0, Math.min(3, record.photoCount)).map((photo) => ({
-      ...photo,
-    })),
+    photos: meetingRecordPhotosDb
+      .filter((photo) => photo.roomId === record.roomId)
+      .map((photo) => ({ ...photo })),
     records: [],
   };
   acc[record.roomId].records.push(cloneRecord(toMeetingRecordApiData(record)));
