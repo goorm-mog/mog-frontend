@@ -264,9 +264,10 @@ function ReceiptCard({
         />
       </FormRow>
 
-      <FormRow label="정산자" required>
+      <FormRow label="정산자">
         <PayerSelect
           payerText={receipt.payerPlaceholder}
+          hasSelectedPayer={receipt.payerRoomMemberId != null}
           options={payerOptions}
           onSelectPayer={(payer) =>
             onReceiptChange(receipt.roundLabel, {
@@ -277,12 +278,15 @@ function ReceiptCard({
         />
       </FormRow>
 
-      <FormRow label="계좌" required className="pt-4">
+      <FormRow label="계좌" className="pt-4">
         <input
           type="text"
-          className={`${typography.caption} h-10 w-full border-b bg-transparent px-3 outline-none placeholder:text-[inherit]`}
-          style={{ borderColor: colors.darkBorder, color: colors.border }}
-          placeholder="은행명 계좌번호"
+          className={`${typography.caption} h-10 w-full border-b bg-transparent px-3 outline-none placeholder:text-[#a09583]`}
+          style={{
+            borderColor: colors.darkBorder,
+            color: payerAccountText.trim() ? colors.text : colors.border,
+          }}
+          placeholder="계좌를 입력하세요"
           value={payerAccountText}
           onChange={(event) => handlePayerAccountChange(event.target.value)}
         />

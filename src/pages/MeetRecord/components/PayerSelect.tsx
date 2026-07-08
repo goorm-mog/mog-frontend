@@ -6,11 +6,17 @@ import { typography } from '../../../constants/typography';
 
 type PayerSelectProps = {
   payerText: string;
+  hasSelectedPayer?: boolean;
   options: readonly ReceiptPayerOption[];
   onSelectPayer: (payer: ReceiptPayerOption) => void;
 };
 
-function PayerSelect({ payerText, options, onSelectPayer }: PayerSelectProps) {
+function PayerSelect({
+  payerText,
+  hasSelectedPayer = false,
+  options,
+  onSelectPayer,
+}: PayerSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const selectRef = useRef<HTMLDivElement>(null);
   const listboxId = useId();
@@ -49,7 +55,10 @@ function PayerSelect({ payerText, options, onSelectPayer }: PayerSelectProps) {
         aria-controls={listboxId}
         onClick={() => setIsOpen((current) => !current)}
       >
-        <span className={typography.caption} style={{ color: colors.border }}>
+        <span
+          className={typography.caption}
+          style={{ color: hasSelectedPayer ? colors.text : colors.border }}
+        >
           {payerText}
         </span>
         <ChevronDown
