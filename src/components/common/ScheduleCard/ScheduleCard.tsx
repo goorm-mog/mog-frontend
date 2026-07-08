@@ -6,9 +6,9 @@ import { type ComponentSize, resolveComponentSize } from '@/utils/componentSize'
 
 type ScheduleCardProps = {
   title: string;
-  location: string;
-  startTime: string;
-  endTime: string;
+  location?: string;
+  startTime?: string;
+  endTime?: string;
   icon?: LucideIcon;
   locationIcon?: LucideIcon;
   size?: ComponentSize;
@@ -31,6 +31,7 @@ function ScheduleCard({
   const padding = resolveComponentSize(size, paddingMap);
   const iconBox = resolveComponentSize(size, iconBoxMap);
   const iconInner = iconBox * 0.42;
+  const hasTime = Boolean(startTime || endTime);
 
   return (
     <article
@@ -49,24 +50,32 @@ function ScheduleCard({
         <div className="min-w-0 flex-1">
           <Title
             title={title}
-            subtitle={{
-              text: location,
-              icon: LocationIcon,
-              iconStrokeWidth: 1.75,
-              className: 'truncate',
-            }}
+            subtitle={
+              location
+                ? {
+                    text: location,
+                    icon: LocationIcon,
+                    iconStrokeWidth: 1.75,
+                    className: 'truncate',
+                  }
+                : undefined
+            }
           />
         </div>
       </div>
 
-      <div
-        className="flex w-24 shrink-0 flex-col items-center justify-center border-l border-dashed border-border/50"
-        style={{ padding }}
-      >
-        <span className="font-dm-mono text-[10px] leading-[15px] text-dark-border">{startTime}</span>
-        <span className="my-1 h-3 w-px bg-border/50" />
-        <span className="font-dm-mono text-[10px] leading-[15px] text-dark-border">{endTime}</span>
-      </div>
+      {hasTime ? (
+        <div
+          className="flex w-24 shrink-0 flex-col items-center justify-center border-l border-dashed border-border/50"
+          style={{ padding }}
+        >
+          <span className="font-dm-mono text-[10px] leading-[15px] text-dark-border">
+            {startTime}
+          </span>
+          <span className="my-1 h-3 w-px bg-border/50" />
+          <span className="font-dm-mono text-[10px] leading-[15px] text-dark-border">{endTime}</span>
+        </div>
+      ) : null}
     </article>
   );
 }
