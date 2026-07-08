@@ -3,7 +3,6 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/common/Button';
 import { formatWon } from '@/pages/MeetRecord/utils/receipt';
 import { colors } from '../../../constants/colors';
-import { typography } from '../../../constants/typography';
 
 type SettlementFooterProps = {
   totalAmount: number;
@@ -61,7 +60,7 @@ function SettlementFooter({
           <div className="flex items-end justify-between gap-3">
             <div>
               <p
-                className="font-pretendard text-[13px] leading-[16px] font-semibold"
+                className="font-pretendard text-[16px] leading-[20px] font-semibold"
                 style={{ color: colors.darkBorder }}
               >
                 총 소비 금액
@@ -78,7 +77,7 @@ function SettlementFooter({
             <div className="flex shrink-0 gap-2">
               <button
                 type="button"
-                className="h-11 min-w-[72px] rounded-md border px-4 font-pretendard text-[14px] leading-[17px] font-semibold transition active:scale-[0.98]"
+                className="h-11 min-w-[76px] rounded-md border px-4 font-pretendard text-[16px] leading-[20px] font-semibold transition active:scale-[0.98]"
                 style={{
                   borderColor: colors.border,
                   backgroundColor: colors.background,
@@ -93,7 +92,7 @@ function SettlementFooter({
                 variant="point"
                 size="md"
                 fullWidth={false}
-                className="min-w-[72px] text-[14px] font-semibold transition active:scale-[0.98]"
+                className="min-w-[76px] text-[16px] font-semibold transition active:scale-[0.98]"
                 disabled={isSaving || isSaveDisabled}
                 onClick={onSettle}
               >
@@ -102,7 +101,10 @@ function SettlementFooter({
             </div>
           </div>
           {errorMessage ? (
-            <p className={`${typography.caption} mt-3`} style={{ color: colors.alert }}>
+            <p
+              className="mt-3 font-pretendard text-[16px] leading-[20px]"
+              style={{ color: colors.alert }}
+            >
               {errorMessage}
             </p>
           ) : null}

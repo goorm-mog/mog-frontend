@@ -105,13 +105,13 @@ function MeetRecord() {
 
   return (
     <main
-      className="min-h-svh overflow-x-hidden"
+      className="fixed inset-y-0 left-1/2 w-full max-w-[430px] -translate-x-1/2 overflow-hidden"
       style={{ backgroundColor: colors.background, color: colors.text }}
     >
       <title>약속 기록</title>
 
       <div
-        className="mx-auto flex h-svh w-full min-w-0 max-w-[430px] flex-col overflow-hidden"
+        className="flex h-full w-full min-w-0 flex-col overflow-hidden"
         style={{ backgroundColor: colors.background }}
       >
         <TopAppBar

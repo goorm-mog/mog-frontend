@@ -1,12 +1,5 @@
 import { Plus, X } from 'lucide-react';
-import {
-  useEffect,
-  useId,
-  useRef,
-  useState,
-  type ChangeEvent,
-  type SyntheticEvent,
-} from 'react';
+import { useEffect, useId, useRef, useState, type ChangeEvent, type SyntheticEvent } from 'react';
 import useWheelScrollSensitivity from '@/pages/MeetRecord/hooks/useWheelScrollSensitivity';
 import type { RoomRecordPhoto } from '@/types/records';
 import { colors } from '../../../constants/colors';
@@ -28,11 +21,7 @@ type PhotoPickerProps = {
   onDeletePhoto: (photoId: number) => Promise<void>;
 };
 
-function PhotoPicker({
-  photos,
-  onUploadPhotos,
-  onDeletePhoto,
-}: PhotoPickerProps) {
+function PhotoPicker({ photos, onUploadPhotos, onDeletePhoto }: PhotoPickerProps) {
   const fileInputId = useId();
   const photoIdRef = useRef(0);
   const photoUrlsRef = useRef<Set<string>>(new Set());
@@ -87,9 +76,7 @@ function PhotoPicker({
     try {
       await onUploadPhotos(filesToUpload);
     } catch (error) {
-      setPhotoError(
-        error instanceof Error ? error.message : '사진 업로드 중 오류가 발생했습니다.',
-      );
+      setPhotoError(error instanceof Error ? error.message : '사진 업로드 중 오류가 발생했습니다.');
     } finally {
       nextPhotos.forEach((photo) => {
         if (photo.url) {
@@ -109,18 +96,13 @@ function PhotoPicker({
     try {
       await onDeletePhoto(photoId);
     } catch (error) {
-      setPhotoError(
-        error instanceof Error ? error.message : '사진 삭제 중 오류가 발생했습니다.',
-      );
+      setPhotoError(error instanceof Error ? error.message : '사진 삭제 중 오류가 발생했습니다.');
     } finally {
       setDeletingPhotoId(null);
     }
   };
 
-  const handlePhotoLoad = (
-    photoId: string,
-    event: SyntheticEvent<HTMLImageElement>,
-  ) => {
+  const handlePhotoLoad = (photoId: string, event: SyntheticEvent<HTMLImageElement>) => {
     const image = event.currentTarget;
     const renderedWidth = (image.naturalWidth / image.naturalHeight) * 60;
     const shouldCapWidth = renderedWidth > 72;
@@ -140,7 +122,7 @@ function PhotoPicker({
         <h3 className={typography.body} style={{ color: colors.text }}>
           약속 사진
         </h3>
-        <p className={typography.caption} style={{ color: colors.border }}>
+        <p className="font-pretendard text-[16px] leading-[20px]" style={{ color: colors.border }}>
           전체 최대 3장
         </p>
       </div>
@@ -162,9 +144,7 @@ function PhotoPicker({
         <label
           htmlFor={fileInputId}
           className={`flex h-[60px] w-[50px] shrink-0 flex-col items-center justify-center gap-1 rounded-[5px] border ${
-            isPhotoLimitReached || isUploading
-              ? 'cursor-not-allowed opacity-60'
-              : 'cursor-pointer'
+            isPhotoLimitReached || isUploading ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
           }`}
           style={{
             borderColor: colors.border,
@@ -237,7 +217,10 @@ function PhotoPicker({
         ))}
       </div>
       {photoError ? (
-        <p className={`${typography.caption} mt-2`} style={{ color: colors.alert }}>
+        <p
+          className="mt-2 font-pretendard text-[16px] leading-[20px]"
+          style={{ color: colors.alert }}
+        >
           {photoError}
         </p>
       ) : null}

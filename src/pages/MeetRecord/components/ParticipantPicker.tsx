@@ -32,6 +32,7 @@ function ParticipantPicker({ participants, onParticipantToggle }: ParticipantPic
             disabled={Boolean(participant.disabled)}
             tone="default"
             unselectedTone="muted"
+            labelClassName="font-pretendard text-[16px] leading-[20px] font-normal"
             onClick={() => onParticipantToggle(participant.id)}
           />
         );

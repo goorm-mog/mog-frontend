@@ -3,7 +3,6 @@ import type { KeyboardEvent } from 'react';
 import type { EditableReceiptItem } from '@/pages/MeetRecord/types';
 import { formatWon } from '@/pages/MeetRecord/utils/receipt';
 import { colors } from '../../../constants/colors';
-import { typography } from '../../../constants/typography';
 
 type MenuEditorProps = {
   placeholder: string;
@@ -38,7 +37,7 @@ function MenuEditor({
           onChange={(event) => onInputChange(event.target.value)}
           onKeyDown={onKeyDown}
           placeholder={placeholder}
-          className={`${typography.caption} min-w-0 flex-1 bg-transparent pl-5 pr-3 outline-none placeholder:text-[#a09583]`}
+          className="min-w-0 flex-1 bg-transparent pl-4 pr-3 font-pretendard text-[16px] leading-[20px] outline-none placeholder:text-[#a09583]"
           style={{ color: colors.text }}
           aria-label="메뉴 입력"
         />
@@ -46,34 +45,39 @@ function MenuEditor({
           <Plus className="size-6" strokeWidth={2.2} color={colors.text} />
         </button>
       </div>
-      <div className={`${typography.caption} mt-3 space-y-1 px-1`} style={{ color: colors.text }}>
+      <div
+        className="mt-4 space-y-4 px-0.5 font-pretendard text-[16px] leading-[20px]"
+        style={{ color: colors.text }}
+      >
         {items.map((item) => (
           <div
             key={item.id}
-            className="grid grid-cols-[minmax(0,1fr)_32px_minmax(74px,auto)_18px] items-center gap-1.5"
+            className="grid grid-cols-[22px_minmax(0,1fr)_auto] items-start gap-x-2 gap-y-1.5"
           >
-            <span className="truncate">{item.name}</span>
-            <input
-              type="number"
-              min={1}
-              value={item.count}
-              onChange={(event) => onUpdateItemCount(item.id, Number(event.target.value))}
-              className="w-8 bg-transparent text-center outline-none"
-              style={{ color: colors.text }}
-              aria-label={`${item.name} 수량`}
-            />
-            <span className="text-right tabular-nums whitespace-nowrap">
-              {formatWon(item.price)}
-            </span>
             <button
               type="button"
-              className="grid size-[18px] place-items-center"
+              className="grid size-[22px] place-items-center pt-0.5"
               style={{ color: colors.alert }}
               onClick={() => onDeleteItem(item.id)}
               aria-label={`${item.name} 삭제`}
             >
-              <X className="size-3.5" strokeWidth={2.4} />
+              <X className="size-4" strokeWidth={2.4} />
             </button>
+            <span className="min-w-0 break-words">{item.name}</span>
+            <div className="flex items-center justify-end gap-1">
+              <input
+                type="number"
+                min={1}
+                value={item.count}
+                onChange={(event) => onUpdateItemCount(item.id, Number(event.target.value))}
+                className="w-10 bg-transparent text-center font-pretendard text-[16px] leading-[20px] outline-none"
+                style={{ color: colors.text }}
+                aria-label={`${item.name} 수량`}
+              />
+            </div>
+            <span className="col-span-3 pr-2 text-right tabular-nums whitespace-nowrap">
+              ₩ {formatWon(item.price)}
+            </span>
           </div>
         ))}
       </div>

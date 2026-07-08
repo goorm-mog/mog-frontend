@@ -136,7 +136,7 @@ function ReceiptCard({
 
   return (
     <article
-      className="receipt-paper relative min-h-[590px] px-5 pb-7 pt-10"
+      className="receipt-paper relative min-h-[590px] px-6 pb-8 pt-14"
       data-receipt-id={receipt.roundLabel}
     >
       <input
@@ -148,7 +148,7 @@ function ReceiptCard({
       />
 
       <div
-        className="flex items-center justify-between border-b pb-5"
+        className="flex items-center justify-between border-b pb-7"
         style={{ borderColor: colors.border }}
       >
         <span
@@ -191,11 +191,13 @@ function ReceiptCard({
           role="dialog"
           aria-label={`${receipt.roundLabel} 삭제 확인`}
         >
-          <p className={typography.caption}>해당 차수를 삭제하시겠습니까?</p>
+          <p className="font-pretendard text-[16px] leading-[20px]">
+            해당 차수를 삭제하시겠습니까?
+          </p>
           <div className="mt-3 flex justify-end gap-2">
             <button
               type="button"
-              className={`${typography.caption} rounded-[6px] px-3 py-1.5`}
+              className="rounded-[6px] px-3 py-1.5 font-pretendard text-[16px] leading-[20px]"
               style={{ color: colors.border }}
               onClick={() => setIsDeleteConfirmOpen(false)}
             >
@@ -203,7 +205,7 @@ function ReceiptCard({
             </button>
             <button
               type="button"
-              className={`${typography.caption} rounded-[6px] px-3 py-1.5`}
+              className="rounded-[6px] px-3 py-1.5 font-pretendard text-[16px] leading-[20px]"
               style={{ backgroundColor: colors.alert, color: colors.background }}
               onClick={handleDeleteConfirm}
             >
@@ -213,7 +215,7 @@ function ReceiptCard({
         </div>
       ) : null}
 
-      <div className="space-y-7 py-7">
+      <div className="space-y-9 py-8">
         <FormRow label="장소" required>
           <PlaceField
             placeholder={receipt.placePlaceholder}
@@ -248,7 +250,7 @@ function ReceiptCard({
 
       <DashedDivider />
 
-      <FormRow label="총액" required className="py-7">
+      <FormRow label="총액" required className="py-8">
         <p className={`${typography.head1} text-right`} style={{ color: colors.text }}>
           <span className="mr-4">₩</span>
           {formatWon(receiptMenu.totalAmount)}
@@ -257,7 +259,7 @@ function ReceiptCard({
 
       <DashedDivider />
 
-      <FormRow label="참가자" required className="py-7">
+      <FormRow label="참가자" required className="py-8">
         <ParticipantPicker
           participants={participants}
           onParticipantToggle={handleParticipantToggle}
@@ -278,10 +280,10 @@ function ReceiptCard({
         />
       </FormRow>
 
-      <FormRow label="계좌" className="pt-4">
+      <FormRow label="계좌" className="pt-6">
         <input
           type="text"
-          className={`${typography.caption} h-10 w-full border-b bg-transparent px-3 outline-none placeholder:text-[#a09583]`}
+          className="h-10 w-full border-b bg-transparent px-3 font-pretendard text-[16px] leading-[20px] outline-none placeholder:text-[#a09583]"
           style={{
             borderColor: colors.darkBorder,
             color: payerAccountText.trim() ? colors.text : colors.border,
@@ -292,9 +294,9 @@ function ReceiptCard({
         />
       </FormRow>
 
-      <div className="my-7 border-t" style={{ borderColor: colors.border }} />
+      <div className="my-8 border-t" style={{ borderColor: colors.border }} />
 
-      <FormRow label="메모">
+      <FormRow label="메모" className="pb-10">
         <MemoField
           initialMemo={receipt.memo}
           placeholder={receipt.memoPlaceholder}
@@ -314,9 +316,9 @@ type FormRowProps = {
 
 function FormRow({ label, required = false, className = '', children }: FormRowProps) {
   return (
-    <div className={`grid grid-cols-[58px_minmax(0,1fr)] items-start gap-2 px-1 ${className}`}>
+    <div className={`grid grid-cols-[64px_minmax(0,1fr)] items-start gap-4 px-1 ${className}`}>
       <label
-        className="pt-3 font-pretendard text-[13px] leading-[16px] font-semibold"
+        className="pt-3 font-pretendard text-[16px] leading-[20px] font-semibold"
         style={{ color: colors.text }}
       >
         {label}
