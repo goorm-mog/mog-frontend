@@ -1,5 +1,10 @@
 import { http, HttpResponse, type HttpHandler } from 'msw';
-import { meetingRecordsResponseDb } from '@/mocks/db/meetingRecord';
+import {
+  meetingRecordPhotosDb,
+  meetingRecordsDb,
+  toMeetingRecordApiData,
+  toRoomRecordPhotoApiData,
+} from '@/mocks/db/meetingRecord';
 import { mockDb } from '@/mocks/fixtures/mockDb';
 import type {
   CreateMeetingRecordRequest,
@@ -29,22 +34,28 @@ const ALLOWED_IMAGE_TYPES = new Set([
 
 const cloneRecord = (record: MeetingRecord): MeetingRecord => ({
   ...record,
+  menuItems: record.menuItems?.map((item) => ({ ...item })) ?? [],
   payer: record.payer ? { ...record.payer } : null,
   participants: record.participants.map((participant) => ({ ...participant })),
 });
 
-const recordsByRoomId: Record<number, MeetingRecordsData> = {
-  45: {
-    photos: meetingRecordsResponseDb.data.photos.map((photo) => ({ ...photo })),
-    records: meetingRecordsResponseDb.data.records.map(cloneRecord),
-  },
-};
+const recordsByRoomId: Record<number, MeetingRecordsData> = meetingRecordsDb.reduce<
+  Record<number, MeetingRecordsData>
+>((acc, record) => {
+  acc[record.roomId] ??= {
+    photos: meetingRecordPhotosDb
+      .filter((photo) => photo.roomId === record.roomId)
+      .map(toRoomRecordPhotoApiData),
+    records: [],
+  };
+  acc[record.roomId].records.push(cloneRecord(toMeetingRecordApiData(record)));
+  return acc;
+}, {});
 
 let nextRecordId =
-  Math.max(0, ...meetingRecordsResponseDb.data.records.map(({ recordId }) => recordId)) +
-  1;
+  Math.max(0, ...meetingRecordsDb.map(({ recordId }) => recordId)) + 1;
 let nextPhotoId =
-  Math.max(0, ...meetingRecordsResponseDb.data.photos.map(({ photoId }) => photoId)) + 1;
+  Math.max(0, ...meetingRecordPhotosDb.map(({ photoId }) => photoId)) + 1;
 
 const createResponse = <T>(data: T, message: string) => ({
   status: 0,
@@ -175,6 +186,8 @@ export const recordsHandlers: HttpHandler[] = [
       recordId: nextRecordId,
       seq: Math.max(0, ...roomData.records.map(({ seq }) => seq)) + 1,
       placeName: body.placeName,
+      address: body.address ?? null,
+      menuItems: body.menuItems?.map((item) => ({ ...item })) ?? [],
       memo: body.memo,
       totalCost: sumParticipantsAmount(participants),
       payer: mapPayer(roomId, body.payer),
@@ -231,6 +244,8 @@ export const recordsHandlers: HttpHandler[] = [
         : mapParticipants(roomId, body.participants);
 
     record.placeName = body.placeName ?? record.placeName;
+    record.address = body.address ?? record.address;
+    record.menuItems = body.menuItems?.map((item) => ({ ...item })) ?? record.menuItems;
     record.memo = body.memo ?? record.memo;
     record.payer = body.payer == null ? record.payer : mapPayer(roomId, body.payer);
     record.participants = nextParticipants;
@@ -301,14 +316,17 @@ export const recordsHandlers: HttpHandler[] = [
       return HttpResponse.json(result.error, { status: result.error.status });
     }
 
+    const sampleRecord = meetingRecordsDb[0];
     const response: OcrResponse = createResponse(
       {
-        storeName: '합정 카페 A',
-        totalAmount: 28000,
-        items: [
-          { name: '김치전', count: 1, price: 14000 },
-          { name: '어묵탕', count: null, price: 14000 },
-        ],
+        storeName: sampleRecord?.placeName ?? null,
+        totalAmount: sampleRecord?.totalCost ?? 0,
+        items:
+          sampleRecord?.menuItems.map(({ menuName, count, price }) => ({
+            name: menuName,
+            count,
+            price,
+          })) ?? [],
       },
       '영수증 OCR 분석 성공',
     );

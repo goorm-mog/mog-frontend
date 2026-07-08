@@ -1,36 +1,43 @@
 import { toBlob } from 'html-to-image';
 
-type ShareReceiptImageResult = 'shared' | 'downloaded' | 'cancelled';
+const MAX_DESKTOP_IMAGE_PIXEL_RATIO = 2;
+const MAX_MOBILE_IMAGE_PIXEL_RATIO = 1;
+const TRANSPARENT_IMAGE_PLACEHOLDER =
+  'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 
-export async function downloadReceiptImage(
+type ShareReceiptImageResult = 'shared' | 'cancelled';
+
+export class ReceiptImageShareUnsupportedError extends Error {
+  constructor() {
+    super('파일 공유를 지원하지 않는 브라우저입니다.');
+    this.name = 'ReceiptImageShareUnsupportedError';
+  }
+}
+
+export async function createReceiptImageFile(
   receiptElement: HTMLElement,
   fileName: string,
-  fallbackWindow: Window | null = null,
 ) {
   const blob = await createReceiptImageBlob(receiptElement);
 
-  await saveImageBlob(blob, fileName, fallbackWindow);
+  return new File([blob], fileName, { type: 'image/png' });
 }
 
-export async function shareReceiptImage(
-  receiptElement: HTMLElement,
-  fileName: string,
+export async function shareReceiptImageFile(
+  file: File,
 ): Promise<ShareReceiptImageResult> {
-  const blob = await createReceiptImageBlob(receiptElement);
-  const file = new File([blob], fileName, { type: 'image/png' });
   const canShareFile =
     typeof navigator.canShare === 'function' &&
     navigator.canShare({ files: [file] });
 
   if (!canShareFile || typeof navigator.share !== 'function') {
-    triggerDownload(blob, fileName);
-    return 'downloaded';
+    throw new ReceiptImageShareUnsupportedError();
   }
 
   try {
     await navigator.share({
       files: [file],
-      title: fileName,
+      title: file.name,
     });
 
     return 'shared';
@@ -43,12 +50,33 @@ export async function shareReceiptImage(
   }
 }
 
-async function createReceiptImageBlob(receiptElement: HTMLElement) {
+async function createReceiptImageBlob(
+  receiptElement: HTMLElement,
+) {
   await document.fonts?.ready;
+
+  try {
+    return await captureReceiptElement(receiptElement);
+  } catch (error) {
+    console.warn('영수증 이미지 생성 재시도: 외부 이미지를 제외합니다.', error);
+    return captureReceiptElementWithoutExternalImages(receiptElement);
+  }
+}
+
+async function captureReceiptElement(receiptElement: HTMLElement) {
+  const previousFilter = receiptElement.style.filter;
+  receiptElement.style.filter = 'none';
 
   const blob = await toBlob(receiptElement, {
     cacheBust: true,
-    pixelRatio: window.devicePixelRatio || 1,
+    imagePlaceholder: TRANSPARENT_IMAGE_PLACEHOLDER,
+    pixelRatio: getReceiptImagePixelRatio(),
+    style: {
+      filter: 'none',
+      boxShadow: 'none',
+    },
+  }).finally(() => {
+    receiptElement.style.filter = previousFilter;
   });
 
   if (!blob) {
@@ -58,72 +86,69 @@ async function createReceiptImageBlob(receiptElement: HTMLElement) {
   return blob;
 }
 
-export function createReceiptImageFallbackWindow() {
-  if (!isAppleMobileDevice()) {
-    return null;
+async function captureReceiptElementWithoutExternalImages(receiptElement: HTMLElement) {
+  const restoreImages = replaceExternalImages(receiptElement);
+
+  try {
+    return await captureReceiptElement(receiptElement);
+  } finally {
+    restoreImages();
   }
-
-  const fallbackWindow = window.open('', '_blank');
-
-  if (fallbackWindow) {
-    fallbackWindow.document.title = '영수증 이미지 저장';
-    fallbackWindow.document.body.style.margin = '0';
-    fallbackWindow.document.body.style.fontFamily = 'sans-serif';
-    fallbackWindow.document.body.style.background = '#f8f5ef';
-    fallbackWindow.document.body.style.color = '#2c2924';
-    fallbackWindow.document.body.textContent = '영수증 이미지를 만들고 있어요.';
-  }
-
-  return fallbackWindow;
 }
 
-async function saveImageBlob(
-  blob: Blob,
-  fileName: string,
-  fallbackWindow: Window | null,
-) {
-  const file = new File([blob], fileName, { type: 'image/png' });
-  const canShareFile =
-    typeof navigator.canShare === 'function' &&
-    navigator.canShare({ files: [file] });
+function replaceExternalImages(receiptElement: HTMLElement) {
+  const htmlImages = [...receiptElement.querySelectorAll<HTMLImageElement>('img')].map(
+    (image) => ({
+      image,
+      src: image.getAttribute('src'),
+    }),
+  );
+  const svgImages = [...receiptElement.querySelectorAll<SVGImageElement>('image')].map(
+    (image) => ({
+      image,
+      href: image.getAttribute('href'),
+    }),
+  );
 
-  if (isAppleMobileDevice() && canShareFile) {
-    try {
-      await navigator.share({
-        files: [file],
-        title: fileName,
-      });
-      fallbackWindow?.close();
-      return;
-    } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') {
-        fallbackWindow?.close();
-        return;
-      }
+  htmlImages.forEach(({ image, src }) => {
+    if (src && isExternalImageUrl(src)) {
+      image.setAttribute('src', TRANSPARENT_IMAGE_PLACEHOLDER);
     }
-  }
+  });
+  svgImages.forEach(({ image, href }) => {
+    if (href && isExternalImageUrl(href)) {
+      image.setAttribute('href', TRANSPARENT_IMAGE_PLACEHOLDER);
+    }
+  });
 
-  if (fallbackWindow && !fallbackWindow.closed) {
-    openImagePreview(fallbackWindow, blob, fileName);
-    return;
-  }
-
-  triggerDownload(blob, fileName);
+  return () => {
+    htmlImages.forEach(({ image, src }) => {
+      if (src === null) {
+        image.removeAttribute('src');
+      } else {
+        image.setAttribute('src', src);
+      }
+    });
+    svgImages.forEach(({ image, href }) => {
+      if (href === null) {
+        image.removeAttribute('href');
+      } else {
+        image.setAttribute('href', href);
+      }
+    });
+  };
 }
 
-function triggerDownload(blob: Blob, fileName: string) {
-  const objectUrl = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = objectUrl;
-  link.download = fileName;
-  link.style.display = 'none';
-  document.body.append(link);
-  link.click();
-  link.remove();
+function isExternalImageUrl(value: string) {
+  if (value.startsWith('data:') || value.startsWith('/')) {
+    return false;
+  }
 
-  window.setTimeout(() => {
-    URL.revokeObjectURL(objectUrl);
-  }, 1000);
+  try {
+    return new URL(value, window.location.href).origin !== window.location.origin;
+  } catch {
+    return false;
+  }
 }
 
 function isAppleMobileDevice() {
@@ -135,32 +160,11 @@ function isAppleMobileDevice() {
   );
 }
 
-function openImagePreview(
-  fallbackWindow: Window,
-  blob: Blob,
-  fileName: string,
-) {
-  const objectUrl = URL.createObjectURL(blob);
-  fallbackWindow.document.body.innerHTML = '';
-  fallbackWindow.document.body.style.margin = '0';
-  fallbackWindow.document.body.style.background = '#f8f5ef';
-  fallbackWindow.document.body.style.padding = '16px';
-  fallbackWindow.document.body.style.boxSizing = 'border-box';
-  fallbackWindow.document.body.style.fontFamily = 'sans-serif';
-  fallbackWindow.document.body.style.color = '#2c2924';
+function getReceiptImagePixelRatio() {
+  const devicePixelRatio = window.devicePixelRatio || 1;
+  const maxPixelRatio = isAppleMobileDevice()
+    ? MAX_MOBILE_IMAGE_PIXEL_RATIO
+    : MAX_DESKTOP_IMAGE_PIXEL_RATIO;
 
-  const image = fallbackWindow.document.createElement('img');
-  image.src = objectUrl;
-  image.alt = fileName;
-  image.style.display = 'block';
-  image.style.width = '100%';
-  image.style.height = 'auto';
-
-  const guide = fallbackWindow.document.createElement('p');
-  guide.textContent = '이미지를 길게 눌러 저장하세요.';
-  guide.style.margin = '0 0 12px';
-  guide.style.fontSize = '14px';
-  guide.style.lineHeight = '20px';
-
-  fallbackWindow.document.body.append(guide, image);
+  return Math.min(devicePixelRatio, maxPixelRatio);
 }

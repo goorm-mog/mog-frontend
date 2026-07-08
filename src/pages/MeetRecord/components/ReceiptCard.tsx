@@ -10,6 +10,7 @@ import { analyzeReceiptOcr } from '@/api/records';
 import { usePlaceSearch } from '@/pages/MeetRecord/hooks/usePlaceSearch';
 import { useReceiptMenu } from '@/pages/MeetRecord/hooks/useReceiptMenu';
 import type {
+  PlaceSearchResult,
   ReceiptCardData,
   ReceiptPayerOption,
 } from '@/pages/MeetRecord/types';
@@ -46,7 +47,7 @@ function ReceiptCard({
     formatPayerAccountText(receipt.payerBankName, receipt.payerAccountNumber),
   );
   const ocrInputRef = useRef<HTMLInputElement>(null);
-  const placeSearch = usePlaceSearch(receipt.placeName);
+  const placeSearch = usePlaceSearch(receipt.placeName, receipt.placeAddress ?? null);
   const receiptMenu = useReceiptMenu({
     initialItems: receipt.items,
     receiptId: receipt.roundLabel,
@@ -65,8 +66,24 @@ function ReceiptCard({
   ]);
 
   useEffect(() => {
-    onReceiptChange(receipt.roundLabel, { placeName: placeSearch.query });
-  }, [onReceiptChange, placeSearch.query, receipt.roundLabel]);
+    onReceiptChange(receipt.roundLabel, {
+      placeName: placeSearch.query,
+      placeAddress: placeSearch.selectedAddress,
+    });
+  }, [
+    onReceiptChange,
+    placeSearch.query,
+    placeSearch.selectedAddress,
+    receipt.roundLabel,
+  ]);
+
+  const handleSelectPlace = (place: PlaceSearchResult) => {
+    placeSearch.selectPlace(place);
+    onReceiptChange(receipt.roundLabel, {
+      placeName: place.name,
+      placeAddress: place.address,
+    });
+  };
 
   const handleParticipantToggle = (participantId: number) => {
     setParticipants((currentParticipants) => {
@@ -222,10 +239,13 @@ function ReceiptCard({
             places={placeSearch.places}
             isDropdownOpen={placeSearch.isDropdownOpen}
             hasSelectedPlace={placeSearch.hasSelectedPlace}
+            selectedAddress={placeSearch.selectedAddress}
+            isSearching={placeSearch.isSearching}
+            errorMessage={placeSearch.errorMessage}
             onQueryChange={placeSearch.setQuery}
             onSearch={placeSearch.searchPlaces}
             onEditPlace={placeSearch.editPlace}
-            onSelectPlace={placeSearch.selectPlace}
+            onSelectPlace={handleSelectPlace}
             onKeyDown={placeSearch.handleKeyDown}
           />
         </FormRow>

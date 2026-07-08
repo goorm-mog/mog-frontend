@@ -50,8 +50,8 @@ function toSettlementRound(
     id: record.recordId,
     seq: record.seq,
     placeName: record.placeName,
-    address: '-',
-    menu: '-',
+    address: record.address?.trim() || '-',
+    menu: formatMenuItems(record.menuItems),
     totalCost: formatWon(settlementAmount ?? record.totalCost),
     payer: formatPayer(record.payer),
     participants: record.participants.map((participant) => participant.nickname).join(', ') || '-',
@@ -89,6 +89,15 @@ function formatMeetDate(dateString: string | null) {
 
 function formatWon(amount: number) {
   return `₩ ${WON_FORMATTER.format(amount)}`;
+}
+
+function formatMenuItems(menuItems: MeetingRecordResponse['menuItems']) {
+  if (!menuItems || menuItems.length === 0) return '-';
+
+  return menuItems
+    .filter((item) => item.menuName.trim().length > 0)
+    .map((item) => (item.count > 1 ? `${item.menuName} ${item.count}` : item.menuName))
+    .join(', ') || '-';
 }
 
 function formatPayer(payer: MeetingRecordPayer | null) {

@@ -24,10 +24,18 @@ export type RecordParticipant = {
   amount: number;
 };
 
+export type RecordMenuItem = {
+  menuName: string;
+  count: number;
+  price: number;
+};
+
 export type MeetingRecord = {
   recordId: number;
   seq: number;
   placeName: string;
+  address: string | null;
+  menuItems?: RecordMenuItem[];
   memo: string | null;
   totalCost: number;
   payer: RecordPayer | null;
@@ -77,6 +85,8 @@ export type UpsertRecordParticipantRequest = {
 
 export type CreateMeetingRecordRequest = {
   placeName: string;
+  address?: string | null;
+  menuItems?: RecordMenuItem[];
   memo: string;
   payer?: UpsertRecordPayerRequest | null;
   participants: UpsertRecordParticipantRequest[];
@@ -84,6 +94,8 @@ export type CreateMeetingRecordRequest = {
 
 export type UpdateMeetingRecordRequest = {
   placeName?: string | null;
+  address?: string | null;
+  menuItems?: RecordMenuItem[] | null;
   memo?: string | null;
   payer?: UpsertRecordPayerRequest | null;
   participants?: UpsertRecordParticipantRequest[] | null;

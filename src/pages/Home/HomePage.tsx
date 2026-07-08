@@ -390,7 +390,7 @@ function HomePage() {
                     key={room.roomId}
                     title={room.roomName}
                     datetime={formatArchivalDatetime(summary?.confirmedDate ?? room.promiseDate)}
-                    location={summary?.confirmedPlace ?? '장소 미정'}
+                    location={summary?.confirmedPlace?.placeName ?? '장소 미정'}
                     totalAmount={formatCurrency(summary?.settlement?.totalCost)}
                     meta={summary ? [{ label: '인원', value: `${summary.totalMemberCount}명` }] : []}
                     onClick={() => navigate(`/${room.roomId}/meet-detail`)}

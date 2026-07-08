@@ -1,7 +1,19 @@
 import { mockDb } from '@/mocks/fixtures';
 import type { ReceiptCardData } from '@/pages/MeetRecord/types';
 
-export const meetRecordRoom = mockDb.rooms[0];
+const getMeetRecordRoom = () => {
+  const room = mockDb.rooms.find((item) =>
+    mockDb.confirmedSchedules.some((schedule) => schedule.roomId === item.roomId),
+  );
+
+  if (!room) {
+    throw new Error('MeetRecord mock room data is missing.');
+  }
+
+  return room;
+};
+
+export const meetRecordRoom = getMeetRecordRoom();
 
 export const meetRecordGroup = mockDb.groups.find(
   ({ groupId }) => groupId === meetRecordRoom.groupId,

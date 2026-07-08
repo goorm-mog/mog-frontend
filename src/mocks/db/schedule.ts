@@ -1,73 +1,68 @@
-// http://localhost:5173/reschedule/participant/45 -> 참여자 화면
-// http://localhost:5173/reschedule/host/45 -> 방장 화면
-// ※ 임시 데이터로 테스트하기때문에 실제 날짜와 시간이 플로우와 다를 수 있습니다
+import { usersDb } from './user';
 
-// ✏️ 여기만 바꾸면 됩니다
-// 'fresh' → 슬롯 없음  (방장: 슬롯 생성 화면 / 참가자: 대기 화면)
-// 'vote'  → 슬롯 있음  (방장·참가자 모두 투표 화면)
-// 'done'  → 투표 완료  (방장: 일정 확정 화면 / 참가자: 결과 확인 화면)
-const SCENARIO = 'fresh' as 'fresh' | 'vote' | 'done';
+const getUserSummary = (userId: number) => {
+  const user = usersDb.find((item) => item.userId === userId);
 
-const BASE_SLOTS = {
-  roomId: 45,
-  dates: [
-    { slotId: 10, date: '2026-07-01', time: '09:00' },
-    { slotId: 11, date: '2026-07-01', time: '10:00' },
-    { slotId: 12, date: '2026-07-01', time: '14:00' },
-    { slotId: 13, date: '2026-07-01', time: '19:00' },
-    { slotId: 14, date: '2026-07-02', time: '13:00' },
-    { slotId: 15, date: '2026-07-02', time: '19:00' },
-    { slotId: 16, date: '2026-07-03', time: '18:00' },
-    { slotId: 17, date: '2026-07-03', time: '19:00' },
-    { slotId: 18, date: '2026-07-03', time: '20:00' },
-  ],
+  return {
+    userId,
+    nickname: user?.nickname ?? '',
+  };
 };
 
-// userId 1 = 현재 로그인 유저
-const VOTED_USER_IDS: Record<number, number[]> = {
-  10: [1, 2],
-  11: [1, 2, 3],
-  12: [4],
-  13: [1, 2, 3, 4],
-  14: [2, 3],
-  15: [1, 2],
-  16: [1, 2, 3],
-  17: [1, 2, 3, 4],
-  18: [1],
-};
+export const scheduleSlotsDb = [
+  { slotId: 10, roomId: 47, date: '2026-07-15', time: '11:00', votedUserIds: [1, 2, 3] },
+  { slotId: 11, roomId: 47, date: '2026-07-15', time: '12:00', votedUserIds: [1, 2, 3, 4] },
+  { slotId: 12, roomId: 47, date: '2026-07-16', time: '18:00', votedUserIds: [2, 4] },
+  { slotId: 13, roomId: 47, date: '2026-07-18', time: '13:00', votedUserIds: [1, 3, 4] },
+  { slotId: 20, roomId: 80, date: '2026-07-18', time: '07:30', votedUserIds: [1, 3, 5, 7] },
+  { slotId: 21, roomId: 80, date: '2026-07-18', time: '08:00', votedUserIds: [3, 5, 7] },
+  { slotId: 22, roomId: 80, date: '2026-07-19', time: '07:00', votedUserIds: [1, 7] },
+] as const;
 
-const NOT_VOTED_USER_IDS: Record<number, number[]> = {
-  10: [2],
-  11: [2, 3],
-  12: [4],
-  13: [2, 3, 4],
-  14: [2, 3],
-  15: [2],
-  16: [2, 3],
-  17: [2, 3, 4],
-  18: [],
-};
-
-export const scheduleSlotsDb =
-  SCENARIO === 'fresh'
-    ? []
-    : BASE_SLOTS.dates.map((s) => ({
-        ...s,
-        roomId: BASE_SLOTS.roomId,
-        votedUserIds: (SCENARIO === 'done' ? VOTED_USER_IDS : NOT_VOTED_USER_IDS)[s.slotId] ?? [],
-      }));
-
-export const confirmedSchedulesDb =
-  SCENARIO === 'done'
-    ? [
-        {
-          confirmedId: 1,
-          roomId: 45,
-          date: '2026-07-01',
-          time: '19:00',
-          confirmedBy: { userId: 1, nickname: '김구름' },
-          kakaoEventId: 'kakao_event_abc123',
-          confirmedAt: '2026-06-18T10:00:00',
-        },
-      ]
-    : [];
+export const confirmedSchedulesDb = [
+  {
+    confirmedId: 1,
+    roomId: 45,
+    date: '2026-07-08',
+    time: '18:30',
+    confirmedBy: getUserSummary(1),
+    kakaoEventId: 'kakao_event_room45',
+    confirmedAt: '2026-07-05T10:00:00',
+  },
+  {
+    confirmedId: 2,
+    roomId: 46,
+    date: '2026-07-03',
+    time: '14:00',
+    confirmedBy: getUserSummary(1),
+    kakaoEventId: 'kakao_event_room46',
+    confirmedAt: '2026-06-29T18:20:00',
+  },
+  {
+    confirmedId: 3,
+    roomId: 60,
+    date: '2026-07-20',
+    time: '10:00',
+    confirmedBy: getUserSummary(5),
+    kakaoEventId: 'kakao_event_room60',
+    confirmedAt: '2026-07-01T09:00:00',
+  },
+  {
+    confirmedId: 4,
+    roomId: 61,
+    date: '2026-06-30',
+    time: '19:00',
+    confirmedBy: getUserSummary(5),
+    kakaoEventId: 'kakao_event_room61',
+    confirmedAt: '2026-06-24T13:30:00',
+  },
+  {
+    confirmedId: 5,
+    roomId: 70,
+    date: '2026-07-10',
+    time: '09:00',
+    confirmedBy: getUserSummary(1),
+    kakaoEventId: 'kakao_event_room70',
+    confirmedAt: '2026-07-02T20:00:00',
+  },
+] as const;

@@ -39,15 +39,25 @@ const createSummaryResponse = (roomId: number): SummaryCardResponse | null => {
   return {
     roomId,
     confirmedDate: room.promiseDate.slice(0, 10),
-    confirmedPlace: null,
+    confirmedPlace: {
+      placeName: records[0].placeName,
+      address: records[0].address,
+    },
     totalMemberCount: room.members.length,
     members: room.members.map((member) => member.nickname),
-    photos: meetingRecordPhotosDb.map((photo) => photo.s3Url),
+    photos: meetingRecordPhotosDb
+      .filter((photo) => photo.roomId === roomId)
+      .map((photo) => photo.s3Url),
     records: records.map((record) => ({
       seq: record.seq,
       placeName: record.placeName,
+      address: record.address,
       memo: record.memo,
       totalCost: record.totalCost,
+      items: record.menuItems.map(({ menuName, count, price }) => ({
+        name: count > 1 ? `${menuName} x ${count}` : menuName,
+        amount: price,
+      })),
       participants: record.participants.map(({ nickname, amount }) => ({
         nickname,
         amount,

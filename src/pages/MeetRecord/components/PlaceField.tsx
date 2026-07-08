@@ -11,10 +11,13 @@ type PlaceFieldProps = {
   places: PlaceSearchResult[];
   isDropdownOpen: boolean;
   hasSelectedPlace: boolean;
+  selectedAddress?: string | null;
+  isSearching?: boolean;
+  errorMessage?: string | null;
   onQueryChange: (query: string) => void;
   onSearch: () => void;
   onEditPlace: () => void;
-  onSelectPlace: (placeName: string) => void;
+  onSelectPlace: (place: PlaceSearchResult) => void;
   onKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void;
 };
 
@@ -24,6 +27,9 @@ function PlaceField({
   places,
   isDropdownOpen,
   hasSelectedPlace,
+  selectedAddress,
+  isSearching = false,
+  errorMessage,
   onQueryChange,
   onSearch,
   onEditPlace,
@@ -35,23 +41,30 @@ function PlaceField({
   return (
     <div className="relative">
       {hasSelectedPlace ? (
-        <div
-          className="flex h-9 items-center justify-between border-b"
-          style={{ borderColor: colors.darkBorder }}
-        >
-          <input
-            type="text"
-            value={query}
-            onChange={(event) => onQueryChange(event.target.value)}
-            onKeyDown={onKeyDown}
-            placeholder={placeholder}
-            className={`${typography.caption} min-w-0 flex-1 bg-transparent pl-5 pr-3 outline-none placeholder:text-[#a09583]`}
-            style={{ color: colors.text }}
-            aria-label="장소 입력"
-          />
-          <button type="button" onClick={onEditPlace} aria-label="장소 편집">
-            <Pencil className="size-5" strokeWidth={2.5} color={colors.text} />
-          </button>
+        <div>
+          <div
+            className="flex h-9 items-center justify-between border-b"
+            style={{ borderColor: colors.darkBorder }}
+          >
+            <input
+              type="text"
+              value={query}
+              onChange={(event) => onQueryChange(event.target.value)}
+              onKeyDown={onKeyDown}
+              placeholder={placeholder}
+              className={`${typography.caption} min-w-0 flex-1 bg-transparent pl-5 pr-3 outline-none placeholder:text-[#a09583]`}
+              style={{ color: colors.text }}
+              aria-label="장소 입력"
+            />
+            <button type="button" onClick={onEditPlace} aria-label="장소 편집">
+              <Pencil className="size-5" strokeWidth={2.5} color={colors.text} />
+            </button>
+          </div>
+          {selectedAddress ? (
+            <p className="mt-1 truncate pl-5 font-pretendard text-[12px] leading-[15px]" style={{ color: colors.border }}>
+              {selectedAddress}
+            </p>
+          ) : null}
         </div>
       ) : (
         <div
@@ -85,14 +98,22 @@ function PlaceField({
             backgroundColor: colors.background,
           }}
         >
-          {places.length > 0 ? (
+          {isSearching ? (
+            <p className={`${typography.caption} px-5 py-4`} style={{ color: colors.border }}>
+              검색 중...
+            </p>
+          ) : errorMessage ? (
+            <p className={`${typography.caption} px-5 py-4`} style={{ color: colors.border }}>
+              {errorMessage}
+            </p>
+          ) : places.length > 0 ? (
             places.map((place) => (
               <button
                 key={place.id}
                 type="button"
                 className="block h-14 w-full px-5 text-left"
                 style={{ color: colors.text }}
-                onClick={() => onSelectPlace(place.name)}
+                onClick={() => onSelectPlace(place)}
               >
                 <span className={`${typography.caption} block truncate`}>
                   {place.name}

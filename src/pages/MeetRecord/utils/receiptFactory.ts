@@ -17,6 +17,7 @@ export function createEmptyReceipt(
   return {
     roundLabel: `${seq}차`,
     placeName: '',
+    placeAddress: null,
     placePlaceholder: receiptCopy.placePlaceholder,
     menuPlaceholder: receiptCopy.menuPlaceholder,
     items: [],

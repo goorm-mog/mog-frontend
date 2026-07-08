@@ -30,11 +30,18 @@ export type SummaryParticipantResponse = {
   amount: number;
 };
 
+export type SummaryRecordItemResponse = {
+  name: string;
+  amount: number;
+};
+
 export type SummaryRecordResponse = {
   seq: number;
   placeName: string;
+  address?: string | null;
   memo: string | null;
   totalCost: number;
+  items?: SummaryRecordItemResponse[];
   participants: SummaryParticipantResponse[];
 };
 
@@ -48,10 +55,15 @@ export type SummarySettlementResponse = {
   memberTotals: SummaryMemberTotalResponse[];
 };
 
+export type SummaryPlaceResponse = {
+  placeName: string;
+  address: string;
+};
+
 export type SummaryCardResponse = {
   roomId: number;
   confirmedDate: string | null;
-  confirmedPlace: string | null;
+  confirmedPlace: SummaryPlaceResponse | null;
   totalMemberCount: number;
   members: string[];
   photos: string[];

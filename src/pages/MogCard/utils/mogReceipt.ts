@@ -51,19 +51,19 @@ const formatBarcodeValue = (dateString: string) => {
   return `${year}${month}${day}${hours}${minutes}`;
 };
 
-const mapReceiptPlaces = (
-  records: SummaryRecordResponse[],
-  confirmedPlace: string | null,
-): MogReceiptPlace[] =>
+const mapReceiptPlaces = (records: SummaryRecordResponse[]): MogReceiptPlace[] =>
   records.map((record) => ({
     id: record.seq,
     placeName: record.placeName,
-    address: confirmedPlace ?? record.memo ?? '',
+    address: record.address ?? record.memo ?? '',
     totalCost: formatWon(record.totalCost),
-    items: record.participants.map(({ nickname, amount }) => ({
-      name: nickname,
-      amount: formatAmount(amount),
-    })),
+    items:
+      record.items && record.items.length > 0
+        ? record.items.map(({ name, amount }) => ({
+            name,
+            amount: formatAmount(amount),
+          }))
+        : [],
   }));
 
 export function toMogReceipt(summary: SummaryCardResponse): MogReceipt | null {
@@ -77,7 +77,7 @@ export function toMogReceipt(summary: SummaryCardResponse): MogReceipt | null {
     participantCount: summary.totalMemberCount,
     participants: summary.members.join(', '),
     datetime: formatReceiptDate(summary.confirmedDate),
-    places: mapReceiptPlaces(summary.records, summary.confirmedPlace),
+    places: mapReceiptPlaces(summary.records),
     totalCost: formatWon(summary.settlement.totalCost),
     photoCount: summary.photos.length,
     representativePhotoUrl: summary.photos[0],
