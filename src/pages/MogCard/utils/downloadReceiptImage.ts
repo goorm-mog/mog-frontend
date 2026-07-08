@@ -5,7 +5,7 @@ const MAX_MOBILE_IMAGE_PIXEL_RATIO = 1;
 const TRANSPARENT_IMAGE_PLACEHOLDER =
   'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
 
-type ShareReceiptImageResult = 'shared' | 'downloaded' | 'cancelled';
+type ShareReceiptImageResult = 'shared' | 'cancelled';
 
 export async function shareReceiptImage(
   receiptElement: HTMLElement,

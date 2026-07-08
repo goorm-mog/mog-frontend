@@ -64,14 +64,10 @@ function MogCardPage() {
     setIsSharing(true);
 
     try {
-      const result = await shareReceiptImage(
+      await shareReceiptImage(
         receiptRef.current,
         getReceiptFileName(receipt.downloadFileName),
       );
-
-      if (result === 'downloaded') {
-        showToast('공유를 지원하지 않아 이미지로 저장했어요.', 'info');
-      }
     } catch (error) {
       console.error(error);
       showToast('영수증 이미지를 공유하지 못했어요.');
