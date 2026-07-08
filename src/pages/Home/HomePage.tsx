@@ -71,31 +71,49 @@ function HomePage() {
   const [isGroupMutating, setIsGroupMutating] = useState(false);
   const [isCreatingAppointment, setIsCreatingAppointment] = useState(false);
   const [rooms, setRooms] = useState<RoomInfo[]>([]);
+  const [roomsGroupId, setRoomsGroupId] = useState<number | null>(null);
   const [roomSummaries, setRoomSummaries] = useState<Record<number, RoomSummary>>({});
-  const [isRoomsLoading, setIsRoomsLoading] = useState(false);
+  const [summariesGroupId, setSummariesGroupId] = useState<number | null>(null);
 
   const selectedDateKey = format(selectedDate, 'yyyy-MM-dd');
 
+  const activeRooms = useMemo(
+    () => (selectedGroupId !== null && roomsGroupId === selectedGroupId ? rooms : []),
+    [selectedGroupId, roomsGroupId, rooms],
+  );
+
+  const isRoomsLoading = selectedGroupId !== null && roomsGroupId !== selectedGroupId;
+
   const markedDates = useMemo(
     () =>
-      rooms
+      activeRooms
         .map((room) => parsePromiseDate(room.promiseDate))
         .filter((date): date is Date => date !== null),
-    [rooms],
+    [activeRooms],
   );
 
   const roomsForSelectedDate = useMemo(
     () =>
-      rooms.filter((room) => {
+      activeRooms.filter((room) => {
         const date = parsePromiseDate(room.promiseDate);
         return date !== null && format(date, 'yyyy-MM-dd') === selectedDateKey;
       }),
-    [rooms, selectedDateKey],
+    [activeRooms, selectedDateKey],
   );
 
   const completedRooms = useMemo(
-    () => rooms.filter((room) => room.status === 'COMPLETED'),
-    [rooms],
+    () => activeRooms.filter((room) => room.status === 'COMPLETED'),
+    [activeRooms],
+  );
+
+  const activeRoomSummaries = useMemo(
+    () =>
+      selectedGroupId !== null &&
+      summariesGroupId === selectedGroupId &&
+      completedRooms.length > 0
+        ? roomSummaries
+        : {},
+    [selectedGroupId, summariesGroupId, completedRooms, roomSummaries],
   );
 
   const selectedGroup = groups.find((group) => group.id === selectedGroupId) ?? null;
@@ -139,17 +157,12 @@ function HomePage() {
   }, [showToast]);
 
   useEffect(() => {
-    if (selectedGroupId === null) {
-      setRooms([]);
-      setRoomSummaries({});
-      return;
-    }
+    if (selectedGroupId === null) return;
 
     let ignore = false;
-    setIsRoomsLoading(true);
-    setRoomSummaries({});
+    const groupId = selectedGroupId;
 
-    fetchGroupDetail(selectedGroupId)
+    fetchGroupDetail(groupId)
       .then((detail) => {
         if (!ignore) setSelectedGroupRole(detail.myRole);
       })
@@ -157,19 +170,18 @@ function HomePage() {
         if (!ignore) setSelectedGroupRole(null);
       });
 
-    fetchGroupRooms(selectedGroupId)
+    fetchGroupRooms(groupId)
       .then((nextRooms) => {
         if (ignore) return;
         setRooms(nextRooms);
+        setRoomsGroupId(groupId);
       })
       .catch((error: unknown) => {
         if (ignore) return;
         const message = error instanceof ApiError ? error.message : '약속 목록을 불러오지 못했어요';
         showToast(message);
         setRooms([]);
-      })
-      .finally(() => {
-        if (!ignore) setIsRoomsLoading(false);
+        setRoomsGroupId(groupId);
       });
 
     return () => {
@@ -178,9 +190,10 @@ function HomePage() {
   }, [selectedGroupId, showToast]);
 
   useEffect(() => {
-    if (completedRooms.length === 0) return;
+    if (selectedGroupId === null || completedRooms.length === 0) return;
 
     let ignore = false;
+    const groupId = selectedGroupId;
 
     Promise.all(
       completedRooms.map((room) =>
@@ -195,12 +208,13 @@ function HomePage() {
         if (entry) next[entry[0]] = entry[1];
       }
       setRoomSummaries(next);
+      setSummariesGroupId(groupId);
     });
 
     return () => {
       ignore = true;
     };
-  }, [completedRooms]);
+  }, [selectedGroupId, completedRooms]);
 
   const handleSelectGroup = (groupId: number) => {
     setSelectedGroupId(groupId);
@@ -365,7 +379,7 @@ function HomePage() {
               <p className="py-10 text-caption text-dark-border">불러오는 중...</p>
             ) : completedRooms.length > 0 ? (
               completedRooms.map((room) => {
-                const summary = roomSummaries[room.roomId];
+                const summary = activeRoomSummaries[room.roomId];
                 return (
                   <ArchivalCard
                     key={room.roomId}
