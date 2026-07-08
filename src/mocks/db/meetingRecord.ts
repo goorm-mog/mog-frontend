@@ -412,6 +412,7 @@ export const toMeetingRecordApiData = (record: MockMeetingRecord): MeetingRecord
   recordId: record.recordId,
   seq: record.seq,
   placeName: record.placeName,
+  address: record.address,
   memo: record.memo,
   totalCost: record.totalCost,
   payer: record.payer,

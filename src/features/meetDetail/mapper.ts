@@ -50,7 +50,7 @@ function toSettlementRound(
     id: record.recordId,
     seq: record.seq,
     placeName: record.placeName,
-    address: '-',
+    address: record.address?.trim() || '-',
     menu: '-',
     totalCost: formatWon(settlementAmount ?? record.totalCost),
     payer: formatPayer(record.payer),

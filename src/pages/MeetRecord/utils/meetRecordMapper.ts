@@ -28,7 +28,7 @@ export function mapMeetingRecordToReceipt(
     recordId: record.recordId,
     roundLabel: `${record.seq}차`,
     placeName: record.placeName,
-    placeAddress: null,
+    placeAddress: record.address ?? null,
     placePlaceholder: receiptCopy.placePlaceholder,
     menuPlaceholder: receiptCopy.menuPlaceholder,
     items:
@@ -68,6 +68,7 @@ export function toMeetingRecordRequest(
 
   return {
     placeName: receipt.placeName.trim(),
+    address: receipt.placeAddress?.trim() || null,
     memo: receipt.memo.trim(),
     payer:
       receipt.payerRoomMemberId == null

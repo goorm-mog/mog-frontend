@@ -185,6 +185,7 @@ export const recordsHandlers: HttpHandler[] = [
       recordId: nextRecordId,
       seq: Math.max(0, ...roomData.records.map(({ seq }) => seq)) + 1,
       placeName: body.placeName,
+      address: body.address ?? null,
       memo: body.memo,
       totalCost: sumParticipantsAmount(participants),
       payer: mapPayer(roomId, body.payer),
@@ -241,6 +242,7 @@ export const recordsHandlers: HttpHandler[] = [
         : mapParticipants(roomId, body.participants);
 
     record.placeName = body.placeName ?? record.placeName;
+    record.address = body.address ?? record.address;
     record.memo = body.memo ?? record.memo;
     record.payer = body.payer == null ? record.payer : mapPayer(roomId, body.payer);
     record.participants = nextParticipants;

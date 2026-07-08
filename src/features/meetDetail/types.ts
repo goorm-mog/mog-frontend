@@ -44,6 +44,7 @@ export interface MeetingRecordResponse {
   recordId: number;
   seq: number;
   placeName: string;
+  address: string | null;
   memo: string | null;
   totalCost: number;
   payer: MeetingRecordPayer | null;
