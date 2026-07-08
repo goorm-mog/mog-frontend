@@ -7,6 +7,7 @@ import TopAppBar from '@/components/common/TopAppBar/TopAppBar';
 import { fetchMeetDetail } from '@/features/meetDetail/api/meetDetail';
 import type { MeetDetailData } from '@/features/meetDetail/types';
 import { ApiError } from '@/lib/apiFetch';
+import PromisePhotoGallery from '@/pages/MeetDetail/components/PromisePhotoGallery';
 import SettlementCard from '@/pages/MeetDetail/components/SettlementCard';
 
 function MeetDetailPage() {
@@ -112,8 +113,19 @@ function MeetDetailPage() {
             </p>
           ) : errorMessage ? (
             <p className="py-8 text-center text-xs text-dark-border">{errorMessage}</p>
-          ) : currentMeetDetail && currentMeetDetail.rounds.length > 0 ? (
-            currentMeetDetail.rounds.map((round) => <SettlementCard key={round.id} round={round} />)
+          ) : currentMeetDetail ? (
+            <>
+              <PromisePhotoGallery photos={currentMeetDetail.photos} />
+              {currentMeetDetail.rounds.length > 0 ? (
+                currentMeetDetail.rounds.map((round) => (
+                  <SettlementCard key={round.id} round={round} />
+                ))
+              ) : (
+                <p className="py-8 text-center text-xs text-dark-border">
+                  아직 기록된 내역이 없습니다.
+                </p>
+              )}
+            </>
           ) : (
             <p className="py-8 text-center text-xs text-dark-border">아직 기록된 내역이 없습니다.</p>
           )}

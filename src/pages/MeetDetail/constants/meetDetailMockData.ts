@@ -1,4 +1,4 @@
-import { meetingRecordsDb, roomsDb, settlementsDb } from '@/mocks/db';
+import { meetingRecordPhotosDb, meetingRecordsDb, roomsDb, settlementsDb } from '@/mocks/db';
 
 const WON_FORMATTER = new Intl.NumberFormat('ko-KR');
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const;
@@ -22,8 +22,6 @@ export type SettlementRound = {
   payer: string;
   participants: string;
   memo: string;
-  photoUrls?: string[];
-  imageCount: number;
 };
 
 const formatWon = (amount: number) => `₩ ${WON_FORMATTER.format(amount)}`;
@@ -60,6 +58,8 @@ export const MEET_DETAIL = {
   ),
 };
 
+export const MEET_DETAIL_PHOTOS = meetingRecordPhotosDb;
+
 export const SETTLEMENT_ROUNDS: SettlementRound[] = [
   ...meetingRecordsDb.map((record) => {
     const placeMeta = PLACE_META_BY_SEQ[record.seq as keyof typeof PLACE_META_BY_SEQ];
@@ -79,7 +79,6 @@ export const SETTLEMENT_ROUNDS: SettlementRound[] = [
         : '-',
       participants: record.participants.map((participant) => participant.nickname).join(', '),
       memo: record.memo || '-',
-      imageCount: record.photoCount,
     };
   }),
 ];

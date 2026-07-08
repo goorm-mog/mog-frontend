@@ -75,11 +75,10 @@ export type SettlementRound = {
   payer: string;
   participants: string;
   memo: string;
-  photoUrls?: string[];
-  imageCount: number;
 };
 
 export type MeetDetailData = {
   summary: MeetDetailSummary;
+  photos: { photoId: number; s3Url: string; createdAt: string }[];
   rounds: SettlementRound[];
 };

@@ -39,5 +39,11 @@ export async function fetchMeetDetail(roomId: number): Promise<MeetDetailData> {
     fetchMeetDetailConfirmedSchedule(roomId).catch(() => null),
   ]);
 
-  return toMeetDetailData(room, recordsResponse.records, settlement, confirmedSchedule);
+  return toMeetDetailData(
+    room,
+    recordsResponse.records,
+    recordsResponse.photos,
+    settlement,
+    confirmedSchedule,
+  );
 }

@@ -14,6 +14,7 @@ const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const;
 export function toMeetDetailData(
   room: RoomStatusResponse,
   records: MeetingRecordResponse[],
+  photos: { photoId: number; s3Url: string; createdAt: string }[],
   settlement: SettlementResponse | null,
   confirmedSchedule: ConfirmedScheduleResponse | null,
 ): MeetDetailData {
@@ -28,6 +29,7 @@ export function toMeetDetailData(
       datetime: formatMeetDate(resolveMeetDate(records, confirmedSchedule)),
       perPersonCost: formatWon(Math.round(totalCost / memberCount)),
     },
+    photos: photos.slice().sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt)),
     rounds: records
       .slice()
       .sort((a, b) => a.seq - b.seq)
@@ -54,7 +56,6 @@ function toSettlementRound(
     payer: formatPayer(record.payer),
     participants: record.participants.map((participant) => participant.nickname).join(', ') || '-',
     memo: record.memo?.trim() || '-',
-    imageCount: 0,
   };
 }
 
