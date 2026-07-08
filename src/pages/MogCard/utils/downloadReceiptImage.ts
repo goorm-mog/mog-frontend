@@ -7,24 +7,37 @@ const TRANSPARENT_IMAGE_PLACEHOLDER =
 
 type ShareReceiptImageResult = 'shared' | 'cancelled';
 
-export async function shareReceiptImage(
+export class ReceiptImageShareUnsupportedError extends Error {
+  constructor() {
+    super('파일 공유를 지원하지 않는 브라우저입니다.');
+    this.name = 'ReceiptImageShareUnsupportedError';
+  }
+}
+
+export async function createReceiptImageFile(
   receiptElement: HTMLElement,
   fileName: string,
-): Promise<ShareReceiptImageResult> {
+) {
   const blob = await createReceiptImageBlob(receiptElement);
-  const file = new File([blob], fileName, { type: 'image/png' });
+
+  return new File([blob], fileName, { type: 'image/png' });
+}
+
+export async function shareReceiptImageFile(
+  file: File,
+): Promise<ShareReceiptImageResult> {
   const canShareFile =
     typeof navigator.canShare === 'function' &&
     navigator.canShare({ files: [file] });
 
   if (!canShareFile || typeof navigator.share !== 'function') {
-    throw new Error('파일 공유를 지원하지 않는 브라우저입니다.');
+    throw new ReceiptImageShareUnsupportedError();
   }
 
   try {
     await navigator.share({
       files: [file],
-      title: fileName,
+      title: file.name,
     });
 
     return 'shared';

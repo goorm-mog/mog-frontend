@@ -1,11 +1,16 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { Share2, X } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { typography } from '@/constants/typography';
 import { useToast } from '@/hooks/useToast';
 import MogReceiptCard from '@/pages/MogCard/components/MogReceiptCard';
+import { useReceiptPageBackground } from '@/pages/MogCard/hooks/useReceiptPageBackground';
+import { useReceiptShareFile } from '@/pages/MogCard/hooks/useReceiptShareFile';
 import { useMogCardSummary } from '@/pages/MogCard/hooks/useMogCardSummary';
-import { shareReceiptImage } from '@/pages/MogCard/utils/downloadReceiptImage';
+import {
+  ReceiptImageShareUnsupportedError,
+  shareReceiptImageFile,
+} from '@/pages/MogCard/utils/downloadReceiptImage';
 import { toMogReceipt } from '@/pages/MogCard/utils/mogReceipt';
 
 const RECEIPT_SCREEN_BACKGROUND = '#4d4b48';
@@ -27,50 +32,31 @@ function MogCardPage() {
     summary && !summary.confirmedDate
       ? '확정 일정이 있는 약속만 모그카드를 만들 수 있어요.'
       : (errorMessage ?? '해당 약속의 영수증을 찾을 수 없습니다.');
-  const canUseReceiptAction = Boolean(receipt) && !isSharing && !isLoading;
+  const { shareFile, isPreparingShare } = useReceiptShareFile(receiptRef, receipt);
+  const canUseReceiptAction =
+    Boolean(shareFile) && !isSharing && !isLoading && !isPreparingShare;
 
-  useEffect(() => {
-    const root = document.getElementById('root');
-    const themeColor = getThemeColorMetaElement();
-    const previousThemeColor = themeColor.content;
-    const previousHtmlBackground = document.documentElement.style.backgroundColor;
-    const previousBodyBackground = document.body.style.backgroundColor;
-    const previousRootBackground = root?.style.backgroundColor ?? '';
-
-    themeColor.content = RECEIPT_SCREEN_BACKGROUND;
-    document.documentElement.style.backgroundColor = RECEIPT_SCREEN_BACKGROUND;
-    document.body.style.backgroundColor = RECEIPT_SCREEN_BACKGROUND;
-
-    if (root) {
-      root.style.backgroundColor = RECEIPT_SCREEN_BACKGROUND;
-    }
-
-    return () => {
-      themeColor.content = previousThemeColor;
-      document.documentElement.style.backgroundColor = previousHtmlBackground;
-      document.body.style.backgroundColor = previousBodyBackground;
-
-      if (root) {
-        root.style.backgroundColor = previousRootBackground;
-      }
-    };
-  }, []);
+  useReceiptPageBackground(RECEIPT_SCREEN_BACKGROUND);
 
   const handleShare = async () => {
-    if (!receiptRef.current || !receipt || isSharing) {
+    if (!shareFile || isSharing) {
+      if (!isPreparingShare) {
+        showToast('공유 이미지를 준비하지 못했어요.');
+      }
       return;
     }
 
     setIsSharing(true);
 
     try {
-      await shareReceiptImage(
-        receiptRef.current,
-        getReceiptFileName(receipt.downloadFileName),
-      );
+      await shareReceiptImageFile(shareFile);
     } catch (error) {
       console.error(error);
-      showToast('영수증 이미지를 공유하지 못했어요.');
+      showToast(
+        error instanceof ReceiptImageShareUnsupportedError
+          ? '이 브라우저에서는 이미지 공유를 지원하지 않아요.'
+          : '영수증 이미지를 공유하지 못했어요.',
+      );
     } finally {
       setIsSharing(false);
     }
@@ -159,28 +145,6 @@ function ActionButton({
       {children}
     </button>
   );
-}
-
-function getReceiptFileName(value: string) {
-  const fileName = value.trim().replace(/[\\/:*?"<>|]/g, '-');
-
-  return fileName || 'mog';
-}
-
-function getThemeColorMetaElement() {
-  const existingThemeColor = document.querySelector<HTMLMetaElement>(
-    'meta[name="theme-color"]',
-  );
-
-  if (existingThemeColor) {
-    return existingThemeColor;
-  }
-
-  const themeColor = document.createElement('meta');
-  themeColor.name = 'theme-color';
-  document.head.append(themeColor);
-
-  return themeColor;
 }
 
 export default MogCardPage;
