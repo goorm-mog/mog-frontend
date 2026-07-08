@@ -1,16 +1,17 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { Download, Share2, X } from 'lucide-react';
-import { useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { typography } from '@/constants/typography';
 import { useToast } from '@/hooks/useToast';
 import MogReceiptCard from '@/pages/MogCard/components/MogReceiptCard';
 import { useMogCardSummary } from '@/pages/MogCard/hooks/useMogCardSummary';
 import {
-  createReceiptImageFallbackWindow,
   downloadReceiptImage,
   shareReceiptImage,
 } from '@/pages/MogCard/utils/downloadReceiptImage';
 import { toMogReceipt } from '@/pages/MogCard/utils/mogReceipt';
+
+const RECEIPT_SCREEN_BACKGROUND = '#4d4b48';
 
 function MogCardPage() {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ function MogCardPage() {
   const receiptRef = useRef<HTMLElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const numericRoomId = Number(roomId);
   const isValidRoomId = Number.isFinite(numericRoomId);
   const { summary, errorMessage, isLoading } = useMogCardSummary(
@@ -33,22 +35,64 @@ function MogCardPage() {
   const isProcessing = isDownloading || isSharing;
   const canUseReceiptAction = Boolean(receipt) && !isProcessing && !isLoading;
 
+  useEffect(() => {
+    const root = document.getElementById('root');
+    const themeColor = getThemeColorMetaElement();
+    const previousThemeColor = themeColor.content;
+    const previousHtmlBackground = document.documentElement.style.backgroundColor;
+    const previousBodyBackground = document.body.style.backgroundColor;
+    const previousRootBackground = root?.style.backgroundColor ?? '';
+
+    themeColor.content = RECEIPT_SCREEN_BACKGROUND;
+    document.documentElement.style.backgroundColor = RECEIPT_SCREEN_BACKGROUND;
+    document.body.style.backgroundColor = RECEIPT_SCREEN_BACKGROUND;
+
+    if (root) {
+      root.style.backgroundColor = RECEIPT_SCREEN_BACKGROUND;
+    }
+
+    return () => {
+      themeColor.content = previousThemeColor;
+      document.documentElement.style.backgroundColor = previousHtmlBackground;
+      document.body.style.backgroundColor = previousBodyBackground;
+
+      if (root) {
+        root.style.backgroundColor = previousRootBackground;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (previewImageUrl) {
+        URL.revokeObjectURL(previewImageUrl);
+      }
+    };
+  }, [previewImageUrl]);
+
   const handleDownload = async () => {
     if (!receiptRef.current || !receipt || isDownloading) {
       return;
     }
 
     setIsDownloading(true);
-    const fallbackWindow = createReceiptImageFallbackWindow();
 
     try {
-      await downloadReceiptImage(
+      const result = await downloadReceiptImage(
         receiptRef.current,
         getReceiptFileName(receipt.downloadFileName),
-        fallbackWindow,
       );
+
+      if (result.status === 'preview') {
+        setPreviewImageUrl((currentUrl) => {
+          if (currentUrl) {
+            URL.revokeObjectURL(currentUrl);
+          }
+
+          return result.objectUrl;
+        });
+      }
     } catch (error) {
-      fallbackWindow?.close();
       console.error(error);
       showToast('영수증 이미지를 저장하지 못했어요.');
     } finally {
@@ -80,9 +124,35 @@ function MogCardPage() {
     }
   };
 
+  const handleClosePreview = () => {
+    setPreviewImageUrl((currentUrl) => {
+      if (currentUrl) {
+        URL.revokeObjectURL(currentUrl);
+      }
+
+      return null;
+    });
+  };
+
   return (
-    <main className="fixed inset-0 overflow-y-auto bg-[rgb(0_0_0_/_70%)] px-4 pt-[40px] pb-20">
-      <div className="mx-auto w-full max-w-[430px]">
+    <main
+      className="relative min-h-dvh px-4 pt-[calc(40px+env(safe-area-inset-top))] pb-[calc(24px+env(safe-area-inset-bottom))]"
+      style={{ backgroundColor: RECEIPT_SCREEN_BACKGROUND }}
+    >
+      <div
+        className="pointer-events-none fixed inset-x-0 top-[calc(-1*env(safe-area-inset-top))] bottom-[calc(-1*env(safe-area-inset-bottom))] z-0"
+        style={{ backgroundColor: RECEIPT_SCREEN_BACKGROUND }}
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none fixed inset-x-0 top-0 z-20 h-[calc(10px+env(safe-area-inset-top))] bg-gradient-to-b from-[#4d4b48] to-transparent"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-20 h-[calc(34px+env(safe-area-inset-bottom))] bg-gradient-to-t from-[#4d4b48] to-transparent"
+        aria-hidden="true"
+      />
+      <div className="relative z-10 mx-auto w-full max-w-[430px]">
         <div className="mx-auto flex w-full max-w-[398px] items-center justify-between">
           <ActionButton label="닫기" onClick={() => navigate(-1)}>
             <X size={22} strokeWidth={2.2} />
@@ -116,6 +186,14 @@ function MogCardPage() {
           )}
         </div>
       </div>
+
+      {previewImageUrl ? (
+        <ReceiptImagePreviewModal
+          imageUrl={previewImageUrl}
+          fileName={receipt?.downloadFileName ?? 'mog.png'}
+          onClose={handleClosePreview}
+        />
+      ) : null}
     </main>
   );
 }
@@ -156,10 +234,64 @@ function ActionButton({
   );
 }
 
+type ReceiptImagePreviewModalProps = {
+  imageUrl: string;
+  fileName: string;
+  onClose: () => void;
+};
+
+function ReceiptImagePreviewModal({
+  imageUrl,
+  fileName,
+  onClose,
+}: ReceiptImagePreviewModalProps) {
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col bg-[rgb(0_0_0_/_78%)] px-4 pt-[calc(18px+env(safe-area-inset-top))] pb-[calc(18px+env(safe-area-inset-bottom))]">
+      <div className="mx-auto flex w-full max-w-[398px] items-center justify-between">
+        <p className="font-pretendard text-[14px] leading-[20px] font-semibold text-background">
+          이미지를 길게 눌러 저장하세요.
+        </p>
+        <button
+          type="button"
+          className="flex size-10 items-center justify-center rounded-full bg-background text-text"
+          aria-label="저장 이미지 닫기"
+          onClick={onClose}
+        >
+          <X size={21} strokeWidth={2.2} />
+        </button>
+      </div>
+
+      <div className="mx-auto mt-4 min-h-0 w-full max-w-[398px] flex-1 overflow-y-auto">
+        <img
+          src={imageUrl}
+          alt={fileName}
+          className="block h-auto w-full select-auto rounded-[2px]"
+        />
+      </div>
+    </div>
+  );
+}
+
 function getReceiptFileName(value: string) {
   const fileName = value.trim().replace(/[\\/:*?"<>|]/g, '-');
 
   return fileName || 'mog';
+}
+
+function getThemeColorMetaElement() {
+  const existingThemeColor = document.querySelector<HTMLMetaElement>(
+    'meta[name="theme-color"]',
+  );
+
+  if (existingThemeColor) {
+    return existingThemeColor;
+  }
+
+  const themeColor = document.createElement('meta');
+  themeColor.name = 'theme-color';
+  document.head.append(themeColor);
+
+  return themeColor;
 }
 
 export default MogCardPage;

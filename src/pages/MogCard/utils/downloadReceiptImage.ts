@@ -1,15 +1,22 @@
 import { toBlob } from 'html-to-image';
 
+const MAX_DESKTOP_IMAGE_PIXEL_RATIO = 2;
+const MAX_MOBILE_IMAGE_PIXEL_RATIO = 1;
+
+type DownloadReceiptImageResult =
+  | { status: 'shared' | 'downloaded' | 'cancelled' }
+  | { status: 'preview'; objectUrl: string };
 type ShareReceiptImageResult = 'shared' | 'downloaded' | 'cancelled';
 
 export async function downloadReceiptImage(
   receiptElement: HTMLElement,
   fileName: string,
-  fallbackWindow: Window | null = null,
-) {
+): Promise<DownloadReceiptImageResult> {
   const blob = await createReceiptImageBlob(receiptElement);
 
-  await saveImageBlob(blob, fileName, fallbackWindow);
+  const result = await saveImageBlob(blob, fileName);
+
+  return result;
 }
 
 export async function shareReceiptImage(
@@ -43,12 +50,14 @@ export async function shareReceiptImage(
   }
 }
 
-async function createReceiptImageBlob(receiptElement: HTMLElement) {
+async function createReceiptImageBlob(
+  receiptElement: HTMLElement,
+) {
   await document.fonts?.ready;
 
   const blob = await toBlob(receiptElement, {
-    cacheBust: true,
-    pixelRatio: window.devicePixelRatio || 1,
+    cacheBust: false,
+    pixelRatio: getReceiptImagePixelRatio(),
   });
 
   if (!blob) {
@@ -58,30 +67,10 @@ async function createReceiptImageBlob(receiptElement: HTMLElement) {
   return blob;
 }
 
-export function createReceiptImageFallbackWindow() {
-  if (!isAppleMobileDevice()) {
-    return null;
-  }
-
-  const fallbackWindow = window.open('', '_blank');
-
-  if (fallbackWindow) {
-    fallbackWindow.document.title = '영수증 이미지 저장';
-    fallbackWindow.document.body.style.margin = '0';
-    fallbackWindow.document.body.style.fontFamily = 'sans-serif';
-    fallbackWindow.document.body.style.background = '#f8f5ef';
-    fallbackWindow.document.body.style.color = '#2c2924';
-    fallbackWindow.document.body.textContent = '영수증 이미지를 만들고 있어요.';
-  }
-
-  return fallbackWindow;
-}
-
 async function saveImageBlob(
   blob: Blob,
   fileName: string,
-  fallbackWindow: Window | null,
-) {
+): Promise<DownloadReceiptImageResult> {
   const file = new File([blob], fileName, { type: 'image/png' });
   const canShareFile =
     typeof navigator.canShare === 'function' &&
@@ -93,22 +82,22 @@ async function saveImageBlob(
         files: [file],
         title: fileName,
       });
-      fallbackWindow?.close();
-      return;
+      return { status: 'shared' };
     } catch (error) {
       if (error instanceof DOMException && error.name === 'AbortError') {
-        fallbackWindow?.close();
-        return;
+        return { status: 'cancelled' };
       }
+
+      return { status: 'preview', objectUrl: URL.createObjectURL(blob) };
     }
   }
 
-  if (fallbackWindow && !fallbackWindow.closed) {
-    openImagePreview(fallbackWindow, blob, fileName);
-    return;
+  if (isAppleMobileDevice()) {
+    return { status: 'preview', objectUrl: URL.createObjectURL(blob) };
   }
 
   triggerDownload(blob, fileName);
+  return { status: 'downloaded' };
 }
 
 function triggerDownload(blob: Blob, fileName: string) {
@@ -135,32 +124,11 @@ function isAppleMobileDevice() {
   );
 }
 
-function openImagePreview(
-  fallbackWindow: Window,
-  blob: Blob,
-  fileName: string,
-) {
-  const objectUrl = URL.createObjectURL(blob);
-  fallbackWindow.document.body.innerHTML = '';
-  fallbackWindow.document.body.style.margin = '0';
-  fallbackWindow.document.body.style.background = '#f8f5ef';
-  fallbackWindow.document.body.style.padding = '16px';
-  fallbackWindow.document.body.style.boxSizing = 'border-box';
-  fallbackWindow.document.body.style.fontFamily = 'sans-serif';
-  fallbackWindow.document.body.style.color = '#2c2924';
+function getReceiptImagePixelRatio() {
+  const devicePixelRatio = window.devicePixelRatio || 1;
+  const maxPixelRatio = isAppleMobileDevice()
+    ? MAX_MOBILE_IMAGE_PIXEL_RATIO
+    : MAX_DESKTOP_IMAGE_PIXEL_RATIO;
 
-  const image = fallbackWindow.document.createElement('img');
-  image.src = objectUrl;
-  image.alt = fileName;
-  image.style.display = 'block';
-  image.style.width = '100%';
-  image.style.height = 'auto';
-
-  const guide = fallbackWindow.document.createElement('p');
-  guide.textContent = '이미지를 길게 눌러 저장하세요.';
-  guide.style.margin = '0 0 12px';
-  guide.style.fontSize = '14px';
-  guide.style.lineHeight = '20px';
-
-  fallbackWindow.document.body.append(guide, image);
+  return Math.min(devicePixelRatio, maxPixelRatio);
 }
