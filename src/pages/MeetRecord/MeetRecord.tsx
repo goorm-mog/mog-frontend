@@ -118,6 +118,7 @@ function MeetRecord() {
           title={roomName}
           showBack
           onBack={() => navigate(-1)}
+          rightSlot={<span aria-hidden className="block size-4" />}
         />
         {isLoading || loadError || roomId == null ? (
           <>
