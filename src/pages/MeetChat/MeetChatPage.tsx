@@ -120,7 +120,9 @@ function MeetChatPage() {
         const message = await sendMeetChatMessageMock(numericRoomId, content);
         appendMessage(message);
       } else {
-        chatSocketRef.current?.send(content);
+        const chatSocket = chatSocketRef.current;
+        if (!chatSocket) throw new Error('채팅 서버에 연결되지 않았습니다.');
+        chatSocket.send(content);
       }
 
       setDraft('');

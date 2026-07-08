@@ -32,9 +32,13 @@ function toWebSocketBaseUrl(apiBase: string) {
     return `${protocol}//${window.location.host}`;
   }
 
-  if (apiBase.startsWith('https://')) return apiBase.replace(/^https:\/\//, 'wss://');
-  if (apiBase.startsWith('http://')) return apiBase.replace(/^http:\/\//, 'ws://');
-  return apiBase;
+  try {
+    const url = new URL(apiBase, window.location.origin);
+    const protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${protocol}//${url.host}`;
+  } catch {
+    return apiBase;
+  }
 }
 
 function encodeFrame(command: string, headers: StompHeaders = {}, body = '') {
