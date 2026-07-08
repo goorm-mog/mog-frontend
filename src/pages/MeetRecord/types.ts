@@ -19,6 +19,7 @@ export type ReceiptCardData = {
   recordId?: number;
   roundLabel: string;
   placeName: string;
+  placeAddress?: string | null;
   placePlaceholder: string;
   menuPlaceholder: string;
   items: ReceiptItem[];
@@ -33,7 +34,7 @@ export type ReceiptCardData = {
 };
 
 export type PlaceSearchResult = {
-  id: number;
+  id: string;
   name: string;
   address: string;
 };

@@ -28,6 +28,7 @@ export function mapMeetingRecordToReceipt(
     recordId: record.recordId,
     roundLabel: `${record.seq}차`,
     placeName: record.placeName,
+    placeAddress: null,
     placePlaceholder: receiptCopy.placePlaceholder,
     menuPlaceholder: receiptCopy.menuPlaceholder,
     items:

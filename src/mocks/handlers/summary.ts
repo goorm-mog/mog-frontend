@@ -39,7 +39,10 @@ const createSummaryResponse = (roomId: number): SummaryCardResponse | null => {
   return {
     roomId,
     confirmedDate: room.promiseDate.slice(0, 10),
-    confirmedPlace: null,
+    confirmedPlace: {
+      placeName: records[0].placeName,
+      address: records[0].address,
+    },
     totalMemberCount: room.members.length,
     members: room.members.map((member) => member.nickname),
     photos: meetingRecordPhotosDb
@@ -48,6 +51,7 @@ const createSummaryResponse = (roomId: number): SummaryCardResponse | null => {
     records: records.map((record) => ({
       seq: record.seq,
       placeName: record.placeName,
+      address: record.address,
       memo: record.memo,
       totalCost: record.totalCost,
       participants: record.participants.map(({ nickname, amount }) => ({

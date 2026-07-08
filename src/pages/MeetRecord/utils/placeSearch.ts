@@ -3,7 +3,7 @@ import type { PlaceSearchResult } from '@/pages/MeetRecord/types';
 
 export const placeSearchResults: PlaceSearchResult[] = meetingRecordsDb.map(
   ({ recordId, placeName, address }) => ({
-    id: recordId,
+    id: String(recordId),
     name: placeName,
     address,
   }),
