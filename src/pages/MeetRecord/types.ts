@@ -13,9 +13,12 @@ export type ReceiptParticipant = {
 export type ReceiptPayerOption = {
   id: number;
   label: string;
+  bankName?: string | null;
+  accountNumber?: string | null;
 };
 
 export type ReceiptCardData = {
+  recordId?: number;
   roundLabel: string;
   placeName: string;
   placePlaceholder: string;
@@ -24,9 +27,11 @@ export type ReceiptCardData = {
   totalAmount: number;
   participants: ReceiptParticipant[];
   payerPlaceholder: string;
+  payerRoomMemberId?: number | null;
+  payerBankName?: string | null;
+  payerAccountNumber?: string | null;
   memo: string;
   memoPlaceholder: string;
-  photoCount: number;
 };
 
 export type PlaceSearchResult = {

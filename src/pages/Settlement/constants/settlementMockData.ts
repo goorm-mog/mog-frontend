@@ -32,8 +32,8 @@ const currentRoomMember = room.members.find(
 
 export const SETTLEMENT_PLACE_PAYERS: SettlementPlacePayer[] = records.map((record) => ({
   placeName: record.placeName,
-  payerId: record.payer.roomMemberId,
-  payerName: record.payer.nickname,
+  payerId: record.payer?.roomMemberId ?? 0,
+  payerName: record.payer?.nickname ?? '-',
 }));
 
 export const SETTLEMENT_SUMMARY: SettlementSummary = {

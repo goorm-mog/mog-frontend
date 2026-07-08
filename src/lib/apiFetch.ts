@@ -36,14 +36,20 @@ async function parseErrorResponse(response: Response): Promise<ErrorResponseBody
 
 export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
   const accessToken = getAccessToken();
+  const headers = new Headers(options?.headers);
+  const isFormData = options?.body instanceof FormData;
+
+  if (!isFormData && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+
+  if (accessToken && !headers.has('Authorization')) {
+    headers.set('Authorization', `Bearer ${accessToken}`);
+  }
 
   const response = await fetch(`${API_BASE}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-      ...options?.headers,
-    },
     ...options,
+    headers,
   });
 
   if (!response.ok) {

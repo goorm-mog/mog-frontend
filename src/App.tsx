@@ -26,7 +26,7 @@ function App() {
           <Route path="/departure/participant/:roomId" element={<DeparturePage />} />
           <Route path="/meet-detail" element={<MeetDetailPage />} />
           <Route path="/:roomId/meet-detail" element={<MeetDetailPage />} />
-          <Route path="/meet-record" element={<MeetRecord />} />
+          <Route path="/:roomId/meet-record" element={<MeetRecord />} />
           <Route path="/:roomId/mog-card" element={<MogCardPage />} />
           <Route path="/:roomId/settlement" element={<SettlementPage />} />
           <Route path="/:roomId/chat" element={<MeetChatPage />} />

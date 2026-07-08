@@ -1,7 +1,5 @@
 import { Plus } from 'lucide-react';
 import ReceiptCard from '@/pages/MeetRecord/components/ReceiptCard';
-import { useReceiptAutoScroll } from '@/pages/MeetRecord/hooks/useReceiptAutoScroll';
-import useWheelScrollSensitivity from '@/pages/MeetRecord/hooks/useWheelScrollSensitivity';
 import type {
   ReceiptCardData,
   ReceiptPayerOption,
@@ -9,49 +7,31 @@ import type {
 import { colors } from '../../../constants/colors';
 
 type ReceiptListProps = {
+  roomId: number;
   receipts: ReceiptCardData[];
   payerOptions: readonly ReceiptPayerOption[];
-  pendingScrollReceiptId: string | null;
+  resetKey: number;
   onAddReceipt: () => void;
   onReceiptChange: (receiptId: string, receipt: Partial<ReceiptCardData>) => void;
   onDeleteReceipt: (receiptId: string) => void;
-  onScrollComplete: () => void;
 };
 
 function ReceiptList({
+  roomId,
   receipts,
   payerOptions,
-  pendingScrollReceiptId,
+  resetKey,
   onAddReceipt,
   onReceiptChange,
   onDeleteReceipt,
-  onScrollComplete,
 }: ReceiptListProps) {
-  const contentScrollRef = useWheelScrollSensitivity<HTMLElement>();
-
-  useReceiptAutoScroll({
-    scrollRef: contentScrollRef,
-    receiptCount: receipts.length,
-    receiptId: pendingScrollReceiptId,
-    onScrollComplete,
-  });
-
   return (
-    <section
-      ref={contentScrollRef}
-      className="min-h-0 flex-1 overflow-y-auto px-[14px] pb-6 promise-scrollbar-hidden"
-    >
-      <div
-        className="pointer-events-none sticky top-0 z-20 -mx-[14px] -mb-5 h-5"
-        style={{
-          background: `linear-gradient(180deg, ${colors.background} 0%, rgb(255 250 243 / 88%) 35%, rgb(255 250 243 / 0%) 100%)`,
-        }}
-        aria-hidden="true"
-      />
-      <div className="flex flex-col gap-7 mt-5">
+    <section className="px-[14px]">
+      <div className="mt-5 flex flex-col gap-7">
         {receipts.map((receipt) => (
           <ReceiptCard
-            key={receipt.roundLabel}
+            key={`${resetKey}-${receipt.roundLabel}`}
+            roomId={roomId}
             receipt={receipt}
             payerOptions={payerOptions}
             onReceiptChange={onReceiptChange}
