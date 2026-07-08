@@ -1,15 +1,16 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { Download, Share2, X } from 'lucide-react';
-import { useRef, useState, type ReactNode } from 'react';
+import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { typography } from '@/constants/typography';
 import { useToast } from '@/hooks/useToast';
 import MogReceiptCard from '@/pages/MogCard/components/MogReceiptCard';
+import { useMogCardSummary } from '@/pages/MogCard/hooks/useMogCardSummary';
 import {
   createReceiptImageFallbackWindow,
   downloadReceiptImage,
   shareReceiptImage,
 } from '@/pages/MogCard/utils/downloadReceiptImage';
-import { getMogReceiptByRoomId } from '@/pages/MogCard/utils/mogReceipt';
+import { toMogReceipt } from '@/pages/MogCard/utils/mogReceipt';
 
 function MogCardPage() {
   const navigate = useNavigate();
@@ -19,11 +20,18 @@ function MogCardPage() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const numericRoomId = Number(roomId);
-  const receipt = Number.isFinite(numericRoomId)
-    ? getMogReceiptByRoomId(numericRoomId)
-    : null;
+  const isValidRoomId = Number.isFinite(numericRoomId);
+  const { summary, errorMessage, isLoading } = useMogCardSummary(
+    numericRoomId,
+    isValidRoomId,
+  );
+  const receipt = useMemo(() => (summary ? toMogReceipt(summary) : null), [summary]);
+  const emptyMessage =
+    summary && !summary.confirmedDate
+      ? '확정 일정이 있는 약속만 모그카드를 만들 수 있어요.'
+      : (errorMessage ?? '해당 약속의 영수증을 찾을 수 없습니다.');
   const isProcessing = isDownloading || isSharing;
-  const canUseReceiptAction = Boolean(receipt) && !isProcessing;
+  const canUseReceiptAction = Boolean(receipt) && !isProcessing && !isLoading;
 
   const handleDownload = async () => {
     if (!receiptRef.current || !receipt || isDownloading) {
@@ -99,18 +107,26 @@ function MogCardPage() {
         </div>
 
         <div className="mt-10">
-          {receipt ? (
+          {isLoading ? (
+            <ReceiptStateMessage>영수증을 불러오는 중입니다.</ReceiptStateMessage>
+          ) : receipt ? (
             <MogReceiptCard ref={receiptRef} receipt={receipt} />
           ) : (
-            <div
-              className={`${typography.body2} mx-auto flex min-h-[542px] w-full max-w-[370px] items-center justify-center rounded-[5px] border border-border bg-background px-8 text-center text-dark-border`}
-            >
-              해당 약속의 영수증을 찾을 수 없습니다.
-            </div>
+            <ReceiptStateMessage>{emptyMessage}</ReceiptStateMessage>
           )}
         </div>
       </div>
     </main>
+  );
+}
+
+function ReceiptStateMessage({ children }: { children: ReactNode }) {
+  return (
+    <div
+      className={`${typography.body2} mx-auto flex min-h-[542px] w-full max-w-[370px] items-center justify-center rounded-[5px] border border-border bg-background px-8 text-center text-dark-border`}
+    >
+      {children}
+    </div>
   );
 }
 

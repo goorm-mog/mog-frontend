@@ -11,8 +11,6 @@ export interface RoomStatusResponse {
     roomMemberId: number;
     userId: number;
     nickname: string;
-    bankName?: string | null;
-    accountNumber?: string | null;
     isJoined: boolean;
   }[];
 }
@@ -77,11 +75,10 @@ export type SettlementRound = {
   payer: string;
   participants: string;
   memo: string;
-  photoUrls?: string[];
-  imageCount: number;
 };
 
 export type MeetDetailData = {
   summary: MeetDetailSummary;
+  photos: { photoId: number; s3Url: string; createdAt: string }[];
   rounds: SettlementRound[];
 };

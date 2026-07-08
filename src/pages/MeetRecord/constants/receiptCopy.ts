@@ -1,7 +1,7 @@
 export const receiptCopy = {
   placePlaceholder: '장소를 입력하세요',
   menuPlaceholder: 'ex) 음식, 가격(1개당), 수량',
-  payerPlaceholder: '계좌를 선택하세요',
+  payerPlaceholder: '정산자를 선택하세요',
   memoPlaceholder: '메모를 입력하세요',
 } as const;
 

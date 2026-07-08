@@ -157,11 +157,14 @@ export function useMeetRecordReceipts({
       const invalidReceipt = receiptCards.find(
         (receipt) =>
           receipt.placeName.trim().length === 0 ||
-          receipt.participants.every((participant) => !participant.selected),
+          receipt.participants.every((participant) => !participant.selected) ||
+          receipt.payerRoomMemberId == null ||
+          !receipt.payerBankName?.trim() ||
+          !receipt.payerAccountNumber?.trim(),
       );
 
       if (invalidReceipt) {
-        throw new Error('장소와 참가자를 확인해주세요.');
+        throw new Error('장소, 참가자, 정산자와 계좌 정보를 확인해주세요.');
       }
 
       didStartServerMutation = true;

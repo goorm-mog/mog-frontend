@@ -5,6 +5,7 @@ type PolaroidFrameProps = {
 
 const POLAROID_PHOTO_PATH =
   'M203.108 26.7579L20.1106 32.1238C19.8711 32.1309 19.6822 32.3956 19.6887 32.7153L21.912 141.901C21.9185 142.221 22.1179 142.474 22.3574 142.467L205.355 137.102C205.595 137.094 205.784 136.83 205.777 136.51L203.554 27.3239C203.547 27.0043 203.348 26.7509 203.108 26.7579Z';
+const PHOTO_TILT_DEGREES = -1.68;
 
 function PolaroidFrame({ photoCount, photoUrl }: PolaroidFrameProps) {
   return (
@@ -29,11 +30,12 @@ function PolaroidFrame({ photoCount, photoUrl }: PolaroidFrameProps) {
           {photoUrl ? (
             <image
               href={photoUrl}
-              x="19.6887"
-              y="26.7579"
-              width="186.088"
-              height="115.709"
+              x="16"
+              y="22"
+              width="194"
+              height="124"
               preserveAspectRatio="xMidYMid slice"
+              transform={`rotate(${PHOTO_TILT_DEGREES} 112.733 84.612)`}
               clipPath="url(#mog-card-polaroid-photo-clip)"
             />
           ) : (
