@@ -1,24 +1,16 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { Download, Share2, X } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { typography } from '@/constants/typography';
 import { useToast } from '@/hooks/useToast';
-import { ApiError } from '@/lib/apiFetch';
-import { fetchMogCard } from '@/pages/MogCard/api/mogCard';
 import MogReceiptCard from '@/pages/MogCard/components/MogReceiptCard';
+import { useMogCardSummary } from '@/pages/MogCard/hooks/useMogCardSummary';
 import {
   createReceiptImageFallbackWindow,
   downloadReceiptImage,
   shareReceiptImage,
 } from '@/pages/MogCard/utils/downloadReceiptImage';
 import { toMogReceipt } from '@/pages/MogCard/utils/mogReceipt';
-import type { SummaryCardResponse } from '@/pages/MogCard/types';
-
-type SummaryState = {
-  roomId: number | null;
-  summary: SummaryCardResponse | null;
-  errorMessage: string | null;
-};
 
 function MogCardPage() {
   const navigate = useNavigate();
@@ -27,21 +19,12 @@ function MogCardPage() {
   const receiptRef = useRef<HTMLElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
-  const [summaryState, setSummaryState] = useState<SummaryState>({
-    roomId: null,
-    summary: null,
-    errorMessage: null,
-  });
   const numericRoomId = Number(roomId);
   const isValidRoomId = Number.isFinite(numericRoomId);
-  const hasCurrentSummaryState = summaryState.roomId === numericRoomId;
-  const summary = hasCurrentSummaryState ? summaryState.summary : null;
-  const errorMessage = !isValidRoomId
-    ? '잘못된 약속 정보입니다.'
-    : hasCurrentSummaryState
-      ? summaryState.errorMessage
-      : null;
-  const isLoading = isValidRoomId && !hasCurrentSummaryState;
+  const { summary, errorMessage, isLoading } = useMogCardSummary(
+    numericRoomId,
+    isValidRoomId,
+  );
   const receipt = useMemo(() => (summary ? toMogReceipt(summary) : null), [summary]);
   const emptyMessage =
     summary && !summary.confirmedDate
@@ -49,38 +32,6 @@ function MogCardPage() {
       : (errorMessage ?? '해당 약속의 영수증을 찾을 수 없습니다.');
   const isProcessing = isDownloading || isSharing;
   const canUseReceiptAction = Boolean(receipt) && !isProcessing && !isLoading;
-
-  useEffect(() => {
-    if (!isValidRoomId) return;
-
-    let ignore = false;
-
-    fetchMogCard(numericRoomId)
-      .then((data) => {
-        if (!ignore) {
-          setSummaryState({
-            roomId: numericRoomId,
-            summary: data,
-            errorMessage: null,
-          });
-        }
-      })
-      .catch((error: unknown) => {
-        if (ignore) {
-          return;
-        }
-
-        setSummaryState({
-          roomId: numericRoomId,
-          summary: null,
-          errorMessage: getMogCardErrorMessage(error),
-        });
-      });
-
-    return () => {
-      ignore = true;
-    };
-  }, [isValidRoomId, numericRoomId]);
 
   const handleDownload = async () => {
     if (!receiptRef.current || !receipt || isDownloading) {
@@ -167,18 +118,6 @@ function MogCardPage() {
       </div>
     </main>
   );
-}
-
-function getMogCardErrorMessage(error: unknown) {
-  if (error instanceof ApiError) {
-    if (error.code === 'SETTLEMENT_NOT_CONFIRMED') {
-      return '정산 확정 후 모그카드를 만들 수 있어요.';
-    }
-
-    return error.message;
-  }
-
-  return '영수증을 불러오지 못했어요.';
 }
 
 function ReceiptStateMessage({ children }: { children: ReactNode }) {
