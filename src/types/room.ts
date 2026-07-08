@@ -38,6 +38,7 @@ export type RoomSummaryParticipant = {
 export type RoomSummaryRecord = {
   seq: number;
   placeName: string;
+  address?: string | null;
   memo: string;
   totalCost: number;
   participants: RoomSummaryParticipant[];
@@ -53,10 +54,15 @@ export type RoomSummarySettlement = {
   memberTotals: RoomSummaryMemberTotal[];
 };
 
+export type RoomSummaryPlace = {
+  placeName: string;
+  address: string;
+};
+
 export type RoomSummary = {
   roomId: number;
   confirmedDate: string | null;
-  confirmedPlace: string | null;
+  confirmedPlace: RoomSummaryPlace | null;
   totalMemberCount: number;
   members: string[];
   photos: string[];

@@ -41,7 +41,12 @@ const buildSummary = (roomId: number): RoomSummary | null => {
   return {
     roomId,
     confirmedDate: room.promiseDate,
-    confirmedPlace: records[0]?.placeName ?? null,
+    confirmedPlace: records[0]
+      ? {
+          placeName: records[0].placeName,
+          address: records[0].address,
+        }
+      : null,
     totalMemberCount: room.members.length,
     members: room.members.map((member) => member.nickname),
     photos: meetingRecordPhotosDb
@@ -50,6 +55,7 @@ const buildSummary = (roomId: number): RoomSummary | null => {
     records: records.map((record) => ({
       seq: record.seq,
       placeName: record.placeName,
+      address: record.address,
       memo: record.memo,
       totalCost: record.totalCost,
       participants: record.participants.map(({ nickname, amount }) => ({
