@@ -30,12 +30,18 @@ export type SummaryParticipantResponse = {
   amount: number;
 };
 
+export type SummaryRecordItemResponse = {
+  name: string;
+  amount: number;
+};
+
 export type SummaryRecordResponse = {
   seq: number;
   placeName: string;
   address?: string | null;
   memo: string | null;
   totalCost: number;
+  items?: SummaryRecordItemResponse[];
   participants: SummaryParticipantResponse[];
 };
 

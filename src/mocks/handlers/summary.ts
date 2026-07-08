@@ -54,6 +54,10 @@ const createSummaryResponse = (roomId: number): SummaryCardResponse | null => {
       address: record.address,
       memo: record.memo,
       totalCost: record.totalCost,
+      items: record.menuItems.map(({ menuName, count, price }) => ({
+        name: count > 1 ? `${menuName} x ${count}` : menuName,
+        amount: price,
+      })),
       participants: record.participants.map(({ nickname, amount }) => ({
         nickname,
         amount,

@@ -57,10 +57,13 @@ const mapReceiptPlaces = (records: SummaryRecordResponse[]): MogReceiptPlace[] =
     placeName: record.placeName,
     address: record.address ?? record.memo ?? '',
     totalCost: formatWon(record.totalCost),
-    items: record.participants.map(({ nickname, amount }) => ({
-      name: nickname,
-      amount: formatAmount(amount),
-    })),
+    items:
+      record.items && record.items.length > 0
+        ? record.items.map(({ name, amount }) => ({
+            name,
+            amount: formatAmount(amount),
+          }))
+        : [],
   }));
 
 export function toMogReceipt(summary: SummaryCardResponse): MogReceipt | null {
