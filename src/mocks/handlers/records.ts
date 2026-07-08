@@ -1,5 +1,9 @@
 import { http, HttpResponse, type HttpHandler } from 'msw';
-import { meetingRecordsResponseDb } from '@/mocks/db/meetingRecord';
+import {
+  meetingRecordPhotosDb,
+  meetingRecordsDb,
+  toMeetingRecordApiData,
+} from '@/mocks/db/meetingRecord';
 import { mockDb } from '@/mocks/fixtures/mockDb';
 import type {
   CreateMeetingRecordRequest,
@@ -33,18 +37,23 @@ const cloneRecord = (record: MeetingRecord): MeetingRecord => ({
   participants: record.participants.map((participant) => ({ ...participant })),
 });
 
-const recordsByRoomId: Record<number, MeetingRecordsData> = {
-  45: {
-    photos: meetingRecordsResponseDb.data.photos.map((photo) => ({ ...photo })),
-    records: meetingRecordsResponseDb.data.records.map(cloneRecord),
-  },
-};
+const recordsByRoomId: Record<number, MeetingRecordsData> = meetingRecordsDb.reduce<
+  Record<number, MeetingRecordsData>
+>((acc, record) => {
+  acc[record.roomId] ??= {
+    photos: meetingRecordPhotosDb.slice(0, Math.min(3, record.photoCount)).map((photo) => ({
+      ...photo,
+    })),
+    records: [],
+  };
+  acc[record.roomId].records.push(cloneRecord(toMeetingRecordApiData(record)));
+  return acc;
+}, {});
 
 let nextRecordId =
-  Math.max(0, ...meetingRecordsResponseDb.data.records.map(({ recordId }) => recordId)) +
-  1;
+  Math.max(0, ...meetingRecordsDb.map(({ recordId }) => recordId)) + 1;
 let nextPhotoId =
-  Math.max(0, ...meetingRecordsResponseDb.data.photos.map(({ photoId }) => photoId)) + 1;
+  Math.max(0, ...meetingRecordPhotosDb.map(({ photoId }) => photoId)) + 1;
 
 const createResponse = <T>(data: T, message: string) => ({
   status: 0,

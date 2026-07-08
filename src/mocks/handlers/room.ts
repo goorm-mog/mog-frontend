@@ -1,5 +1,6 @@
 import { http, HttpResponse, type HttpHandler } from 'msw';
 import { getMyUserId } from '@/lib/auth-storage';
+import { meetingRecordPhotosDb, meetingRecordsDb, roomsDb, settlementsDb } from '@/mocks/db';
 import type {
   RoomCreateApiResponse,
   RoomInfo,
@@ -10,56 +11,61 @@ import type {
 
 const BASE = import.meta.env.VITE_API_BASE_URL ?? '';
 
-let nextRoomId = 101;
+let nextRoomId = Math.max(100, ...roomsDb.map(({ roomId }) => roomId)) + 1;
 
-const roomsByGroup: Record<number, RoomInfo[]> = {
-  12: [
-    { roomId: 45, roomName: '강남역 삼겹살 모임', status: 'COMPLETED', promiseDate: '2026-07-08T18:30:00' },
-    { roomId: 46, roomName: '보드게임 카페', status: 'COMPLETED', promiseDate: '2026-07-03T14:00:00' },
-    { roomId: 47, roomName: '한강 피크닉', status: 'VOTING', promiseDate: '2026-07-15T11:00:00' },
-  ],
-  13: [
-    { roomId: 60, roomName: 'Q3 브랜드 워크샵', status: 'VOTING', promiseDate: '2026-07-20T10:00:00' },
-  ],
-  14: [
-    { roomId: 70, roomName: '여름 가족 여행', status: 'COMPLETED', promiseDate: '2026-07-10T09:00:00' },
-  ],
-};
+const roomsByGroup: Record<number, RoomInfo[]> = roomsDb.reduce<Record<number, RoomInfo[]>>(
+  (acc, room) => {
+    acc[room.groupId] ??= [];
+    acc[room.groupId].push({
+      roomId: room.roomId,
+      roomName: room.roomName,
+      status: room.status,
+      promiseDate: room.promiseDate,
+    });
+    return acc;
+  },
+  {},
+);
 
-const summaryByRoom: Record<number, RoomSummary> = {
-  45: {
-    roomId: 45,
-    confirmedDate: '2026-07-08T18:30:00',
-    confirmedPlace: '강남역 8번 출구 삼겹살집',
-    totalMemberCount: 4,
-    members: ['김구름', '박구름', '최구름', '이구름'],
-    photos: [],
-    records: [],
-    settlement: { totalCost: 128000, memberTotals: [] },
+const buildSummary = (roomId: number): RoomSummary | null => {
+  const room = roomsDb.find((item) => item.roomId === roomId);
+  const settlement = settlementsDb.find((item) => item.roomId === roomId);
+  const records = meetingRecordsDb
+    .filter((record) => record.roomId === roomId)
+    .sort((a, b) => a.seq - b.seq);
+
+  if (!room) {
+    return null;
+  }
+
+  return {
+    roomId,
+    confirmedDate: room.promiseDate,
+    confirmedPlace: records[0]?.placeName ?? null,
+    totalMemberCount: room.members.length,
+    members: room.members.map((member) => member.nickname),
+    photos: meetingRecordPhotosDb.slice(0, 3).map((photo) => photo.s3Url),
+    records: records.map((record) => ({
+      seq: record.seq,
+      placeName: record.placeName,
+      memo: record.memo,
+      totalCost: record.totalCost,
+      participants: record.participants.map(({ nickname, amount }) => ({
+        nickname,
+        amount,
+      })),
+    })),
+    settlement: settlement
+      ? {
+          totalCost: settlement.totalCost,
+          memberTotals: settlement.memberSettlements.map(({ nickname, totalAmount }) => ({
+            nickname,
+            totalAmount,
+          })),
+        }
+      : null,
     cardImageUrl: null,
-  },
-  46: {
-    roomId: 46,
-    confirmedDate: '2026-07-03T14:00:00',
-    confirmedPlace: '홍대 보드게임 카페',
-    totalMemberCount: 3,
-    members: ['김구름', '박구름', '최구름'],
-    photos: [],
-    records: [],
-    settlement: { totalCost: 45000, memberTotals: [] },
-    cardImageUrl: null,
-  },
-  70: {
-    roomId: 70,
-    confirmedDate: '2026-07-10T09:00:00',
-    confirmedPlace: '강릉 경포대 펜션',
-    totalMemberCount: 3,
-    members: ['김구름', '엄마구름', '아빠구름'],
-    photos: [],
-    records: [],
-    settlement: { totalCost: 320000, memberTotals: [] },
-    cardImageUrl: null,
-  },
+  };
 };
 
 export const roomHandlers: HttpHandler[] = [
@@ -79,7 +85,7 @@ export const roomHandlers: HttpHandler[] = [
 
   http.get(`${BASE}/api/v1/rooms/:roomId/summary`, ({ params }) => {
     const roomId = Number(params.roomId);
-    const summary = summaryByRoom[roomId];
+    const summary = buildSummary(roomId);
 
     if (!summary) {
       return HttpResponse.json({ message: '요약 정보를 찾을 수 없습니다.' }, { status: 404 });

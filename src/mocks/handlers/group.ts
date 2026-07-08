@@ -8,16 +8,17 @@ import type {
   GroupUpdateApiResponse,
 } from '@/types/group';
 import { getMyUserId } from '@/lib/auth-storage';
+import { groupsDb, roomsDb } from '@/mocks/db';
 
 const BASE = import.meta.env.VITE_API_BASE_URL ?? '';
 
-const mutableGroups: GroupItem[] = [
-  { groupId: 12, groupName: '대학 친구들', memberCount: 4 },
-  { groupId: 13, groupName: '브랜드 팀', memberCount: 6 },
-  { groupId: 14, groupName: '가족 모임', memberCount: 3 },
-];
+const mutableGroups: GroupItem[] = groupsDb.map((group) => ({
+  groupId: group.groupId,
+  groupName: group.groupName,
+  memberCount: group.members.length,
+}));
 
-let nextGroupId = 15;
+let nextGroupId = Math.max(0, ...groupsDb.map(({ groupId }) => groupId)) + 1;
 
 function buildListResponse(): GroupListApiResponse {
   return {
@@ -38,13 +39,14 @@ export const groupHandlers: HttpHandler[] = [
   http.get(`${BASE}/api/v1/groups/:groupId`, ({ params }) => {
     const groupId = Number(params.groupId);
     const target = mutableGroups.find((group) => group.groupId === groupId);
+    const group = groupsDb.find((item) => item.groupId === groupId);
 
     if (!target) {
       return HttpResponse.json({ message: '그룹을 찾을 수 없습니다.' }, { status: 404 });
     }
 
-    const myRole = groupId === 13 ? 'MEMBER' : 'LEADER';
     const userId = getMyUserId() ?? 1;
+    const myRole = group?.members.find((member) => member.userId === userId)?.role ?? 'MEMBER';
 
     const response: GroupDetailApiResponse = {
       status: 200,
@@ -53,10 +55,21 @@ export const groupHandlers: HttpHandler[] = [
       data: {
         groupId,
         groupName: target.groupName,
-        inviteCode: 'UX7A2B',
+        inviteCode: group?.inviteCode ?? 'MOCK01',
         myRole,
-        members: [{ userId, nickname: '김구름', role: myRole }],
-        rooms: [],
+        members: group?.members.map(({ userId, nickname, role }) => ({
+          userId,
+          nickname,
+          role,
+        })) ?? [{ userId, nickname: '김구름', role: myRole }],
+        rooms: roomsDb
+          .filter((room) => room.groupId === groupId)
+          .map(({ roomId, roomName, status, promiseDate }) => ({
+            roomId,
+            roomName,
+            status,
+            promiseDate,
+          })),
       },
     };
 

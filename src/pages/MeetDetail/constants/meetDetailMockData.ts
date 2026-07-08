@@ -48,6 +48,7 @@ const getSettlementAmountBySeq = (seq: number) =>
 
 const meetRoom = roomsDb[0];
 const meetSettlement = settlementsDb[0];
+const meetRecords = meetingRecordsDb.filter((record) => record.roomId === meetRoom.roomId);
 
 export const MEET_DETAIL = {
   roomId: meetRoom.roomId,
@@ -61,7 +62,7 @@ export const MEET_DETAIL = {
 export const MEET_DETAIL_PHOTOS = meetingRecordPhotosDb;
 
 export const SETTLEMENT_ROUNDS: SettlementRound[] = [
-  ...meetingRecordsDb.map((record) => {
+  ...meetRecords.map((record) => {
     const placeMeta = PLACE_META_BY_SEQ[record.seq as keyof typeof PLACE_META_BY_SEQ];
     const menu = record.menuItems
       .map(({ menuName, count }) => `${menuName} ${count}`)
