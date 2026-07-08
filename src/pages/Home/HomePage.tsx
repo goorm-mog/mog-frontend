@@ -362,7 +362,12 @@ function HomePage() {
             <div className="flex flex-col gap-3">
               {roomsForSelectedDate.length > 0 ? (
                 roomsForSelectedDate.map((room) => (
-                  <ScheduleCard key={room.roomId} title={room.roomName} icon={CalendarDays} />
+                  <ScheduleCard
+                    key={room.roomId}
+                    title={room.roomName}
+                    icon={CalendarDays}
+                    onClick={() => navigate(`/${room.roomId}/meet-detail`)}
+                  />
                 ))
               ) : (
                 <p className="py-6 text-center text-caption text-dark-border">
@@ -388,6 +393,7 @@ function HomePage() {
                     location={summary?.confirmedPlace ?? '장소 미정'}
                     totalAmount={formatCurrency(summary?.settlement?.totalCost)}
                     meta={summary ? [{ label: '인원', value: `${summary.totalMemberCount}명` }] : []}
+                    onClick={() => navigate(`/${room.roomId}/meet-detail`)}
                   />
                 );
               })
