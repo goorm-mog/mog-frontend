@@ -72,9 +72,7 @@ function MemberAvatar({
     <button
       type="button"
       className={`shrink-0 disabled:cursor-not-allowed ${
-        labelPosition === 'right'
-          ? 'inline-flex items-center gap-2 text-left'
-          : 'text-center'
+        labelPosition === 'right' ? 'inline-flex items-center gap-2 text-left' : 'text-center'
       } ${className}`}
       style={{ width: labelPosition === 'bottom' ? sizePx : undefined, ...style }}
       aria-pressed={selected}
@@ -112,7 +110,7 @@ function MemberAvatar({
           </svg>
         ) : null}
         <Cloud size={sizePx * 0.55} strokeWidth={2} />
-        {showCheck ? (
+        {showCheck && selected ? (
           <span
             className="absolute grid place-items-center rounded-full"
             style={{

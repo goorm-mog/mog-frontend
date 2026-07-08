@@ -1,8 +1,4 @@
-import type {
-  CreateMeetingRecordRequest,
-  MeetingRecord,
-  RecordMenuItem,
-} from '@/types/records';
+import type { CreateMeetingRecordRequest, MeetingRecord, RecordMenuItem } from '@/types/records';
 import { receiptCopy } from '@/pages/MeetRecord/constants/receiptCopy';
 import type {
   ReceiptCardData,
@@ -22,9 +18,7 @@ export function mapMeetingRecordToReceipt(
   record: MeetingRecord,
   roomMembers: readonly MeetRecordMember[],
 ): ReceiptCardData {
-  const participantIds = new Set(
-    record.participants.map(({ roomMemberId }) => roomMemberId),
-  );
+  const participantIds = new Set(record.participants.map(({ roomMemberId }) => roomMemberId));
 
   return {
     recordId: record.recordId,
@@ -42,6 +36,7 @@ export function mapMeetingRecordToReceipt(
       id: roomMemberId,
       name: nickname,
       selected: participantIds.has(roomMemberId),
+      disabled: !participantIds.has(roomMemberId),
     })),
     payerPlaceholder: record.payer ? formatPayerLabel(record.payer) : receiptCopy.payerPlaceholder,
     payerRoomMemberId: record.payer?.roomMemberId ?? null,
@@ -52,28 +47,20 @@ export function mapMeetingRecordToReceipt(
   };
 }
 
-export function toPayerOptions(
-  roomMembers: readonly MeetRecordMember[],
-): ReceiptPayerOption[] {
+export function toPayerOptions(roomMembers: readonly MeetRecordMember[]): ReceiptPayerOption[] {
   return roomMembers.map(({ roomMemberId, nickname }) => ({
     id: roomMemberId,
     label: nickname,
   }));
 }
 
-export function toMeetingRecordRequest(
-  receipt: ReceiptCardData,
-): CreateMeetingRecordRequest {
-  const selectedParticipants = receipt.participants.filter(
-    (participant) => participant.selected,
-  );
+export function toMeetingRecordRequest(receipt: ReceiptCardData): CreateMeetingRecordRequest {
+  const selectedParticipants = receipt.participants.filter((participant) => participant.selected);
 
   return {
     placeName: receipt.placeName.trim(),
     address: receipt.placeAddress?.trim() || null,
-    menuItems: receipt.items
-      .filter((item) => item.name.trim().length > 0)
-      .map(toRecordMenuItem),
+    menuItems: receipt.items.filter((item) => item.name.trim().length > 0).map(toRecordMenuItem),
     memo: receipt.memo.trim(),
     payer:
       receipt.payerRoomMemberId == null
@@ -121,8 +108,6 @@ function splitAmount(totalAmount: number, participants: readonly ReceiptParticip
   }));
 }
 
-function formatPayerLabel(payer: {
-  nickname: string;
-}) {
+function formatPayerLabel(payer: { nickname: string }) {
   return payer.nickname;
 }
