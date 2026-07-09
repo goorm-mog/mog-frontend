@@ -21,7 +21,7 @@ import NotificationListSheet from '@/pages/Home/components/NotificationListSheet
 import { useNotifications } from '@/hooks/useNotifications';
 import { useToast } from '@/hooks/useToast';
 import type { GroupRole, HomeGroup } from '@/types/group';
-import type { RoomInfo, RoomStatus, RoomSummary } from '@/types/room';
+import type { RoomInfo, RoomSummary } from '@/types/room';
 import {
   HOME_DEFAULT_SELECTED,
   HOME_INITIAL_MONTH,
@@ -46,12 +46,6 @@ function formatArchivalDatetime(confirmedDate: string | null): string {
 function formatCurrency(amount: number | null | undefined): string {
   return `₩${(amount ?? 0).toLocaleString('ko-KR')}`;
 }
-
-const ROOM_STATUS_LABEL: Record<RoomStatus, string> = {
-  VOTING: '계획 중',
-  RECORDING: '확정 후 기록 중',
-  COMPLETED: '기록 완료',
-};
 
 function HomePage() {
   const navigate = useNavigate();
@@ -322,20 +316,6 @@ function HomePage() {
     }
   };
 
-  const handleRoomClick = (room: RoomInfo) => {
-    if (room.status === 'VOTING') {
-      navigate(`/reschedule/host/${room.roomId}`);
-      return;
-    }
-
-    if (room.status === 'RECORDING') {
-      navigate(`/${room.roomId}/meet-record`);
-      return;
-    }
-
-    navigate(`/${room.roomId}/meet-detail`);
-  };
-
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <TopAppBar
@@ -385,9 +365,8 @@ function HomePage() {
                   <ScheduleCard
                     key={room.roomId}
                     title={room.roomName}
-                    location={ROOM_STATUS_LABEL[room.status]}
                     icon={CalendarDays}
-                    onClick={() => handleRoomClick(room)}
+                    onClick={() => navigate(`/${room.roomId}/meet-detail`)}
                   />
                 ))
               ) : (
@@ -413,11 +392,8 @@ function HomePage() {
                     datetime={formatArchivalDatetime(summary?.confirmedDate ?? room.promiseDate)}
                     location={summary?.confirmedPlace?.placeName ?? '장소 미정'}
                     totalAmount={formatCurrency(summary?.settlement?.totalCost)}
-                    meta={[
-                      { label: '상태', value: ROOM_STATUS_LABEL[room.status] },
-                      ...(summary ? [{ label: '인원', value: `${summary.totalMemberCount}명` }] : []),
-                    ]}
-                    onClick={() => handleRoomClick(room)}
+                    meta={summary ? [{ label: '인원', value: `${summary.totalMemberCount}명` }] : []}
+                    onClick={() => navigate(`/${room.roomId}/meet-detail`)}
                   />
                 );
               })
