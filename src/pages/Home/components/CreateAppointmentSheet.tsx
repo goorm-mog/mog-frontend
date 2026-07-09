@@ -16,6 +16,7 @@ export type CreateAppointmentFormValues = {
 };
 
 type CreateAppointmentSheetProps = {
+  isLoading?: boolean;
   onClose: () => void;
   onSubmit: (values: CreateAppointmentFormValues) => void;
 };
@@ -34,7 +35,7 @@ function FormField({ label, children }: FormFieldProps) {
   );
 }
 
-function CreateAppointmentSheet({ onClose, onSubmit }: CreateAppointmentSheetProps) {
+function CreateAppointmentSheet({ isLoading = false, onClose, onSubmit }: CreateAppointmentSheetProps) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [selectedIconId, setSelectedIconId] = useState<AppointmentIconId>(
@@ -44,7 +45,7 @@ function CreateAppointmentSheet({ onClose, onSubmit }: CreateAppointmentSheetPro
   const canSubmit = name.trim().length > 0;
 
   const handleSubmit = () => {
-    if (!canSubmit) return;
+    if (!canSubmit || isLoading) return;
 
     onSubmit({
       name: name.trim(),
@@ -140,17 +141,17 @@ function CreateAppointmentSheet({ onClose, onSubmit }: CreateAppointmentSheetPro
         </div>
 
         <footer className="flex gap-3 px-6 pb-6 pt-4">
-          <Button variant="dark" size="lg" onClick={onClose} className="flex-1">
+          <Button variant="dark" size="lg" onClick={onClose} disabled={isLoading} className="flex-1">
             취소
           </Button>
           <Button
             variant="point"
             size="lg"
-            disabled={!canSubmit}
+            disabled={!canSubmit || isLoading}
             onClick={handleSubmit}
             className="flex-1"
           >
-            만들기
+            {isLoading ? '만드는 중...' : '만들기'}
           </Button>
         </footer>
       </div>

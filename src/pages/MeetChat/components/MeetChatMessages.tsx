@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import type { ListChatMessageResponse, MeetChatParticipant } from '@/types/chat';
 import { formatChatDate, formatChatTime } from '@/pages/MeetChat/utils/format';
@@ -10,9 +11,34 @@ type MeetChatMessagesProps = {
 
 function MeetChatMessages({ messages, participantsById, currentUserId }: MeetChatMessagesProps) {
   const firstMessage = messages[0];
+  const scrollContainerRef = useRef<HTMLElement | null>(null);
+  const shouldStickToBottomRef = useRef(true);
+
+  useEffect(() => {
+    if (!shouldStickToBottomRef.current) return;
+
+    const scrollContainer = scrollContainerRef.current;
+    scrollContainer?.scrollTo({
+      top: scrollContainer.scrollHeight,
+      behavior: 'smooth',
+    });
+  }, [messages.length]);
+
+  const handleScroll = () => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer) return;
+
+    const distanceFromBottom =
+      scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight;
+    shouldStickToBottomRef.current = distanceFromBottom < 80;
+  };
 
   return (
-    <main className="min-h-0 flex-1 overflow-y-auto border-y border-dashed border-border/30 px-[14px] py-4">
+    <main
+      ref={scrollContainerRef}
+      className="min-h-0 flex-1 overflow-y-auto border-y border-dashed border-border/30 px-[14px] py-4"
+      onScroll={handleScroll}
+    >
       <div className="flex flex-col gap-4">
         {firstMessage ? (
           <div className="flex justify-center">
@@ -22,10 +48,10 @@ function MeetChatMessages({ messages, participantsById, currentUserId }: MeetCha
           </div>
         ) : null}
 
-        {messages.map((message) => {
+        {messages.map((message, index) => {
           const sender = message.senderId ? participantsById[message.senderId] : undefined;
           const isMine = message.senderId === currentUserId;
-          const messageKey = `${message.roomId}-${message.senderId}-${message.timestamp}`;
+          const messageKey = `${message.roomId}-${message.senderId}-${message.timestamp}-${message.message}-${index}`;
 
           return (
             <div

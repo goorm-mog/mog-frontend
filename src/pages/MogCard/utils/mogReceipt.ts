@@ -1,9 +1,9 @@
-import { groupsDb } from '@/mocks/db/group';
-import { meetingRecordsDb } from '@/mocks/db/meetingRecord';
-import { roomsDb } from '@/mocks/db/room';
-import type { MogReceipt, MogReceiptPlace } from '@/pages/MogCard/types';
-
-type MeetingRecord = (typeof meetingRecordsDb)[number];
+import type {
+  MogReceipt,
+  MogReceiptPlace,
+  SummaryCardResponse,
+  SummaryRecordResponse,
+} from '@/pages/MogCard/types';
 
 const WON_FORMATTER = new Intl.NumberFormat('ko-KR');
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const;
@@ -14,11 +14,24 @@ const formatWon = (amount: number) => `₩ ${WON_FORMATTER.format(amount)}`;
 const formatAmount = (amount: number) => WON_FORMATTER.format(amount);
 const formatFileDate = (dateString: string) => dateString.slice(0, 10);
 
+const parseDate = (dateString: string) => {
+  if (dateString.includes('T')) {
+    return new Date(dateString);
+  }
+
+  return new Date(`${dateString}T00:00:00`);
+};
+
 const formatReceiptDate = (dateString: string) => {
-  const date = new Date(dateString);
+  const date = parseDate(dateString);
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
+
+  if (!dateString.includes('T')) {
+    return `${year}년 ${month}월 ${day}일 ${WEEKDAYS[date.getDay()]}요일`;
+  }
+
   const hours = date.getHours();
   const minutes = String(date.getMinutes()).padStart(2, '0');
   const meridiem = hours < 12 ? '오전' : '오후';
@@ -28,7 +41,7 @@ const formatReceiptDate = (dateString: string) => {
 };
 
 const formatBarcodeValue = (dateString: string) => {
-  const date = new Date(dateString);
+  const date = parseDate(dateString);
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
@@ -38,60 +51,37 @@ const formatBarcodeValue = (dateString: string) => {
   return `${year}${month}${day}${hours}${minutes}`;
 };
 
-const getParticipantNames = (meetingRecords: MeetingRecord[]) => {
-  const participantNameById = new Map<number, string>();
-
-  meetingRecords.forEach((record) => {
-    record.participants.forEach(({ roomMemberId, nickname }) => {
-      participantNameById.set(roomMemberId, nickname);
-    });
-  });
-
-  return [...participantNameById.values()];
-};
-
-const sumByRecord = (
-  meetingRecords: MeetingRecord[],
-  selector: (record: MeetingRecord) => number,
-) => meetingRecords.reduce((total, record) => total + selector(record), 0);
-
-const mapReceiptPlaces = (
-  meetingRecords: MeetingRecord[],
-): MogReceiptPlace[] =>
-  meetingRecords.map((record) => ({
-    id: record.recordId,
+const mapReceiptPlaces = (records: SummaryRecordResponse[]): MogReceiptPlace[] =>
+  records.map((record) => ({
+    id: record.seq,
     placeName: record.placeName,
-    address: record.address,
-    totalCost: formatWon(record.totalPrice),
-    items: record.menuItems.map(({ menuName, count, price }) => ({
-      name: count > 1 ? `${menuName} x ${count}` : menuName,
-      amount: formatAmount(count * price),
-    })),
+    address: record.address ?? record.memo ?? '',
+    totalCost: formatWon(record.totalCost),
+    items:
+      record.items && record.items.length > 0
+        ? record.items.map(({ name, amount }) => ({
+            name,
+            amount: formatAmount(amount),
+          }))
+        : [],
   }));
 
-export function getMogReceiptByRoomId(roomId: number): MogReceipt | null {
-  const room = roomsDb.find((item) => item.roomId === roomId);
-  const group = groupsDb.find((item) => item.groupId === room?.groupId);
-  const meetingRecords = meetingRecordsDb.filter((record) => record.roomId === roomId);
-
-  if (!room || !group || meetingRecords.length === 0) {
+export function toMogReceipt(summary: SummaryCardResponse): MogReceipt | null {
+  if (!summary.confirmedDate || summary.records.length === 0) {
     return null;
   }
 
-  const participants = getParticipantNames(meetingRecords);
-  const photoCount = sumByRecord(meetingRecords, (record) => record.photoCount);
-  const totalCost = sumByRecord(meetingRecords, (record) => record.totalPrice);
-
   return {
     title: RECEIPT_TITLE,
-    downloadFileName: `[MOG]${group.groupName}_${formatFileDate(room.promiseDate)}.png`,
-    participantCount: participants.length,
-    participants: participants.join(', '),
-    datetime: formatReceiptDate(room.promiseDate),
-    places: mapReceiptPlaces(meetingRecords),
-    totalCost: formatWon(totalCost),
-    photoCount,
-    barcodeValue: formatBarcodeValue(room.promiseDate),
+    downloadFileName: `[MOG]room-${summary.roomId}_${formatFileDate(summary.confirmedDate)}.png`,
+    participantCount: summary.totalMemberCount,
+    participants: summary.members.join(', '),
+    datetime: formatReceiptDate(summary.confirmedDate),
+    places: mapReceiptPlaces(summary.records),
+    totalCost: formatWon(summary.settlement.totalCost),
+    photoCount: summary.photos.length,
+    representativePhotoUrl: summary.photos[0],
+    barcodeValue: formatBarcodeValue(summary.confirmedDate),
     footer: RECEIPT_FOOTER,
   };
 }

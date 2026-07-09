@@ -57,6 +57,15 @@ export function useReceiptMenu({ initialItems, receiptId }: UseReceiptMenuParams
     setItems((currentItems) => currentItems.filter((item) => item.id !== id));
   };
 
+  const replaceItems = (nextItems: ReceiptItem[]) => {
+    setItems(
+      nextItems.map((item, index) => ({
+        ...item,
+        id: `${receiptId}-ocr-menu-${index}`,
+      })),
+    );
+  };
+
   return {
     input,
     items,
@@ -66,5 +75,6 @@ export function useReceiptMenu({ initialItems, receiptId }: UseReceiptMenuParams
     handleKeyDown,
     updateItemCount,
     deleteItem,
+    replaceItems,
   };
 }

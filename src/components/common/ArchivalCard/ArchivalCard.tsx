@@ -18,6 +18,7 @@ type ArchivalCardProps = {
   size?: ComponentSize;
   className?: string;
   footer?: ReactNode;
+  onClick?: () => void;
 };
 
 const paddingMap = { sm: 12, md: 16, lg: 20 } as const;
@@ -44,6 +45,7 @@ function ArchivalCard({
   size = 'md',
   className,
   footer,
+  onClick,
 }: ArchivalCardProps) {
   const padding = resolveComponentSize(size, paddingMap);
   const metaSize = resolveComponentSize(size, metaSizeMap);
@@ -54,8 +56,17 @@ function ArchivalCard({
     <article
       className={cn(
         'w-full rounded border border-border/30 bg-background shadow-[0px_4px_6px_-1px_rgba(0,0,0,0.1)]',
+        onClick && 'cursor-pointer',
         className,
       )}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={(event) => {
+        if (!onClick || (event.key !== 'Enter' && event.key !== ' ')) return;
+        event.preventDefault();
+        onClick();
+      }}
     >
       <div className="flex border-b border-dashed border-border">
         <div className="min-w-0 flex-1" style={{ padding }}>

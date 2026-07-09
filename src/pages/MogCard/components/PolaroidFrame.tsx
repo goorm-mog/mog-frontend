@@ -29,11 +29,12 @@ function PolaroidFrame({ photoCount, photoUrl }: PolaroidFrameProps) {
           {photoUrl ? (
             <image
               href={photoUrl}
-              x="19.6887"
-              y="26.7579"
-              width="186.088"
-              height="115.709"
+              x="16"
+              y="22"
+              width="194"
+              height="124"
               preserveAspectRatio="xMidYMid slice"
+              transform={`rotate(0 112.733 84.612)`}
               clipPath="url(#mog-card-polaroid-photo-clip)"
             />
           ) : (

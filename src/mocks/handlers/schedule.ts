@@ -47,6 +47,14 @@ const confirmedSchedules: Record<number, { date: string; time: string; confirmed
     return acc;
   }, {});
 
+const getConfirmedScheduleResponse = (roomId: number) => {
+  const confirmed = confirmedSchedules[roomId];
+  if (!confirmed) {
+    return HttpResponse.json({ message: '확정된 일정이 없습니다.' }, { status: 404 });
+  }
+  return HttpResponse.json({ roomId, ...confirmed });
+};
+
 export const scheduleHandlers: HttpHandler[] = [
   http.get(`${BASE}/rooms/:roomId/schedule/slots`, ({ params }) => {
     const roomId = Number(params.roomId);
@@ -145,11 +153,12 @@ export const scheduleHandlers: HttpHandler[] = [
 
   http.get(`${BASE}/rooms/:roomId/schedule/confirm`, ({ params }) => {
     const roomId = Number(params.roomId);
-    const confirmed = confirmedSchedules[roomId];
-    if (!confirmed) {
-      return HttpResponse.json({ message: '확정된 일정이 없습니다.' }, { status: 404 });
-    }
-    return HttpResponse.json({ roomId, ...confirmed });
+    return getConfirmedScheduleResponse(roomId);
+  }),
+
+  http.get(`${BASE}/api/rooms/:roomId/schedule/confirm`, ({ params }) => {
+    const roomId = Number(params.roomId);
+    return getConfirmedScheduleResponse(roomId);
   }),
 
   http.patch(`${BASE}/rooms/:roomId/schedule/confirm`, async ({ params, request }) => {

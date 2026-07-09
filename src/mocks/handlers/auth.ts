@@ -11,4 +11,13 @@ export const authHandlers: HttpHandler[] = [
       user: mockDb.auth.currentUser,
     });
   }),
+
+  http.post(`${BASE}/api/v1/auth/logout`, () => {
+    return HttpResponse.json({
+      status: 200,
+      code: 'SUCCESS',
+      message: '로그아웃 성공',
+      data: null,
+    });
+  }),
 ];

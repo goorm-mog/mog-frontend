@@ -16,21 +16,25 @@ export type ReceiptPayerOption = {
 };
 
 export type ReceiptCardData = {
+  recordId?: number;
   roundLabel: string;
   placeName: string;
+  placeAddress?: string | null;
   placePlaceholder: string;
   menuPlaceholder: string;
   items: ReceiptItem[];
   totalAmount: number;
   participants: ReceiptParticipant[];
   payerPlaceholder: string;
+  payerRoomMemberId?: number | null;
+  payerBankName?: string | null;
+  payerAccountNumber?: string | null;
   memo: string;
   memoPlaceholder: string;
-  photoCount: number;
 };
 
 export type PlaceSearchResult = {
-  id: number;
+  id: string;
   name: string;
   address: string;
 };

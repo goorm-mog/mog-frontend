@@ -5,10 +5,21 @@ import { typography } from '../../../constants/typography';
 
 type SettlementFooterProps = {
   totalAmount: number;
+  isSaving?: boolean;
+  isSaveDisabled?: boolean;
+  errorMessage?: string | null;
   onSave: () => void;
+  onSettle: () => void;
 };
 
-function SettlementFooter({ totalAmount, onSave }: SettlementFooterProps) {
+function SettlementFooter({
+  totalAmount,
+  isSaving = false,
+  isSaveDisabled = false,
+  errorMessage = null,
+  onSave,
+  onSettle,
+}: SettlementFooterProps) {
   return (
     <footer
       className="shrink-0 border-t px-5 pb-7 pt-4 shadow-[0_-8px_28px_rgba(57,48,34,0.08)]"
@@ -34,20 +45,28 @@ function SettlementFooter({ totalAmount, onSave }: SettlementFooterProps) {
               backgroundColor: colors.background,
               color: colors.darkBorder,
             }}
+            disabled={isSaving || isSaveDisabled}
             onClick={onSave}
           >
-            저장
+            {isSaving ? '저장 중' : '저장'}
           </button>
           <Button
             variant="point"
             size="lg"
             fullWidth={false}
             className={`${typography.body} min-w-[86px] transition active:scale-[0.98]`}
+            disabled={isSaving || isSaveDisabled}
+            onClick={onSettle}
           >
             정산
           </Button>
         </div>
       </div>
+      {errorMessage ? (
+        <p className={`${typography.caption} mt-3`} style={{ color: colors.alert }}>
+          {errorMessage}
+        </p>
+      ) : null}
     </footer>
   );
 }

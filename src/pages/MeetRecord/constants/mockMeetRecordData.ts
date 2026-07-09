@@ -1,7 +1,19 @@
 import { mockDb } from '@/mocks/fixtures';
-import { mapMeetingRecordToReceipt } from '@/pages/MeetRecord/utils/meetRecordMapper';
+import type { ReceiptCardData } from '@/pages/MeetRecord/types';
 
-export const meetRecordRoom = mockDb.rooms[0];
+const getMeetRecordRoom = () => {
+  const room = mockDb.rooms.find((item) =>
+    mockDb.confirmedSchedules.some((schedule) => schedule.roomId === item.roomId),
+  );
+
+  if (!room) {
+    throw new Error('MeetRecord mock room data is missing.');
+  }
+
+  return room;
+};
+
+export const meetRecordRoom = getMeetRecordRoom();
 
 export const meetRecordGroup = mockDb.groups.find(
   ({ groupId }) => groupId === meetRecordRoom.groupId,
@@ -15,10 +27,4 @@ export const meetRecordMembers = mockDb.roomMembers.filter(
   ({ roomId }) => roomId === meetRecordRoom.roomId,
 );
 
-const meetRecordRecords = mockDb.meetingRecords.filter(
-  ({ roomId }) => roomId === meetRecordRoom.roomId,
-);
-
-export const initialMeetRecordReceipts = meetRecordRecords.map((record) =>
-  mapMeetingRecordToReceipt(record, meetRecordMembers),
-);
+export const initialMeetRecordReceipts: ReceiptCardData[] = [];

@@ -1,5 +1,5 @@
+import type { SettlementRound } from '@/features/meetDetail/types';
 import { cn } from '@/lib/utils';
-import type { SettlementRound } from '@/pages/MeetDetail/constants/meetDetailMockData';
 
 const detailRows = [
   { label: '주소', key: 'address' },
@@ -47,34 +47,6 @@ function SettlementCard({ round }: SettlementCardProps) {
               </div>
             ))}
           </dl>
-        </div>
-      </div>
-
-      <div className="overflow-x-auto border-t border-border/70 px-[18px] py-[16px]">
-        <div className="flex w-max items-center gap-4">
-          {Array.from({ length: round.imageCount }).map((_, index) => {
-            const photoUrl = round.photoUrls?.[index];
-
-            return (
-              <div
-                key={`${round.seq}-image-${index}`}
-                className={cn(
-                  'w-[60px] shrink-0 overflow-hidden rounded-[5px] border bg-background',
-                  index === 0 ? 'border-2 border-point' : 'border-border/60',
-                )}
-              >
-                {photoUrl ? (
-                  <img
-                    src={photoUrl}
-                    alt={`${round.placeName} 사진 ${index + 1}`}
-                    className="h-auto w-[60px] object-contain"
-                  />
-                ) : (
-                  <div className="aspect-[60/84] w-[60px]" aria-hidden="true" />
-                )}
-              </div>
-            );
-          })}
         </div>
       </div>
     </article>

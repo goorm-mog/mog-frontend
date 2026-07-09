@@ -1,4 +1,5 @@
-import { setAuthSession } from '@/lib/auth-storage';
+import { apiFetch } from '@/lib/apiFetch';
+import { setAuthSession, clearAuthSession } from '@/lib/auth-storage';
 import type { LoginResponse } from '@/types/auth';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '';
@@ -26,4 +27,15 @@ export async function loginWithKakao(): Promise<LoginResponse> {
   }
 
   throw new Error('카카오 로그인에 실패했습니다.');
+}
+
+export async function logout() {
+  try {
+    await apiFetch('/api/v1/auth/logout', {
+      method: 'POST',
+      credentials: 'include',
+    });
+  } finally {
+    clearAuthSession();
+  }
 }
