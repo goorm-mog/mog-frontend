@@ -11,7 +11,9 @@ import { roomHandlers } from './room';
 import { meetingRecordHandlers } from './meetingRecord';
 import { summaryHandlers } from './summary';
 
-export const handlers = [
+export const authOnlyHandlers = [...authHandlers];
+
+export const allHandlers = [
   ...authHandlers,
   ...scheduleHandlers,
   ...chatHandlers,
@@ -25,3 +27,9 @@ export const handlers = [
   ...recordsHandlers,
   ...summaryHandlers,
 ];
+
+export const handlers =
+  import.meta.env.VITE_MSW_MODE === 'auth-only' ||
+  import.meta.env.VITE_MSW_MODE === 'network-first'
+    ? authOnlyHandlers
+    : allHandlers;

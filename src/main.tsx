@@ -8,6 +8,8 @@ async function prepare() {
     const { worker } = await import('./mocks/browser')
     return worker.start({
       onUnhandledRequest(request, print) {
+        if (import.meta.env.VITE_MSW_MODE === 'network-first') return;
+
         const apiBase = import.meta.env.VITE_API_BASE_URL ?? '';
         const isApiRequest = apiBase
           ? request.url.startsWith(apiBase)
