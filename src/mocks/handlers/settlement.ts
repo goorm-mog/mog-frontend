@@ -1,6 +1,5 @@
 import { http, HttpResponse, type HttpHandler } from 'msw';
 import { mockDb } from '@/mocks/fixtures/mockDb';
-import { getMeetingRecordsByRoomId } from '@/mocks/handlers/records';
 import type {
   ApiResponse,
   SettlementDetailResponse,
@@ -12,13 +11,7 @@ import type {
 
 const BASE = import.meta.env.VITE_API_BASE_URL ?? '';
 
-const mutableSettlements: Record<
-  number,
-  {
-    recordsSignature: string;
-    settlement: SettlementResponse;
-  }
-> = {};
+const mutableSettlements: Record<number, SettlementResponse> = {};
 
 function createApiResponse<T>(data: T, message = 'success'): ApiResponse<T> {
   return {
@@ -29,27 +22,9 @@ function createApiResponse<T>(data: T, message = 'success'): ApiResponse<T> {
   };
 }
 
-function createRecordsSignature(roomId: number) {
-  const records = getMeetingRecordsByRoomId(roomId);
-
-  return JSON.stringify(
-    records.map((record) => ({
-      recordId: record.recordId,
-      seq: record.seq,
-      placeName: record.placeName,
-      totalCost: record.totalCost,
-      payerRoomMemberId: record.payer?.roomMemberId ?? null,
-      participants: record.participants.map(({ roomMemberId, amount }) => ({
-        roomMemberId,
-        amount,
-      })),
-    })),
-  );
-}
-
 function createSettlementResponse(roomId: number): SettlementResponse | null {
   const room = mockDb.rooms.find((item) => item.roomId === roomId);
-  const records = getMeetingRecordsByRoomId(roomId);
+  const records = mockDb.meetingRecords.filter((record) => record.roomId === roomId);
 
   if (!room || records.length === 0) return null;
 
@@ -84,29 +59,17 @@ function createSettlementResponse(roomId: number): SettlementResponse | null {
     settlementId:
       mockDb.settlements.find((item) => item.roomId === roomId)?.settlementId ??
       Date.now(),
-    totalCost: records.reduce((total, record) => total + record.totalCost, 0),
+    totalCost: records.reduce((total, record) => total + record.totalPrice, 0),
     isConfirmed: false,
     confirmedAt: null,
     memberSettlements,
   };
 }
 
-function saveSettlement(roomId: number, settlement: SettlementResponse) {
-  mutableSettlements[roomId] = {
-    recordsSignature: createRecordsSignature(roomId),
-    settlement,
-  };
-}
-
 export const settlementHandlers: HttpHandler[] = [
   http.get(`${BASE}/api/v1/rooms/:roomId/settlement`, ({ params }) => {
     const roomId = Number(params.roomId);
-    const cachedSettlement = mutableSettlements[roomId];
-    const recordsSignature = createRecordsSignature(roomId);
-    const settlement =
-      cachedSettlement?.recordsSignature === recordsSignature
-        ? cachedSettlement.settlement
-        : createSettlementResponse(roomId);
+    const settlement = mutableSettlements[roomId] ?? createSettlementResponse(roomId);
 
     if (!settlement) {
       return HttpResponse.json(
@@ -120,7 +83,7 @@ export const settlementHandlers: HttpHandler[] = [
       );
     }
 
-    saveSettlement(roomId, settlement);
+    mutableSettlements[roomId] = settlement;
 
     return HttpResponse.json(createApiResponse(settlement, '정산 조회 성공'));
   }),
@@ -141,19 +104,14 @@ export const settlementHandlers: HttpHandler[] = [
       );
     }
 
-    saveSettlement(roomId, settlement);
+    mutableSettlements[roomId] = settlement;
 
     return HttpResponse.json(createApiResponse(settlement, '정산 계산 성공'));
   }),
 
   http.patch(`${BASE}/api/v1/rooms/:roomId/settlement/confirm`, ({ params }) => {
     const roomId = Number(params.roomId);
-    const cachedSettlement = mutableSettlements[roomId];
-    const recordsSignature = createRecordsSignature(roomId);
-    const settlement =
-      cachedSettlement?.recordsSignature === recordsSignature
-        ? cachedSettlement.settlement
-        : createSettlementResponse(roomId);
+    const settlement = mutableSettlements[roomId] ?? createSettlementResponse(roomId);
 
     if (!settlement) {
       return HttpResponse.json(
@@ -179,14 +137,14 @@ export const settlementHandlers: HttpHandler[] = [
       );
     }
 
-    saveSettlement(roomId, {
+    mutableSettlements[roomId] = {
       ...settlement,
       isConfirmed: true,
       confirmedAt: new Date().toISOString(),
-    });
+    };
 
     return HttpResponse.json(
-      createApiResponse(mutableSettlements[roomId].settlement, '정산 확정 성공'),
+      createApiResponse(mutableSettlements[roomId], '정산 확정 성공'),
     );
   }),
 

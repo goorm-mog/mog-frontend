@@ -80,9 +80,6 @@ const getRoomData = (roomId: number) => {
   return recordsByRoomId[roomId];
 };
 
-export const getMeetingRecordsByRoomId = (roomId: number): MeetingRecord[] =>
-  getRoomData(roomId).records.map(cloneRecord).sort((a, b) => a.seq - b.seq);
-
 const findRoomMember = (roomId: number, roomMemberId: number) =>
   mockDb.roomMembers.find(
     (member) => member.roomId === roomId && member.roomMemberId === roomMemberId,
