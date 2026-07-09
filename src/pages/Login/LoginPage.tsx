@@ -1,16 +1,34 @@
 import { useNavigate } from 'react-router-dom';
-import { loginWithKakao } from '@/api/auth';
+import { loginWithKakaoCode } from '@/api/auth';
+import { useToast } from '@/hooks/useToast';
+import { redirectToKakaoLogin } from '@/lib/kakao-oauth';
 import DividerWithStar from '@/components/common/DividerWithStar';
 import KakaoLoginButton from '@/components/common/KakaoLoginButton';
 import TicketBorder from '@/components/common/TicketBorder';
 
 function LoginPage() {
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
-  const handleKakaoLogin = async () => {
-    // TODO: 카카오 로그인 연동
-    await loginWithKakao();
-    navigate('/home');
+  const handleKakaoLogin = () => {
+    if (import.meta.env.VITE_MSW_ENABLED === 'true') {
+      loginWithKakaoCode('mock-code')
+        .then(() => navigate('/home'))
+        .catch((error: unknown) => {
+          const message =
+            error instanceof Error ? error.message : '카카오 로그인에 실패했습니다.';
+          showToast(message);
+        });
+      return;
+    }
+
+    try {
+      redirectToKakaoLogin();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : '카카오 로그인을 시작할 수 없습니다.';
+      showToast(message);
+    }
   };
 
   return (
