@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { format } from 'date-fns';
-import { CalendarDays } from 'lucide-react';
+import { CalendarDays, UsersRound } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '@/api/auth';
 import { createGroup, deleteGroup, fetchGroupDetail, fetchGroups, updateGroup } from '@/api/group';
@@ -76,19 +76,33 @@ function HomePage() {
   const [isGroupsLoading, setIsGroupsLoading] = useState(true);
   const [isGroupMutating, setIsGroupMutating] = useState(false);
   const [isCreatingAppointment, setIsCreatingAppointment] = useState(false);
-  const [rooms, setRooms] = useState<RoomInfo[]>([]);
-  const [roomsGroupId, setRoomsGroupId] = useState<number | null>(null);
+  const [roomsByGroup, setRoomsByGroup] = useState<Record<number, RoomInfo[]>>({});
   const [roomSummaries, setRoomSummaries] = useState<Record<number, RoomSummary>>({});
-  const [summariesGroupId, setSummariesGroupId] = useState<number | null>(null);
 
   const selectedDateKey = format(selectedDate, 'yyyy-MM-dd');
 
-  const activeRooms = useMemo(
-    () => (selectedGroupId !== null && roomsGroupId === selectedGroupId ? rooms : []),
-    [selectedGroupId, roomsGroupId, rooms],
+  const allRooms = useMemo(
+    () => groups.flatMap((group) => roomsByGroup[group.id] ?? []),
+    [groups, roomsByGroup],
   );
 
-  const isRoomsLoading = selectedGroupId !== null && roomsGroupId !== selectedGroupId;
+  const groupNameByRoomId = useMemo(() => {
+    const next: Record<number, string> = {};
+    for (const group of groups) {
+      for (const room of roomsByGroup[group.id] ?? []) {
+        next[room.roomId] = group.name;
+      }
+    }
+    return next;
+  }, [groups, roomsByGroup]);
+
+  const activeRooms = useMemo(() => {
+    if (selectedGroupId === null) return allRooms;
+    return roomsByGroup[selectedGroupId] ?? [];
+  }, [allRooms, selectedGroupId, roomsByGroup]);
+
+  const isRoomsLoading =
+    isGroupsLoading || groups.some((group) => roomsByGroup[group.id] === undefined);
 
   const markedDates = useMemo(
     () =>
@@ -107,20 +121,12 @@ function HomePage() {
     [activeRooms, selectedDateKey],
   );
 
-  const completedRooms = useMemo(
-    () => activeRooms.filter((room) => room.status === 'COMPLETED'),
+  const summaryTargetRooms = useMemo(
+    () => activeRooms.filter((room) => room.status !== 'VOTING'),
     [activeRooms],
   );
 
-  const activeRoomSummaries = useMemo(
-    () =>
-      selectedGroupId !== null &&
-      summariesGroupId === selectedGroupId &&
-      completedRooms.length > 0
-        ? roomSummaries
-        : {},
-    [selectedGroupId, summariesGroupId, completedRooms, roomSummaries],
-  );
+  const activeRoomSummaries = roomSummaries;
 
   const selectedGroup = groups.find((group) => group.id === selectedGroupId) ?? null;
 
@@ -131,7 +137,7 @@ function HomePage() {
       if (current !== null && nextGroups.some((group) => group.id === current)) {
         return current;
       }
-      return nextGroups[0]?.id ?? null;
+      return null;
     });
     return nextGroups;
   }, []);
@@ -143,7 +149,7 @@ function HomePage() {
       .then((nextGroups) => {
         if (ignore) return;
         setGroups(nextGroups);
-        setSelectedGroupId(nextGroups[0]?.id ?? null);
+        setSelectedGroupId(null);
       })
       .catch((error: unknown) => {
         if (ignore) return;
@@ -163,7 +169,38 @@ function HomePage() {
   }, [showToast]);
 
   useEffect(() => {
-    if (selectedGroupId === null) return;
+    if (groups.length === 0) {
+      return;
+    }
+
+    let ignore = false;
+
+    Promise.all(
+      groups.map((group) =>
+        fetchGroupRooms(group.id)
+          .then((nextRooms) => [group.id, nextRooms] as const)
+          .catch((error: unknown) => {
+            const message =
+              error instanceof ApiError ? error.message : '약속 목록을 불러오지 못했어요';
+            showToast(message);
+            return [group.id, []] as const;
+          }),
+      ),
+    )
+      .then((entries) => {
+        if (ignore) return;
+        setRoomsByGroup(Object.fromEntries(entries));
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [groups, showToast]);
+
+  useEffect(() => {
+    if (selectedGroupId === null) {
+      return;
+    }
 
     let ignore = false;
     const groupId = selectedGroupId;
@@ -176,33 +213,19 @@ function HomePage() {
         if (!ignore) setSelectedGroupRole(null);
       });
 
-    fetchGroupRooms(groupId)
-      .then((nextRooms) => {
-        if (ignore) return;
-        setRooms(nextRooms);
-        setRoomsGroupId(groupId);
-      })
-      .catch((error: unknown) => {
-        if (ignore) return;
-        const message = error instanceof ApiError ? error.message : '약속 목록을 불러오지 못했어요';
-        showToast(message);
-        setRooms([]);
-        setRoomsGroupId(groupId);
-      });
-
     return () => {
       ignore = true;
     };
-  }, [selectedGroupId, showToast]);
+  }, [selectedGroupId]);
 
   useEffect(() => {
-    if (selectedGroupId === null || completedRooms.length === 0) return;
+    if (summaryTargetRooms.length === 0) {
+      return;
+    }
 
     let ignore = false;
-    const groupId = selectedGroupId;
-
     Promise.all(
-      completedRooms.map((room) =>
+      summaryTargetRooms.map((room) =>
         fetchRoomSummary(room.roomId)
           .then((summary) => [room.roomId, summary] as const)
           .catch(() => null),
@@ -213,17 +236,16 @@ function HomePage() {
       for (const entry of entries) {
         if (entry) next[entry[0]] = entry[1];
       }
-      setRoomSummaries(next);
-      setSummariesGroupId(groupId);
+      setRoomSummaries((current) => ({ ...current, ...next }));
     });
 
     return () => {
       ignore = true;
     };
-  }, [selectedGroupId, completedRooms]);
+  }, [summaryTargetRooms]);
 
   const handleSelectGroup = (groupId: number) => {
-    setSelectedGroupId(groupId);
+    setSelectedGroupId((current) => (current === groupId ? null : groupId));
     setSelectedGroupRole(null);
   };
 
@@ -278,8 +300,9 @@ function HomePage() {
 
     try {
       await deleteGroup(selectedGroupId);
-      const nextGroups = await loadGroups();
-      setSelectedGroupId(nextGroups[0]?.id ?? null);
+      await loadGroups();
+      setSelectedGroupId(null);
+      setSelectedGroupRole(null);
       setIsDeleteRoomOpen(false);
       setIsSidebarOpen(false);
     } catch (error: unknown) {
@@ -336,6 +359,14 @@ function HomePage() {
     navigate(`/${room.roomId}/meet-detail`);
   };
 
+  const getRoomGroupName = (room: RoomInfo) => groupNameByRoomId[room.roomId] ?? '그룹 미정';
+
+  const getScheduleCardSubtitle = (room: RoomInfo) => {
+    const statusLabel = ROOM_STATUS_LABEL[room.status];
+    if (selectedGroupId !== null) return statusLabel;
+    return `${getRoomGroupName(room)} · ${statusLabel}`;
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <TopAppBar
@@ -385,8 +416,9 @@ function HomePage() {
                   <ScheduleCard
                     key={room.roomId}
                     title={room.roomName}
-                    location={ROOM_STATUS_LABEL[room.status]}
+                    location={getScheduleCardSubtitle(room)}
                     icon={CalendarDays}
+                    locationIcon={selectedGroupId === null ? UsersRound : undefined}
                     onClick={() => handleRoomClick(room)}
                   />
                 ))
@@ -403,8 +435,8 @@ function HomePage() {
           <section className="flex flex-col items-center gap-6 pt-2">
             {isRoomsLoading ? (
               <p className="py-10 text-caption text-dark-border">불러오는 중...</p>
-            ) : completedRooms.length > 0 ? (
-              completedRooms.map((room) => {
+            ) : activeRooms.length > 0 ? (
+              activeRooms.map((room) => {
                 const summary = activeRoomSummaries[room.roomId];
                 return (
                   <ArchivalCard
@@ -414,15 +446,18 @@ function HomePage() {
                     location={summary?.confirmedPlace?.placeName ?? '장소 미정'}
                     totalAmount={formatCurrency(summary?.settlement?.totalCost)}
                     meta={[
-                      { label: '상태', value: ROOM_STATUS_LABEL[room.status] },
+                      ...(selectedGroupId === null
+                        ? [{ label: '그룹', value: getRoomGroupName(room) }]
+                        : []),
                       ...(summary ? [{ label: '인원', value: `${summary.totalMemberCount}명` }] : []),
+                      { label: '상태', value: ROOM_STATUS_LABEL[room.status] },
                     ]}
                     onClick={() => handleRoomClick(room)}
                   />
                 );
               })
             ) : (
-              <p className="py-10 text-caption text-dark-border">완료된 약속이 없어요</p>
+              <p className="py-10 text-caption text-dark-border">약속이 없어요</p>
             )}
 
             <footer className="flex w-full flex-col items-center gap-4 py-10">
@@ -446,7 +481,7 @@ function HomePage() {
           isOpen={isSidebarOpen}
           groups={groups}
           selectedGroupId={selectedGroupId}
-          selectedGroupRole={selectedGroupRole}
+          selectedGroupRole={selectedGroupId === null ? null : selectedGroupRole}
           isLoading={isGroupsLoading}
           onClose={() => setIsSidebarOpen(false)}
           onSelectGroup={handleSelectGroup}
