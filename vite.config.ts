@@ -18,6 +18,17 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src')
     }
   },
+  server: {
+    port: 5173,
+    strictPort: true,
+    proxy: {
+      '/api': {
+        target: 'https://apimog-dev.leeseh0806.com',
+        changeOrigin: true,
+        secure: true,
+      },
+    },
+  },
   test: {
     projects: [{
       extends: true,

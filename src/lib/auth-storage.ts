@@ -6,7 +6,9 @@ const USER_ID_KEY = 'mog_user_id';
 
 export function setAuthSession({ accessToken, refreshToken, user }: LoginResponse) {
   sessionStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-  sessionStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  if (refreshToken) {
+    sessionStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  }
   sessionStorage.setItem(USER_ID_KEY, String(user.userId));
 }
 

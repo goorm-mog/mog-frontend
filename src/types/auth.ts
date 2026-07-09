@@ -4,8 +4,11 @@ export type AuthUser = {
   profileImageUrl: string;
 };
 
-export type LoginResponse = {
+export type AuthLoginData = {
   accessToken: string;
-  refreshToken: string;
   user: AuthUser;
+};
+
+export type LoginResponse = AuthLoginData & {
+  refreshToken?: string;
 };
