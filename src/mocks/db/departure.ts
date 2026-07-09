@@ -13,19 +13,19 @@ export interface DepartureDbItem {
 }
 
 export const departuresDb: DepartureDbItem[] = [
+  // {
+  //   departureId: 1,
+  //   roomId: 45,
+  //   userId: 1,
+  //   nickname: '김구름',
+  //   placeName: '강남역',
+  //   address: '서울 강남구 강남대로 396',
+  //   latitude: 37.498095,
+  //   longitude: 127.02761,
+  //   transportType: 'PUBLIC',
+  // },
   {
     departureId: 1,
-    roomId: 45,
-    userId: 1,
-    nickname: '김구름',
-    placeName: '강남역',
-    address: '서울 강남구 강남대로 396',
-    latitude: 37.498095,
-    longitude: 127.02761,
-    transportType: 'PUBLIC',
-  },
-  {
-    departureId: 2,
     roomId: 45,
     userId: 2,
     nickname: '박구름',

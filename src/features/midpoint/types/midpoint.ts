@@ -4,6 +4,7 @@ export interface MidpointPlace {
   placeName?: string;
   latitude: number;
   longitude: number;
+  travelTimes?: TravelTime[];
 }
 
 export interface MidpointResult {

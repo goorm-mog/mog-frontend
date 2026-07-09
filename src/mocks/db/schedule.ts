@@ -6,16 +6,16 @@
 // 'fresh' → 슬롯 없음  (방장: 슬롯 생성 화면 / 참가자: 대기 화면)
 // 'vote'  → 슬롯 있음  (방장·참가자 모두 투표 화면)
 // 'done'  → 투표 완료  (방장: 일정 확정 화면 / 참가자: 결과 확인 화면)
-const SCENARIO = 'fresh' as 'fresh' | 'vote' | 'done';
+const SCENARIO = 'done' as 'fresh' | 'vote' | 'done';
 
 const BASE_SLOTS = {
   roomId: 45,
   dates: [
-    { slotId: 10, date: '2026-07-01', time: '09:00' },
-    { slotId: 11, date: '2026-07-01', time: '10:00' },
-    { slotId: 12, date: '2026-07-01', time: '14:00' },
-    { slotId: 13, date: '2026-07-01', time: '19:00' },
-    { slotId: 14, date: '2026-07-02', time: '13:00' },
+    { slotId: 10, date: '2026-07-01', time: '18:00' },
+    { slotId: 11, date: '2026-07-01', time: '19:00' },
+    { slotId: 12, date: '2026-07-01', time: '20:00' },
+    { slotId: 13, date: '2026-07-01', time: '21:00' },
+    { slotId: 14, date: '2026-07-02', time: '18:00' },
     { slotId: 15, date: '2026-07-02', time: '19:00' },
     { slotId: 16, date: '2026-07-03', time: '18:00' },
     { slotId: 17, date: '2026-07-03', time: '19:00' },
@@ -25,27 +25,27 @@ const BASE_SLOTS = {
 
 // userId 1 = 현재 로그인 유저
 const VOTED_USER_IDS: Record<number, number[]> = {
-  10: [1, 2],
+  10: [1, 2, 3],
   11: [1, 2, 3],
-  12: [4],
-  13: [1, 2, 3, 4],
-  14: [2, 3],
-  15: [1, 2],
+  12: [1, 2, 3],
+  13: [1, 2, 3],
+  14: [1, 2, 3],
+  15: [1, 2, 3],
   16: [1, 2, 3],
-  17: [1, 2, 3, 4],
-  18: [1],
+  17: [1, 2, 3],
+  18: [1, 2, 3],
 };
 
 const NOT_VOTED_USER_IDS: Record<number, number[]> = {
-  10: [2],
-  11: [2, 3],
-  12: [4],
-  13: [2, 3, 4],
-  14: [2, 3],
-  15: [2],
-  16: [2, 3],
-  17: [2, 3, 4],
-  18: [],
+  10: [1, 2],
+  11: [1, 2],
+  12: [1, 2],
+  13: [1, 2],
+  14: [1, 2],
+  15: [1, 2],
+  16: [1, 2],
+  17: [1, 2],
+  18: [1, 2],
 };
 
 export const scheduleSlotsDb =

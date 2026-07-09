@@ -75,6 +75,7 @@ export function useDepartureForm({
     try {
       if (isEditing) {
         await updateDeparture(roomId, body);
+        showToast('출발지가 수정되었습니다.', 'success');
       } else {
         await registerDeparture(roomId, body);
       }

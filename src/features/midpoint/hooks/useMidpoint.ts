@@ -27,9 +27,14 @@ export function useMidpoint(roomId: number) {
     }];
   }, [midpoint]);
 
+  const activeTravelTimes = useMemo(
+    () => selectedPlace?.travelTimes ?? midpoint?.travelTimes ?? [],
+    [selectedPlace, midpoint],
+  );
+
   const departuresWithLabels = useMemo<DepartureWithLabel[]>(() => {
     return departures.map((d) => {
-      const t = midpoint?.travelTimes.find((tt) => tt.userId === d.userId);
+      const t = activeTravelTimes.find((tt) => tt.userId === d.userId);
       return {
         userId: d.userId,
         latitude: d.latitude,
@@ -39,14 +44,14 @@ export function useMidpoint(roomId: number) {
         transportType: t?.transportType,
       };
     });
-  }, [departures, midpoint]);
+  }, [departures, activeTravelTimes]);
 
   const avgTravelMinutes = useMemo(() => {
-    if (!midpoint || midpoint.travelTimes.length === 0) return 0;
+    if (activeTravelTimes.length === 0) return 0;
     return Math.round(
-      midpoint.travelTimes.reduce((s, t) => s + t.durationMinutes, 0) / midpoint.travelTimes.length,
+      activeTravelTimes.reduce((s, t) => s + t.durationMinutes, 0) / activeTravelTimes.length,
     );
-  }, [midpoint]);
+  }, [activeTravelTimes]);
 
   useEffect(() => {
     let cancelled = false;

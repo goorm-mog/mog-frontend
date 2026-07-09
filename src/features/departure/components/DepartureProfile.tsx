@@ -91,9 +91,6 @@ function DepartureProfile({
           <VoteCountBadge votedCount={submittedCount} totalParticipants={totalParticipants} />
         </div>
       </div>
-      <p className="text-right text-[11px] font-pretendard text-dark-border">
-        첫 입력은 누구나 가능, 수정은 본인만 가능해요
-      </p>
     </div>
   );
 }
