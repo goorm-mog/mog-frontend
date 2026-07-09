@@ -2,7 +2,6 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { ToastProvider } from '@/contexts/ToastContext';
 import ExampleRoutes from '@/routes/ExampleRoutes';
 import HomePage from '@/pages/Home/HomePage';
-import KakaoCallbackPage from '@/pages/Login/KakaoCallbackPage';
 import LoginPage from '@/pages/Login/LoginPage';
 import KakaoOAuthCallbackPage from '@/pages/Login/KakaoOAuthCallbackPage';
 import HostReschedule from '@/pages/Reschedule/HostReschedule';
