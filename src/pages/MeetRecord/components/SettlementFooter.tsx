@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/common/Button';
 import { formatWon } from '@/pages/MeetRecord/utils/receipt';
@@ -21,13 +21,8 @@ function SettlementFooter({
   onSave,
   onSettle,
 }: SettlementFooterProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  useEffect(() => {
-    if (errorMessage) {
-      setIsExpanded(true);
-    }
-  }, [errorMessage]);
+  const [isManuallyExpanded, setIsManuallyExpanded] = useState(false);
+  const isExpanded = isManuallyExpanded || Boolean(errorMessage);
 
   return (
     <footer
@@ -45,7 +40,7 @@ function SettlementFooter({
           }}
           aria-label={isExpanded ? '정산 바 접기' : '정산 바 펼치기'}
           aria-expanded={isExpanded}
-          onClick={() => setIsExpanded((current) => !current)}
+          onClick={() => setIsManuallyExpanded((current) => !current)}
         >
           {isExpanded ? (
             <ChevronDown size={22} strokeWidth={2.4} />

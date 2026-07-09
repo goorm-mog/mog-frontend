@@ -117,7 +117,7 @@ function MeetRecord() {
         <TopAppBar
           title="기록"
           showBack
-          onBack={() => navigate(-1)}
+          onBack={() => navigate('/home')}
           rightSlot={<span aria-hidden className="block size-4" />}
         />
         {isLoading || loadError || roomId == null ? (
