@@ -33,7 +33,7 @@ function MemberBurdenSection({
           return (
             <article
               key={member.id}
-              className="w-[198px] shrink-0 rounded-[5px] border border-dark-border bg-background px-4 py-4"
+              className="w-max min-w-[198px] shrink-0 rounded-[5px] border border-dark-border bg-background px-4 py-4"
             >
               <div className="flex items-start justify-between gap-3">
                 <MemberAvatar
@@ -46,10 +46,11 @@ function MemberBurdenSection({
                   unselectedTone="muted"
                   labelTone="default"
                   labelPosition="right"
+                  labelClassName="text-[12px] leading-[15px] font-medium"
                   className="pointer-events-none"
                   tabIndex={-1}
                 />
-                <span className="pt-1 text-right text-[17px] leading-[21px] font-semibold">
+                <span className="whitespace-nowrap pt-1 text-right text-[17px] leading-[21px] font-semibold">
                   {formatTransferWon(totalAmount)}
                 </span>
               </div>
@@ -58,9 +59,9 @@ function MemberBurdenSection({
                 {member.details.map((detail) => (
                   <div
                     key={detail.id}
-                    className="grid grid-cols-[minmax(0,1fr)_76px] items-center gap-3 text-[12px] leading-[15px]"
+                    className="grid grid-cols-[max-content_max-content] items-center justify-between gap-3 text-[12px] leading-[15px]"
                   >
-                    <dt className="truncate text-dark-border">{detail.placeName}</dt>
+                    <dt className="whitespace-nowrap text-dark-border">{detail.placeName}</dt>
                     <dd className="whitespace-nowrap text-right font-semibold text-text">
                       {formatTransferWon(detail.amount)}
                     </dd>
