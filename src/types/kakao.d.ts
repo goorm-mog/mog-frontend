@@ -3,10 +3,19 @@ declare global {
     setCenter: (position: KakaoLatLng) => void;
     setLevel: (level: number) => void;
     getLevel: () => number;
+    setBounds: (bounds: KakaoLatLngBounds, paddingTop?: number, paddingRight?: number, paddingBottom?: number, paddingLeft?: number) => void;
   }
 
   interface KakaoMarker {
     setMap: (map: KakaoMap | null) => void;
+  }
+
+  interface KakaoCustomOverlay {
+    setMap: (map: KakaoMap | null) => void;
+  }
+
+  interface KakaoLatLngBounds {
+    extend: (latlng: KakaoLatLng) => void;
   }
 
   interface KakaoPlaceResult {
@@ -40,6 +49,8 @@ declare global {
         Map: new (el: HTMLElement, opts: { center: KakaoLatLng; level: number }) => KakaoMap;
         Marker: new (opts: { position: KakaoLatLng }) => KakaoMarker;
         LatLng: new (lat: number, lng: number) => KakaoLatLng;
+        CustomOverlay: new (opts: { content: HTMLElement; position: KakaoLatLng; yAnchor?: number; zIndex?: number }) => KakaoCustomOverlay;
+        LatLngBounds: new () => KakaoLatLngBounds;
         ZoomControl: new () => unknown;
         ControlPosition: {
           RIGHT: unknown;

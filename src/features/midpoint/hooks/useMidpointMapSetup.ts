@@ -20,16 +20,6 @@ function getTransportIconHtml(type?: string): string {
   return renderToStaticMarkup(createElement(Icon, { size: 14, color: 'white', strokeWidth: 2.5 }));
 }
 
-interface KakaoMap {
-  setCenter: (latlng: unknown) => void;
-  setLevel: (level: number) => void;
-  getLevel: () => number;
-  setBounds: (bounds: unknown, paddingTop?: number, paddingRight?: number, paddingBottom?: number, paddingLeft?: number) => void;
-}
-
-interface KakaoCustomOverlay {
-  setMap: (map: KakaoMap | null) => void;
-}
 
 function createMidpointContent(): HTMLElement {
   const el = document.createElement('div');
