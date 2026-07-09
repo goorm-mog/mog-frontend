@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { loginWithKakaoCode } from '@/api/auth';
 import TicketBorder from '@/components/common/TicketBorder';
@@ -8,11 +8,9 @@ function KakaoCallbackPage() {
   const [searchParams] = useSearchParams();
   const code = searchParams.get('code');
   const [message, setMessage] = useState('로그인 처리 중입니다.');
-  const hasRequestedRef = useRef(false);
 
   useEffect(() => {
-    if (!code || hasRequestedRef.current) return;
-    hasRequestedRef.current = true;
+    if (!code) return;
 
     loginWithKakaoCode(code)
       .then(() => navigate('/home', { replace: true }))
