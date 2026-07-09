@@ -19,6 +19,10 @@ type ErrorResponseBody = {
 };
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '';
+const SHOULD_FALLBACK_TO_MOCK =
+  import.meta.env.DEV &&
+  import.meta.env.VITE_MSW_ENABLED === 'true' &&
+  import.meta.env.VITE_MSW_MODE === 'network-first';
 
 async function parseErrorResponse(response: Response): Promise<ErrorResponseBody | null> {
   try {
@@ -47,12 +51,32 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
     headers.set('Authorization', `Bearer ${accessToken}`);
   }
 
-  const response = await fetch(`${API_BASE}${path}`, {
+  const request = {
     ...options,
     headers,
-  });
+  };
+
+  let response: Response;
+
+  try {
+    response = await fetch(`${API_BASE}${path}`, request);
+  } catch (error) {
+    const mockResponse = await fetchMockFallback(path, request);
+
+    if (mockResponse) {
+      return mockResponse.json() as Promise<T>;
+    }
+
+    throw error;
+  }
 
   if (!response.ok) {
+    const mockResponse = await fetchMockFallback(path, request);
+
+    if (mockResponse?.ok) {
+      return mockResponse.json() as Promise<T>;
+    }
+
     const errorBody = await parseErrorResponse(response);
     const message =
       errorBody?.message ??
@@ -62,6 +86,25 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
   }
 
   return response.json() as Promise<T>;
+}
+
+async function fetchMockFallback(path: string, options: RequestInit): Promise<Response | null> {
+  if (!SHOULD_FALLBACK_TO_MOCK || path.startsWith('/api/v1/auth/')) {
+    return null;
+  }
+
+  const [{ worker }, { allHandlers, authOnlyHandlers }] = await Promise.all([
+    import('@/mocks/browser'),
+    import('@/mocks/handlers'),
+  ]);
+
+  worker.use(...allHandlers);
+
+  try {
+    return await fetch(`${API_BASE}${path}`, options);
+  } finally {
+    worker.resetHandlers(...authOnlyHandlers);
+  }
 }
 
 export function apiFetchNullOn404<T>(path: string, options?: RequestInit): Promise<T | null> {
