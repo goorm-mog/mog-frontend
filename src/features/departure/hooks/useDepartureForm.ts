@@ -29,10 +29,11 @@ export function useDepartureForm({
   const [selectedPlace, setSelectedPlace] = useState<SelectedPlace | null>(null);
   const [transport, setTransport] = useState<TransportType | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [prevMyDepartureId, setPrevMyDepartureId] = useState(myDeparture?.departureId ?? null);
 
-  if (prevMyDepartureId !== (myDeparture?.departureId ?? null)) {
-    setPrevMyDepartureId(myDeparture?.departureId ?? null);
+  // 내 출발지가 처음 로드될 때 폼에 채워줌 (render 중 이전값 비교 패턴)
+  const [prevDepartureId, setPrevDepartureId] = useState(myDeparture?.departureId);
+  if (prevDepartureId !== myDeparture?.departureId) {
+    setPrevDepartureId(myDeparture?.departureId);
     if (myDeparture && selectedMemberId === myUserId) {
       setSelectedPlace({
         placeName: myDeparture.placeName,
@@ -63,19 +64,19 @@ export function useDepartureForm({
   const selectedMemberDeparture = departures.find((d) => d.userId === selectedMemberId) ?? null;
   const isSelectedSelf = myUserId !== null && selectedMemberId === myUserId;
   const isEditing = selectedMemberDeparture !== null;
-  const isReadOnly = !isSelectedSelf && isEditing;
+  const isReadOnly = !isSelectedSelf;
 
   const handleSave = async () => {
-    if (!selectedPlace || !transport || !selectedMemberId) return;
+    if (!selectedPlace || !transport || !isSelectedSelf) return;
     setIsSaving(true);
     const body: RegisterDepartureRequest = {
       ...selectedPlace,
       transportType: transport,
-      ...(selectedMemberId !== myUserId && { targetUserId: selectedMemberId }),
     };
     try {
-      if (isSelectedSelf && isEditing) {
+      if (isEditing) {
         await updateDeparture(roomId, body);
+        showToast('출발지가 수정되었습니다.', 'success');
       } else {
         await registerDeparture(roomId, body);
       }

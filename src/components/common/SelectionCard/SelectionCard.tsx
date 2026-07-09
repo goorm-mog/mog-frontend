@@ -23,7 +23,7 @@ function SelectionCard({
     <button
       onClick={onClick}
       className={cn(
-        'flex flex-col gap-3 text-left bg-background rounded-2xl p-4 border transition-colors',
+        'flex flex-col gap-3 text-left bg-background rounded-xl p-4 border transition-colors',
         'w-[calc(100vw-72px)] max-w-72 shrink-0',
         isSelected ? 'border-point' : 'border-dark-border/30',
         className,
@@ -39,9 +39,7 @@ function SelectionCard({
         <span className="font-pretendard text-[13px] text-dark-border">{subtitle}</span>
       </div>
 
-      <div className="border-t border-dashed border-dark-border/40 pt-3 w-full">
-        {children}
-      </div>
+      <div className="border-t border-dashed border-dark-border/40 pt-3 w-full">{children}</div>
     </button>
   );
 }

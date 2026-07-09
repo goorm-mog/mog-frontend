@@ -11,15 +11,13 @@ let nextDepartureId = 100;
 export const departureHandlers: HttpHandler[] = [
   http.get(`${BASE}/rooms/:roomId/departure`, ({ params }) => {
     const roomId = Number(params.roomId);
-    const totalParticipants = mockDb.roomMembers.filter((m) => m.roomId === roomId).length;
     const roomDepartures = mutableDepartures.filter((d) => d.roomId === roomId);
 
     const response: DepartureListResponse = {
       roomId,
-      totalParticipants,
       submittedCount: roomDepartures.length,
-      departures: roomDepartures.map(({ departureId, userId, nickname, placeName, address, latitude, longitude, transportType }) => ({
-        departureId, userId, nickname, placeName, address, latitude, longitude, transportType,
+      departures: roomDepartures.map(({ departureId, userId, placeName, address, latitude, longitude, transportType }) => ({
+        departureId, userId, placeName, address, latitude, longitude, transportType,
       })),
     };
     return HttpResponse.json(response);
@@ -31,19 +29,18 @@ export const departureHandlers: HttpHandler[] = [
       ? 3
       : mockDb.auth.currentUser.userId;
     const body = (await request.json()) as RegisterDepartureRequest;
-    const targetUserId = body.targetUserId ?? currentUserId;
-    const existing = mutableDepartures.find((d) => d.roomId === roomId && d.userId === targetUserId);
+    const existing = mutableDepartures.find((d) => d.roomId === roomId && d.userId === currentUserId);
 
     if (existing) {
       return HttpResponse.json({ message: '이미 등록된 출발지가 있습니다.' }, { status: 409 });
     }
 
-    const targetMember = mockDb.roomMembers.find((m) => m.roomId === roomId && m.userId === targetUserId);
+    const currentMember = mockDb.roomMembers.find((m) => m.roomId === roomId && m.userId === currentUserId);
     const newItem: DepartureDbItem = {
       departureId: nextDepartureId++,
       roomId,
-      userId: targetUserId,
-      nickname: targetMember?.nickname ?? mockDb.auth.currentUser.nickname,
+      userId: currentUserId,
+      nickname: currentMember?.nickname ?? mockDb.auth.currentUser.nickname,
       ...body,
     };
     mutableDepartures.push(newItem);
@@ -52,7 +49,7 @@ export const departureHandlers: HttpHandler[] = [
       {
         departureId: newItem.departureId,
         roomId,
-        userId: targetUserId,
+        userId: currentUserId,
         placeName: body.placeName,
         latitude: body.latitude,
         longitude: body.longitude,

@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useKakaoPlaceSearch } from '@/hooks/useKakaoPlaceSearch';
 import { useKakaoMapSetup } from '@/features/departure/hooks/useKakaoMapSetup';
 import { useToast } from '@/hooks/useToast';
 import { TRANSPORT_OPTIONS } from '@/features/departure/constants';
+import KakaoMapBase from '@/components/common/KakaoMap/KakaoMapBase';
 import type { SelectedPlace, TransportType } from '@/features/departure/types/departure';
 
 interface DepartureMapSectionProps {
@@ -23,15 +24,16 @@ export default function DepartureMapSection({
   const { showToast } = useToast();
   const mapRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState(selectedPlace?.placeName ?? '');
-  const [prevSelectedPlace, setPrevSelectedPlace] = useState(selectedPlace);
-
-  if (prevSelectedPlace !== selectedPlace) {
-    setPrevSelectedPlace(selectedPlace);
-    setQuery(selectedPlace ? selectedPlace.placeName : '');
-  }
   const { search, results, isSearching, clear } = useKakaoPlaceSearch();
 
-  // 지도 클릭 핸들러에서 호출할 콜백 — onPlaceSelect + 로컬 상태 업데이트를 묶음
+  // 외부에서 selectedPlace가 바뀌면 검색창 동기화 (render 중 이전값 비교 패턴)
+  const [prevSelectedPlace, setPrevSelectedPlace] = useState(selectedPlace);
+  if (prevSelectedPlace !== selectedPlace) {
+    setPrevSelectedPlace(selectedPlace);
+    setQuery(selectedPlace?.placeName ?? '');
+  }
+
+  // 지도 클릭 핸들러 콜백 — 항상 최신 클로저를 유지하기 위해 effect에서 ref 갱신
   const applyPlaceRef = useRef<(place: SelectedPlace) => void>(() => {});
   useEffect(() => {
     applyPlaceRef.current = (place: SelectedPlace) => {
@@ -39,7 +41,7 @@ export default function DepartureMapSection({
       setQuery(place.placeName);
       clear();
     };
-  });
+  }, [onPlaceSelect, clear]);
 
   const { mapInstanceRef, markerRef, mapReady } = useKakaoMapSetup(mapRef, applyPlaceRef);
 
@@ -75,15 +77,15 @@ export default function DepartureMapSection({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPlace, mapReady]);
 
-  const handleZoomIn = () => {
+  const handleZoomIn = useCallback(() => {
     const map = mapInstanceRef.current as KakaoMap;
-    map.setLevel(map.getLevel() - 1);
-  };
+    map?.setLevel(map.getLevel() - 1);
+  }, [mapInstanceRef]);
 
-  const handleZoomOut = () => {
+  const handleZoomOut = useCallback(() => {
     const map = mapInstanceRef.current as KakaoMap;
-    map.setLevel(map.getLevel() + 1);
-  };
+    map?.setLevel(map.getLevel() + 1);
+  }, [mapInstanceRef]);
 
   const handlePlaceSelect = (result: KakaoPlaceResult) => {
     const place: SelectedPlace = {
@@ -122,7 +124,7 @@ export default function DepartureMapSection({
 
   return (
     <div className={`flex flex-col ${className ?? ''}`}>
-      <div className="relative h-[55vh] min-h-75">
+      <KakaoMapBase mapRef={mapRef} onZoomIn={handleZoomIn} onZoomOut={handleZoomOut}>
         {/* 검색창 + 드롭다운 오버레이 */}
         <div className="absolute inset-3 z-10 flex flex-col pointer-events-none">
           <div className="flex items-center border border-dark-border bg-background rounded-md shadow px-4 py-3 gap-2 pointer-events-auto">
@@ -203,25 +205,7 @@ export default function DepartureMapSection({
             <path d="M12 8a4 4 0 100 8 4 4 0 000-8z" />
           </svg>
         </button>
-
-        {/* 줌 컨트롤 — 우하단 */}
-        <div className="absolute bottom-3 right-4 z-10 flex flex-col rounded-md shadow overflow-hidden">
-          <button
-            onClick={handleZoomIn}
-            className="w-10 h-10 bg-background flex items-center justify-center text-xl font-light text-text border-b border-border"
-          >
-            +
-          </button>
-          <button
-            onClick={handleZoomOut}
-            className="w-10 h-10 bg-background flex items-center justify-center text-xl font-light text-text"
-          >
-            −
-          </button>
-        </div>
-
-        <div ref={mapRef} className="w-full h-full" />
-      </div>
+      </KakaoMapBase>
 
       <div className="flex gap-2 px-4 py-4">
         {TRANSPORT_OPTIONS.map((opt) => (

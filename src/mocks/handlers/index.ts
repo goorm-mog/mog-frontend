@@ -4,6 +4,7 @@ import { notificationHandlers } from './notification';
 import { recordsHandlers } from './records';
 import { scheduleHandlers } from './schedule';
 import { departureHandlers } from './departure';
+import { midpointHandlers } from './midpoint';
 import { settlementHandlers } from './settlement';
 import { groupHandlers } from './group';
 import { roomHandlers } from './room';
@@ -16,6 +17,7 @@ export const handlers = [
   ...chatHandlers,
   ...notificationHandlers,
   ...departureHandlers,
+  ...midpointHandlers,
   ...settlementHandlers,
   ...groupHandlers,
   ...roomHandlers,

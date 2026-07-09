@@ -61,7 +61,7 @@ function CreateAppointmentSheet({ isLoading = false, onClose, onSubmit }: Create
       onClick={onClose}
     >
       <div
-        className="fixed bottom-0 left-1/2 z-50 flex w-full max-w-97.5 -translate-x-1/2 flex-col rounded-t-lg border border-border bg-background shadow-lg"
+        className="fixed bottom-0 left-1/2 z-50 flex w-full max-w-107.5 -translate-x-1/2 flex-col rounded-t-lg border border-border bg-background shadow-lg"
         role="dialog"
         aria-modal="true"
         aria-labelledby="create-appointment-title"

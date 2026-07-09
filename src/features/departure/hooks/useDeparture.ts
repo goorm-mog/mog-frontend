@@ -35,7 +35,7 @@ export function useDeparture(roomId: number) {
           membersRes.members.map((m) => ({
             userId: m.userId,
             nickname: m.nickname,
-            isHost: m.role === 'HOST',
+            isHost: m.role === 'LEADER',
             isMe: m.userId === myUserId,
             isSubmitted: submittedUserIds.has(m.userId),
           })),
@@ -43,7 +43,7 @@ export function useDeparture(roomId: number) {
         setDepartures(departuresRes.departures);
         setMyDeparture(departuresRes.departures.find((d) => d.userId === myUserId) ?? null);
         setSubmittedCount(departuresRes.submittedCount);
-        setTotalParticipants(departuresRes.totalParticipants);
+        setTotalParticipants(membersRes.members.length);
         setIsLoading(false);
       })
       .catch(() => {
