@@ -60,7 +60,7 @@ const buildParticipantsContext = (roomId: number): MeetChatParticipant[] => {
       userId,
       nickname,
       profileImageUrl: user?.profileImageUrl,
-      status: role === 'HOST' ? 'host' : 'joined',
+      status: role === 'LEADER' ? 'host' : 'joined',
     };
   });
 };
