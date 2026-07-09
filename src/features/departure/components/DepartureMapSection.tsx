@@ -26,18 +26,22 @@ export default function DepartureMapSection({
   const [query, setQuery] = useState(selectedPlace?.placeName ?? '');
   const { search, results, isSearching, clear } = useKakaoPlaceSearch();
 
-  // 외부에서 selectedPlace가 바뀌면 검색창 동기화
-  useEffect(() => {
+  // 외부에서 selectedPlace가 바뀌면 검색창 동기화 (render 중 이전값 비교 패턴)
+  const [prevSelectedPlace, setPrevSelectedPlace] = useState(selectedPlace);
+  if (prevSelectedPlace !== selectedPlace) {
+    setPrevSelectedPlace(selectedPlace);
     setQuery(selectedPlace?.placeName ?? '');
-  }, [selectedPlace]);
+  }
 
-  // 지도 클릭 핸들러 콜백 — 항상 최신 클로저를 유지하기 위해 ref에 직접 할당
+  // 지도 클릭 핸들러 콜백 — 항상 최신 클로저를 유지하기 위해 effect에서 ref 갱신
   const applyPlaceRef = useRef<(place: SelectedPlace) => void>(() => {});
-  applyPlaceRef.current = (place: SelectedPlace) => {
-    onPlaceSelect(place);
-    setQuery(place.placeName);
-    clear();
-  };
+  useEffect(() => {
+    applyPlaceRef.current = (place: SelectedPlace) => {
+      onPlaceSelect(place);
+      setQuery(place.placeName);
+      clear();
+    };
+  }, [onPlaceSelect, clear]);
 
   const { mapInstanceRef, markerRef, mapReady } = useKakaoMapSetup(mapRef, applyPlaceRef);
 

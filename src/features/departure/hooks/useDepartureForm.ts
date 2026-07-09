@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { registerDeparture, updateDeparture } from '@/features/departure/api/departure';
 import { ApiError } from '@/lib/apiFetch';
 import { useToast } from '@/hooks/useToast';
@@ -30,19 +30,20 @@ export function useDepartureForm({
   const [transport, setTransport] = useState<TransportType | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // 내 출발지가 처음 로드될 때 폼에 채워줌 (ID 변경 시에만 동기화)
-  useEffect(() => {
-    if (!myDeparture || selectedMemberId !== myUserId) return;
-    setSelectedPlace({
-      placeName: myDeparture.placeName,
-      address: myDeparture.address,
-      latitude: myDeparture.latitude,
-      longitude: myDeparture.longitude,
-    });
-    setTransport(myDeparture.transportType);
-    // myDeparture 내용이 아닌 ID 변경 시에만 실행
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [myDeparture?.departureId]);
+  // 내 출발지가 처음 로드될 때 폼에 채워줌 (render 중 이전값 비교 패턴)
+  const [prevDepartureId, setPrevDepartureId] = useState(myDeparture?.departureId);
+  if (prevDepartureId !== myDeparture?.departureId) {
+    setPrevDepartureId(myDeparture?.departureId);
+    if (myDeparture && selectedMemberId === myUserId) {
+      setSelectedPlace({
+        placeName: myDeparture.placeName,
+        address: myDeparture.address,
+        latitude: myDeparture.latitude,
+        longitude: myDeparture.longitude,
+      });
+      setTransport(myDeparture.transportType);
+    }
+  }
 
   const handleMemberSelect = (memberId: number, departure: DepartureEntry | null) => {
     setSelectedMemberId(memberId);
