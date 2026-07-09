@@ -89,8 +89,8 @@ function SettlementContent({
   const { showToast } = useToast();
   const [isConfirmingSettlement, setIsConfirmingSettlement] = useState(false);
   const navigateToMeetDetail = useCallback(() => {
-    navigate('/meet-detail');
-  }, [navigate]);
+    navigate(`/${roomId}/meet-detail`);
+  }, [navigate, roomId]);
   const copyAccountToClipboard = useCallback(
     async (accountText: string) => {
       try {

@@ -59,7 +59,7 @@ function MeetDetailPage() {
         showBack
         className="fixed top-0 left-1/2 z-50 w-full max-w-[390px] -translate-x-1/2"
         rightSlot={<span aria-hidden className="block size-4" />}
-        onBack={() => navigate(-1)}
+        onBack={() => navigate('/home')}
       />
 
       <main className="fixed top-[50px] bottom-0 left-1/2 w-full max-w-[390px] -translate-x-1/2 overflow-hidden bg-background">
