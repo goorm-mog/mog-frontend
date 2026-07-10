@@ -5,14 +5,18 @@ export function formatWon(amount: number) {
 }
 
 export function parseMenuInput(input: string): ReceiptItem | null {
-  const [name, countText, ...priceParts] = input.split(',').map((value) => value.trim());
+  const parts = input.split(',').map((value) => value.trim());
+  const [name] = parts;
 
   if (!name) {
     return null;
   }
 
+  const hasCount = parts.length >= 3;
+  const priceText = (hasCount ? parts.slice(1, -1) : parts.slice(1)).join('');
+  const countText = hasCount ? parts.at(-1) : undefined;
   const count = Number(countText);
-  const price = Number(priceParts.join(''));
+  const price = Number(priceText);
 
   return {
     name,
@@ -23,4 +27,22 @@ export function parseMenuInput(input: string): ReceiptItem | null {
 
 export function calculateReceiptTotal(items: readonly ReceiptItem[]) {
   return items.reduce((sum, item) => sum + item.price * item.count, 0);
+}
+
+export function normalizeReceiptItemsTotal(
+  items: readonly ReceiptItem[],
+  totalAmount: number,
+): ReceiptItem[] {
+  const copiedItems = items.map((item) => ({ ...item }));
+  const unitPriceTotal = calculateReceiptTotal(copiedItems);
+  const linePriceTotal = copiedItems.reduce((sum, item) => sum + item.price, 0);
+
+  if (unitPriceTotal === totalAmount || linePriceTotal !== totalAmount) {
+    return copiedItems;
+  }
+
+  return copiedItems.map((item) => ({
+    ...item,
+    price: item.count > 0 ? item.price / item.count : item.price,
+  }));
 }

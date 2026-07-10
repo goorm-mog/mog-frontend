@@ -8,7 +8,10 @@ import type {
   ReceiptCardData,
   ReceiptPayerOption,
 } from '@/pages/MeetRecord/types';
-import { formatWon } from '@/pages/MeetRecord/utils/receipt';
+import {
+  formatWon,
+  normalizeReceiptItemsTotal,
+} from '@/pages/MeetRecord/utils/receipt';
 import { colors } from '../../../constants/colors';
 import { typography } from '../../../constants/typography';
 import MemoField from './MemoField';
@@ -113,11 +116,14 @@ function ReceiptCard({
       const { storeName, totalAmount, items } = response.data;
       const nextItems =
         items.length > 0
-          ? items.map((item) => ({
-              name: item.name,
-              count: item.count ?? 1,
-              price: item.price,
-            }))
+          ? normalizeReceiptItemsTotal(
+              items.map((item) => ({
+                name: item.name,
+                count: item.count ?? 1,
+                price: item.price,
+              })),
+              totalAmount,
+            )
           : [{ name: '총액', count: 1, price: totalAmount }];
 
       if (storeName) {
