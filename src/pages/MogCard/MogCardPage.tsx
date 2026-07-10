@@ -1,26 +1,17 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { Share2, X } from 'lucide-react';
-import { useMemo, useRef, useState, type ReactNode } from 'react';
+import { Download, Share2, X } from 'lucide-react';
+import { useMemo, type ReactNode } from 'react';
 import { typography } from '@/constants/typography';
-import { useToast } from '@/hooks/useToast';
 import MogReceiptCard from '@/pages/MogCard/components/MogReceiptCard';
 import { useReceiptPageBackground } from '@/pages/MogCard/hooks/useReceiptPageBackground';
-import { useReceiptShareFile } from '@/pages/MogCard/hooks/useReceiptShareFile';
 import { useMogCardSummary } from '@/pages/MogCard/hooks/useMogCardSummary';
-import {
-  ReceiptImageShareUnsupportedError,
-  shareReceiptImageFile,
-} from '@/pages/MogCard/utils/downloadReceiptImage';
 import { toMogReceipt } from '@/pages/MogCard/utils/mogReceipt';
 
 const RECEIPT_SCREEN_BACKGROUND = '#4d4b48';
 
 function MogCardPage() {
   const navigate = useNavigate();
-  const { showToast } = useToast();
   const { roomId } = useParams<{ roomId: string }>();
-  const receiptRef = useRef<HTMLElement>(null);
-  const [isSharing, setIsSharing] = useState(false);
   const numericRoomId = Number(roomId);
   const isValidRoomId = Number.isFinite(numericRoomId);
   const { summary, errorMessage, isLoading } = useMogCardSummary(
@@ -32,35 +23,8 @@ function MogCardPage() {
     summary && !summary.confirmedDate
       ? '확정 일정이 있는 약속만 모그카드를 만들 수 있어요.'
       : (errorMessage ?? '해당 약속의 영수증을 찾을 수 없습니다.');
-  const { shareFile, isPreparingShare } = useReceiptShareFile(receiptRef, receipt);
-  const canUseReceiptAction =
-    Boolean(shareFile) && !isSharing && !isLoading && !isPreparingShare;
 
   useReceiptPageBackground(RECEIPT_SCREEN_BACKGROUND);
-
-  const handleShare = async () => {
-    if (!shareFile || isSharing) {
-      if (!isPreparingShare) {
-        showToast('공유 이미지를 준비하지 못했어요.');
-      }
-      return;
-    }
-
-    setIsSharing(true);
-
-    try {
-      await shareReceiptImageFile(shareFile);
-    } catch (error) {
-      console.error(error);
-      showToast(
-        error instanceof ReceiptImageShareUnsupportedError
-          ? '이 브라우저에서는 이미지 공유를 지원하지 않아요.'
-          : '영수증 이미지를 공유하지 못했어요.',
-      );
-    } finally {
-      setIsSharing(false);
-    }
-  };
 
   return (
     <main
@@ -87,11 +51,10 @@ function MogCardPage() {
           </ActionButton>
 
           <div className="flex items-center gap-3">
-            <ActionButton
-              label="공유"
-              onClick={handleShare}
-              disabled={!canUseReceiptAction}
-            >
+            <ActionButton label="저장">
+              <Download size={20} strokeWidth={2.1} />
+            </ActionButton>
+            <ActionButton label="공유">
               <Share2 size={20} strokeWidth={2.1} />
             </ActionButton>
           </div>
@@ -101,7 +64,7 @@ function MogCardPage() {
           {isLoading ? (
             <ReceiptStateMessage>영수증을 불러오는 중입니다.</ReceiptStateMessage>
           ) : receipt ? (
-            <MogReceiptCard ref={receiptRef} receipt={receipt} />
+            <MogReceiptCard receipt={receipt} />
           ) : (
             <ReceiptStateMessage>{emptyMessage}</ReceiptStateMessage>
           )}
