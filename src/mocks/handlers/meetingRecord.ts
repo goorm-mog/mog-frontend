@@ -17,6 +17,7 @@ export const meetingRecordHandlers: HttpHandler[] = [
   http.get(`${BASE}/api/v1/groups/rooms/:roomId`, ({ params }) => {
     const roomId = Number(params.roomId);
     const room = mockDb.rooms.find((item) => item.roomId === roomId);
+    const group = mockDb.groups.find((item) => item.groupId === room?.groupId);
 
     if (!room) {
       return HttpResponse.json({ message: '방 정보가 없습니다.' }, { status: 404 });
@@ -28,6 +29,8 @@ export const meetingRecordHandlers: HttpHandler[] = [
       message: '방 상태 및 멤버 현황을 성공적으로 조회했습니다.',
       data: {
         roomId,
+        groupId: room.groupId,
+        groupName: group?.groupName,
         roomName: room.roomName,
         status: normalizeRoomStatus(room.status),
         currentStep: mockDb.meetingRecords.filter((record) => record.roomId === roomId).length,

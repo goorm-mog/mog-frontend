@@ -4,6 +4,8 @@ export type RoomStatus = 'VOTING' | 'RECORDING' | 'COMPLETED' | 'PROCEEDING';
 
 export interface RoomStatusResponse {
   roomId: number;
+  groupId?: number;
+  groupName?: string;
   roomName: string;
   status: RoomStatus;
   currentStep: number;
