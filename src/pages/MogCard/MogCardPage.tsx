@@ -143,14 +143,14 @@ function MogCardPage() {
             <ActionButton
               label="저장"
               onClick={handleSave}
-              disabled={!receipt || isSaving || isSharing}
+              disabled={!receipt || isSaving}
             >
               <Download size={20} strokeWidth={2.1} />
             </ActionButton>
             <ActionButton
               label="공유"
               onClick={handleShare}
-              disabled={!receipt || isSaving || isSharing}
+              disabled={!receipt || isSharing}
             >
               <Share2 size={20} strokeWidth={2.1} />
             </ActionButton>
