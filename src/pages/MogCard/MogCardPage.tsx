@@ -22,6 +22,7 @@ function MogCardPage() {
   const { showToast } = useToast();
   const receiptCardRef = useRef<HTMLElement>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
   const { summary, errorMessage, isLoading } = useMogCardSummary(roomId);
   const receipt = useMemo(() => (summary ? toMogReceipt(summary) : null), [summary]);
   const emptyMessage =
@@ -31,18 +32,27 @@ function MogCardPage() {
 
   useReceiptPageBackground(RECEIPT_SCREEN_BACKGROUND);
 
+  const createReceiptImageBlob = async () => {
+    if (!receipt) {
+      throw new Error('공유할 모그카드를 찾을 수 없습니다.');
+    }
+
+    const cardWidth = receiptCardRef.current?.getBoundingClientRect().width;
+
+    return createReceiptCardPngBlob(receipt, {
+      width: cardWidth ? Math.ceil(cardWidth) : undefined,
+    });
+  };
+
   const handleSave = async () => {
-    if (!roomId || !receipt || isSaving) {
+    if (!roomId || !receipt || isSaving || isSharing) {
       return;
     }
 
     setIsSaving(true);
 
     try {
-      const cardWidth = receiptCardRef.current?.getBoundingClientRect().width;
-      const imageBlob = await createReceiptCardPngBlob(receipt, {
-        width: cardWidth ? Math.ceil(cardWidth) : undefined,
-      });
+      const imageBlob = await createReceiptImageBlob();
 
       downloadBlob(imageBlob, receipt.downloadFileName);
       showToast('모그카드가 저장되었습니다.', 'success');
@@ -56,6 +66,52 @@ function MogCardPage() {
       showToast('모그카드 저장에 실패했습니다.');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleShare = async () => {
+    if (!receipt || isSaving || isSharing) {
+      return;
+    }
+
+    setIsSharing(true);
+
+    try {
+      const previewWindow = !navigator.share ? window.open('', '_blank') : null;
+      const imageBlob = await createReceiptImageBlob();
+      const imageFile = new File([imageBlob], receipt.downloadFileName, {
+        type: 'image/png',
+      });
+      const shareData: ShareData = {
+        files: [imageFile],
+      };
+
+      if (!navigator.share) {
+        openImagePreview(imageBlob, previewWindow);
+        showToast(
+          window.isSecureContext
+            ? '공유 미지원 브라우저라 이미지를 새 창으로 열었습니다.'
+            : '공유 기능은 HTTPS에서만 사용할 수 있어 이미지를 새 창으로 열었습니다.',
+          'success',
+        );
+        return;
+      }
+
+      if (navigator.canShare && !navigator.canShare(shareData)) {
+        openImagePreview(imageBlob, previewWindow);
+        showToast('이미지 공유 미지원 기기라 이미지를 새 창으로 열었습니다.', 'success');
+        return;
+      }
+
+      await navigator.share(shareData);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
+
+      showToast('모그카드 공유에 실패했습니다.');
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -84,10 +140,18 @@ function MogCardPage() {
           </ActionButton>
 
           <div className="flex items-center gap-3">
-            <ActionButton label="저장" onClick={handleSave} disabled={!receipt || isSaving}>
+            <ActionButton
+              label="저장"
+              onClick={handleSave}
+              disabled={!receipt || isSaving || isSharing}
+            >
               <Download size={20} strokeWidth={2.1} />
             </ActionButton>
-            <ActionButton label="공유">
+            <ActionButton
+              label="공유"
+              onClick={handleShare}
+              disabled={!receipt || isSaving || isSharing}
+            >
               <Share2 size={20} strokeWidth={2.1} />
             </ActionButton>
           </div>
@@ -105,6 +169,18 @@ function MogCardPage() {
       </div>
     </main>
   );
+}
+
+function openImagePreview(imageBlob: Blob, previewWindow: Window | null) {
+  const imageUrl = URL.createObjectURL(imageBlob);
+
+  if (previewWindow) {
+    previewWindow.location.href = imageUrl;
+  } else {
+    window.open(imageUrl, '_blank');
+  }
+
+  window.setTimeout(() => URL.revokeObjectURL(imageUrl), 60_000);
 }
 
 function ReceiptStateMessage({ children }: { children: ReactNode }) {
