@@ -1,5 +1,4 @@
 import { ApiError, apiFetch } from '@/lib/apiFetch';
-import { fetchGroupDetail, fetchGroups } from '@/api/group';
 import type { ApiResponse } from '@/features/settlement/types/settlement';
 import {
   fetchMeetDetailConfirmedSchedule,
@@ -7,7 +6,6 @@ import {
   fetchMeetingRecords,
   fetchRoomStatus,
 } from '@/features/meetDetail/api/meetDetail';
-import type { RoomStatusResponse } from '@/features/meetDetail/types';
 import {
   buildMogCardSummary,
   canRenderMogCard,
@@ -72,7 +70,6 @@ async function fetchMogCardFallback(
     fetchMeetDetailSettlement(roomId).catch(() => null),
     fetchMeetDetailConfirmedSchedule(roomId).catch(() => null),
   ]);
-  const groupName = await resolveGroupName(roomId, room, previousSummary);
 
   return buildMogCardSummary({
     roomId,
@@ -80,44 +77,6 @@ async function fetchMogCardFallback(
     recordsResponse,
     settlement,
     confirmedSchedule,
-    groupName,
     previousSummary,
   });
-}
-
-async function resolveGroupName(
-  roomId: number,
-  room: RoomStatusResponse,
-  previousSummary?: SummaryCardResponse,
-) {
-  if (previousSummary?.groupName) {
-    return previousSummary.groupName;
-  }
-
-  if (room.groupName) {
-    return room.groupName;
-  }
-
-  if (room.groupId) {
-    try {
-      const group = await fetchGroupDetail(room.groupId);
-      return group.groupName;
-    } catch {
-      return null;
-    }
-  }
-
-  try {
-    const groups = await fetchGroups();
-    const details = await Promise.all(
-      groups.map((group) => fetchGroupDetail(group.id).catch(() => null)),
-    );
-    const group = details.find((detail) =>
-      detail?.rooms.some((roomInfo) => roomInfo.roomId === roomId),
-    );
-
-    return group?.groupName ?? null;
-  } catch {
-    return null;
-  }
 }

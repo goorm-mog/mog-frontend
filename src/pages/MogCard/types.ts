@@ -79,6 +79,7 @@ export type SummaryPlaceResponse = {
 export type SummaryCardResponse = {
   roomId: number;
   groupName?: string | null;
+  roomName?: string | null;
   confirmedDate: string | null;
   confirmedPlace: SummaryPlaceResponse | null;
   totalMemberCount: number;

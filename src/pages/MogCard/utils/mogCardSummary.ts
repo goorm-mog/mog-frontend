@@ -15,7 +15,6 @@ type BuildMogCardSummaryParams = {
   recordsResponse: MeetingRecordListResponse;
   settlement: SettlementResponse | null;
   confirmedSchedule: ConfirmedScheduleResponse | null;
-  groupName?: string | null;
   previousSummary?: SummaryCardResponse;
 };
 
@@ -31,7 +30,6 @@ export function buildMogCardSummary({
   recordsResponse,
   settlement,
   confirmedSchedule,
-  groupName,
   previousSummary,
 }: BuildMogCardSummaryParams): SummaryCardResponse {
   const confirmedDate = confirmedSchedule
@@ -51,7 +49,8 @@ export function buildMogCardSummary({
 
   return {
     roomId,
-    groupName: groupName ?? previousSummary?.groupName ?? null,
+    groupName: previousSummary?.groupName ?? null,
+    roomName: room.roomName ?? previousSummary?.roomName ?? null,
     confirmedDate,
     confirmedPlace: previousSummary?.confirmedPlace ?? null,
     totalMemberCount: room.members.length,

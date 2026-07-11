@@ -12,9 +12,9 @@ const RECEIPT_FOOTER = '세상의 모든 추억을 모읍니다 • 모그';
 
 const formatWon = (amount: number) => `₩ ${WON_FORMATTER.format(amount)}`;
 const formatAmount = (amount: number) => WON_FORMATTER.format(amount);
-const formatFileDate = (dateString: string) => dateString.slice(0, 10);
+const formatFileDate = (dateString: string) => dateString.slice(0, 10).replaceAll('-', '');
 const sanitizeFileNamePart = (value: string) =>
-  value.trim().replace(/[\\/:*?"<>|]/g, '_') || '그룹';
+  value.trim().replace(/[\\/:*?"<>|]/g, '_') || '약속';
 
 const parseDate = (dateString: string) => {
   if (dateString.includes('T')) {
@@ -84,7 +84,7 @@ export function toMogReceipt(summary: SummaryCardResponse): MogReceipt | null {
 
   return {
     title: RECEIPT_TITLE,
-    downloadFileName: `[MOG] ${sanitizeFileNamePart(summary.groupName ?? '그룹')}_${formatFileDate(summary.confirmedDate)}.png`,
+    downloadFileName: `[MOG] ${sanitizeFileNamePart(summary.roomName ?? '약속')}_${formatFileDate(summary.confirmedDate)}.png`,
     participantCount: summary.totalMemberCount,
     participants: summary.members.join(', '),
     datetime: formatReceiptDate(summary.confirmedDate),

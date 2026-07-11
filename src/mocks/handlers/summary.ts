@@ -41,6 +41,7 @@ const createSummaryResponse = (roomId: number): SummaryCardResponse | null => {
   return {
     roomId,
     groupName: group?.groupName ?? null,
+    roomName: room.roomName,
     confirmedDate: room.promiseDate.slice(0, 10),
     confirmedPlace: {
       placeName: records[0].placeName,
