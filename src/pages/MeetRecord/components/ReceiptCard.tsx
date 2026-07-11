@@ -1,17 +1,14 @@
 import { Sparkles, X } from 'lucide-react';
 import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
-import { analyzeReceiptOcr } from '@/api/records';
 import { usePlaceSearch } from '@/pages/MeetRecord/hooks/usePlaceSearch';
+import { useReceiptOcr } from '@/pages/MeetRecord/hooks/useReceiptOcr';
 import { useReceiptMenu } from '@/pages/MeetRecord/hooks/useReceiptMenu';
 import type {
   PlaceSearchResult,
   ReceiptCardData,
   ReceiptPayerOption,
 } from '@/pages/MeetRecord/types';
-import {
-  formatWon,
-  normalizeReceiptItemsTotal,
-} from '@/pages/MeetRecord/utils/receipt';
+import { formatWon } from '@/pages/MeetRecord/utils/receipt';
 import { colors } from '../../../constants/colors';
 import { typography } from '../../../constants/typography';
 import MemoField from './MemoField';
@@ -39,7 +36,6 @@ function ReceiptCard({
 }: ReceiptCardProps) {
   const [participants, setParticipants] = useState(receipt.participants);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-  const [isOcrAnalyzing, setIsOcrAnalyzing] = useState(false);
   const [payerAccountText, setPayerAccountText] = useState(() =>
     formatPayerAccountText(receipt.payerBankName, receipt.payerAccountNumber),
   );
@@ -48,6 +44,16 @@ function ReceiptCard({
   const receiptMenu = useReceiptMenu({
     initialItems: receipt.items,
     receiptId: receipt.roundLabel,
+  });
+  const receiptOcr = useReceiptOcr({
+    roomId,
+    onSuccess: ({ storeName, items }) => {
+      if (storeName) {
+        placeSearch.setQuery(storeName);
+      }
+
+      receiptMenu.replaceItems(items);
+    },
   });
 
   useEffect(() => {
@@ -109,35 +115,7 @@ function ReceiptCard({
       return;
     }
 
-    setIsOcrAnalyzing(true);
-
-    try {
-      const response = await analyzeReceiptOcr(roomId, image);
-      const { storeName, totalAmount, items } = response.data;
-      const nextItems =
-        items.length > 0
-          ? normalizeReceiptItemsTotal(
-              items.map((item) => ({
-                name: item.name,
-                count: item.count ?? 1,
-                price: item.price,
-              })),
-              totalAmount,
-            )
-          : [{ name: '총액', count: 1, price: totalAmount }];
-
-      if (storeName) {
-        placeSearch.setQuery(storeName);
-      }
-
-      receiptMenu.replaceItems(nextItems);
-    } catch (error) {
-      window.alert(
-        error instanceof Error ? error.message : '영수증을 분석하는 중 오류가 발생했습니다.',
-      );
-    } finally {
-      setIsOcrAnalyzing(false);
-    }
+    await receiptOcr.analyzeImage(image);
   };
 
   return (
@@ -149,7 +127,7 @@ function ReceiptCard({
         ref={ocrInputRef}
         type="file"
         className="sr-only"
-        accept="image/*"
+        accept={receiptOcr.acceptedImageTypes}
         onChange={handleOcrImageSelect}
       />
 
@@ -169,7 +147,7 @@ function ReceiptCard({
             type="button"
             style={{ color: colors.darkBorder }}
             aria-label="영수증 OCR 자동 채우기"
-            disabled={isOcrAnalyzing}
+            disabled={receiptOcr.isAnalyzing}
             onClick={() => ocrInputRef.current?.click()}
           >
             <Sparkles className="size-[25px]" strokeWidth={1.8} />
