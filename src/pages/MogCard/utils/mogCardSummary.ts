@@ -49,6 +49,7 @@ export function buildMogCardSummary({
 
   return {
     roomId,
+    groupName: previousSummary?.groupName ?? null,
     confirmedDate,
     confirmedPlace: previousSummary?.confirmedPlace ?? null,
     totalMemberCount: room.members.length,

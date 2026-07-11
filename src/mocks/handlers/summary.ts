@@ -1,4 +1,5 @@
 import { http, HttpResponse, type HttpHandler } from 'msw';
+import { groupsDb } from '@/mocks/db/group';
 import { meetingRecordPhotosDb, meetingRecordsDb } from '@/mocks/db/meetingRecord';
 import { roomsDb } from '@/mocks/db/room';
 import { settlementsDb } from '@/mocks/db/settlement';
@@ -27,6 +28,7 @@ const createErrorResponse = (status: number, code: string, message: string) => (
 
 const createSummaryResponse = (roomId: number): SummaryCardResponse | null => {
   const room = roomsDb.find((item) => item.roomId === roomId);
+  const group = groupsDb.find((item) => item.groupId === room?.groupId);
   const settlement = settlementsDb.find((item) => item.roomId === roomId);
   const records = meetingRecordsDb
     .filter((record) => record.roomId === roomId)
@@ -38,6 +40,7 @@ const createSummaryResponse = (roomId: number): SummaryCardResponse | null => {
 
   return {
     roomId,
+    groupName: group?.groupName ?? null,
     confirmedDate: room.promiseDate.slice(0, 10),
     confirmedPlace: {
       placeName: records[0].placeName,

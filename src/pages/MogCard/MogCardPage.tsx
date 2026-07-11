@@ -1,10 +1,16 @@
 import { useNavigate } from 'react-router-dom';
 import { Download, Share2, X } from 'lucide-react';
-import { useMemo, type ReactNode } from 'react';
+import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { typography } from '@/constants/typography';
 import { useRouteRoomId } from '@/hooks/useRouteRoomId';
+import { useToast } from '@/hooks/useToast';
+import { saveMogCardImage } from '@/pages/MogCard/api/mogCard';
 import MogReceiptCard from '@/pages/MogCard/components/MogReceiptCard';
 import { useReceiptPageBackground } from '@/pages/MogCard/hooks/useReceiptPageBackground';
+import {
+  createReceiptCardPngBlob,
+  downloadBlob,
+} from '@/pages/MogCard/utils/downloadReceiptCard';
 import { useMogCardSummary } from '@/pages/MogCard/hooks/useMogCardSummary';
 import { toMogReceipt } from '@/pages/MogCard/utils/mogReceipt';
 
@@ -13,6 +19,9 @@ const RECEIPT_SCREEN_BACKGROUND = '#4d4b48';
 function MogCardPage() {
   const navigate = useNavigate();
   const roomId = useRouteRoomId();
+  const { showToast } = useToast();
+  const receiptCardRef = useRef<HTMLElement>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const { summary, errorMessage, isLoading } = useMogCardSummary(roomId);
   const receipt = useMemo(() => (summary ? toMogReceipt(summary) : null), [summary]);
   const emptyMessage =
@@ -21,6 +30,34 @@ function MogCardPage() {
       : (errorMessage ?? '해당 약속의 영수증을 찾을 수 없습니다.');
 
   useReceiptPageBackground(RECEIPT_SCREEN_BACKGROUND);
+
+  const handleSave = async () => {
+    if (!roomId || !receipt || isSaving) {
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const cardWidth = receiptCardRef.current?.getBoundingClientRect().width;
+      const imageBlob = await createReceiptCardPngBlob(receipt, {
+        width: cardWidth ? Math.ceil(cardWidth) : undefined,
+      });
+
+      downloadBlob(imageBlob, receipt.downloadFileName);
+      showToast('모그카드가 저장되었습니다.', 'success');
+
+      try {
+        await saveMogCardImage(roomId, imageBlob);
+      } catch {
+        // 로컬 이미지 저장은 완료되었으므로 서버 업로드 실패는 사용자 흐름을 막지 않습니다.
+      }
+    } catch {
+      showToast('모그카드 저장에 실패했습니다.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <main
@@ -47,7 +84,7 @@ function MogCardPage() {
           </ActionButton>
 
           <div className="flex items-center gap-3">
-            <ActionButton label="저장">
+            <ActionButton label="저장" onClick={handleSave} disabled={!receipt || isSaving}>
               <Download size={20} strokeWidth={2.1} />
             </ActionButton>
             <ActionButton label="공유">
@@ -60,7 +97,7 @@ function MogCardPage() {
           {isLoading ? (
             <ReceiptStateMessage>영수증을 불러오는 중입니다.</ReceiptStateMessage>
           ) : receipt ? (
-            <MogReceiptCard receipt={receipt} />
+            <MogReceiptCard ref={receiptCardRef} receipt={receipt} />
           ) : (
             <ReceiptStateMessage>{emptyMessage}</ReceiptStateMessage>
           )}
