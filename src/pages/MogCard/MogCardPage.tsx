@@ -1,7 +1,8 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Download, Share2, X } from 'lucide-react';
 import { useMemo, type ReactNode } from 'react';
 import { typography } from '@/constants/typography';
+import { useRouteRoomId } from '@/hooks/useRouteRoomId';
 import MogReceiptCard from '@/pages/MogCard/components/MogReceiptCard';
 import { useReceiptPageBackground } from '@/pages/MogCard/hooks/useReceiptPageBackground';
 import { useMogCardSummary } from '@/pages/MogCard/hooks/useMogCardSummary';
@@ -11,13 +12,8 @@ const RECEIPT_SCREEN_BACKGROUND = '#4d4b48';
 
 function MogCardPage() {
   const navigate = useNavigate();
-  const { roomId } = useParams<{ roomId: string }>();
-  const numericRoomId = Number(roomId);
-  const isValidRoomId = Number.isFinite(numericRoomId);
-  const { summary, errorMessage, isLoading } = useMogCardSummary(
-    numericRoomId,
-    isValidRoomId,
-  );
+  const roomId = useRouteRoomId();
+  const { summary, errorMessage, isLoading } = useMogCardSummary(roomId);
   const receipt = useMemo(() => (summary ? toMogReceipt(summary) : null), [summary]);
   const emptyMessage =
     summary && !summary.confirmedDate
