@@ -8,7 +8,9 @@ import type { NotificationResponse } from '@/types/notification';
 type NotificationListSheetProps = {
   notifications: NotificationResponse[];
   isLoading?: boolean;
+  isDeletingAll?: boolean;
   onClose: () => void;
+  onDeleteAll?: () => void;
 };
 
 const TOP_APP_BAR_HEIGHT = 65;
@@ -18,7 +20,15 @@ function formatNotificationDate(value: string) {
   return format(new Date(value), 'M월 d일 HH:mm', { locale: ko });
 }
 
-function NotificationListSheet({ notifications, isLoading = false, onClose }: NotificationListSheetProps) {
+function NotificationListSheet({
+  notifications,
+  isLoading = false,
+  isDeletingAll = false,
+  onClose,
+  onDeleteAll,
+}: NotificationListSheetProps) {
+  const canDeleteAll = Boolean(onDeleteAll) && notifications.length > 0 && !isLoading;
+
   return (
     <div
       className="fixed inset-0 z-50 left-1/2 w-full min-w-[390px] max-w-[430px] -translate-x-1/2"
@@ -39,18 +49,30 @@ function NotificationListSheet({ notifications, isLoading = false, onClose }: No
         aria-labelledby="notification-list-title"
         onClick={(event) => event.stopPropagation()}
       >
-        <header className="flex shrink-0 items-center justify-between border-b border-border/30 px-4 py-3">
+        <header className="flex shrink-0 items-center justify-between gap-2 border-b border-border/30 px-4 py-3">
           <h2 id="notification-list-title" className="text-body text-text">
             알림
           </h2>
-          <button
-            type="button"
-            className="inline-flex items-center justify-center p-1 text-text"
-            aria-label="닫기"
-            onClick={onClose}
-          >
-            <X size={14} strokeWidth={2} />
-          </button>
+          <div className="flex items-center gap-1">
+            {canDeleteAll ? (
+              <button
+                type="button"
+                className="px-2 py-1 text-caption text-text disabled:opacity-40"
+                disabled={isDeletingAll}
+                onClick={onDeleteAll}
+              >
+                {isDeletingAll ? '삭제 중...' : '모두 삭제'}
+              </button>
+            ) : null}
+            <button
+              type="button"
+              className="inline-flex items-center justify-center p-1 text-text"
+              aria-label="닫기"
+              onClick={onClose}
+            >
+              <X size={14} strokeWidth={2} />
+            </button>
+          </div>
         </header>
 
         <div className="promise-scrollbar-hidden min-h-0 flex-1 overflow-y-auto px-3 py-3">

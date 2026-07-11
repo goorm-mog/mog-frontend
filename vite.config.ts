@@ -26,6 +26,15 @@ export default defineConfig({
         target: 'https://apimog-dev.leeseh0806.com',
         changeOrigin: true,
         secure: true,
+        configure: (proxy) => {
+          proxy.on('proxyRes', (proxyRes, req) => {
+            if (req.url?.includes('/notifications/subscribe')) {
+              proxyRes.headers['cache-control'] = 'no-cache';
+              proxyRes.headers['connection'] = 'keep-alive';
+              proxyRes.headers['x-accel-buffering'] = 'no';
+            }
+          });
+        },
       },
     },
   },

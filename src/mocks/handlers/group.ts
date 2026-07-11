@@ -4,6 +4,8 @@ import type {
   GroupDeleteApiResponse,
   GroupDetailApiResponse,
   GroupItem,
+  GroupJoinApiResponse,
+  GroupLeaveApiResponse,
   GroupListApiResponse,
   GroupUpdateApiResponse,
 } from '@/types/group';
@@ -34,6 +36,38 @@ function buildListResponse(): GroupListApiResponse {
 export const groupHandlers: HttpHandler[] = [
   http.get(`${BASE}/api/v1/groups`, () => {
     return HttpResponse.json(buildListResponse());
+  }),
+
+  http.post(`${BASE}/api/v1/groups/join`, async ({ request }) => {
+    const body = (await request.json()) as { inviteCode: string };
+    const inviteCode = body.inviteCode.trim().toUpperCase();
+    const group = groupsDb.find((item) => item.inviteCode.toUpperCase() === inviteCode);
+
+    if (!group) {
+      return HttpResponse.json({ message: '유효하지 않은 초대 코드입니다.' }, { status: 404 });
+    }
+
+    const listed = mutableGroups.find((item) => item.groupId === group.groupId);
+    if (!listed) {
+      mutableGroups.push({
+        groupId: group.groupId,
+        groupName: group.groupName,
+        memberCount: group.members.length + 1,
+      });
+    }
+
+    const response: GroupJoinApiResponse = {
+      status: 200,
+      code: 'SUCCESS',
+      message: '그룹 참여 성공',
+      data: {
+        groupId: group.groupId,
+        groupName: group.groupName,
+        role: 'MEMBER',
+      },
+    };
+
+    return HttpResponse.json(response);
   }),
 
   http.get(`${BASE}/api/v1/groups/:groupId`, ({ params }) => {
@@ -123,6 +157,29 @@ export const groupHandlers: HttpHandler[] = [
         groupId,
         groupName: body.groupName,
         updatedAt: new Date().toISOString(),
+      },
+    };
+
+    return HttpResponse.json(response);
+  }),
+
+  http.delete(`${BASE}/api/v1/groups/:groupId/leave`, ({ params }) => {
+    const groupId = Number(params.groupId);
+    const index = mutableGroups.findIndex((group) => group.groupId === groupId);
+
+    if (index === -1) {
+      return HttpResponse.json({ message: '그룹을 찾을 수 없습니다.' }, { status: 404 });
+    }
+
+    mutableGroups.splice(index, 1);
+
+    const response: GroupLeaveApiResponse = {
+      status: 200,
+      code: 'SUCCESS',
+      message: '그룹에서 성공적으로 탈퇴했습니다.',
+      data: {
+        groupId,
+        userId: getMyUserId() ?? 1,
       },
     };
 

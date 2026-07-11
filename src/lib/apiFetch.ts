@@ -50,6 +50,7 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
   const response = await fetch(`${API_BASE}${path}`, {
     ...options,
     headers,
+    credentials: 'include',
   });
 
   if (!response.ok) {

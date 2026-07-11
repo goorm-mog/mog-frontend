@@ -14,10 +14,10 @@ export async function fetchRoomStatus(roomId: number) {
 }
 
 export async function fetchMeetingRecords(roomId: number) {
-  const response = await apiFetch<MeetingRecordListApiResponse>(
+  const response = await apiFetchNullOn404<MeetingRecordListApiResponse>(
     `/api/v1/rooms/${roomId}/records`,
   );
-  return response.data;
+  return response?.data ?? { records: [], photos: [] };
 }
 
 export async function fetchMeetDetailSettlement(roomId: number) {
