@@ -429,7 +429,10 @@ export const meetingRecordsDb: MockMeetingRecord[] = [
 export const toMeetingRecordApiData = (record: MockMeetingRecord): MeetingRecord => ({
   recordId: record.recordId,
   seq: record.seq,
-  placeName: record.placeName,
+  place: {
+    name: record.placeName,
+    address: record.address,
+  },
   menuItems: record.menuItems.map((item, index) => ({
     id: index + 1,
     itemName: item.menuName,

@@ -54,14 +54,14 @@ const formatBarcodeValue = (dateString: string) => {
 const mapReceiptPlaces = (records: SummaryRecordResponse[]): MogReceiptPlace[] =>
   records.map((record) => ({
     id: record.seq,
-    placeName: record.placeName,
-    address: record.address ?? record.memo ?? '',
+    placeName: record.place.name,
+    address: record.place.address ?? record.memo ?? '',
     totalCost: formatWon(record.totalCost),
     items:
-      record.items && record.items.length > 0
-        ? record.items.map(({ name, amount }) => ({
-            name,
-            amount: formatAmount(amount),
+      record.menuItems && record.menuItems.length > 0
+        ? record.menuItems.map(({ itemName, totalPrice }) => ({
+            name: itemName,
+            amount: formatAmount(totalPrice),
           }))
         : [],
   }));

@@ -40,6 +40,11 @@ export interface MeetingRecordParticipant {
   amount: number;
 }
 
+export interface MeetingRecordPlace {
+  name: string;
+  address: string | null;
+}
+
 export interface MeetingRecordMenuItem {
   id?: number;
   itemName: string;
@@ -51,8 +56,7 @@ export interface MeetingRecordMenuItem {
 export interface MeetingRecordResponse {
   recordId: number;
   seq: number;
-  placeName: string;
-  address?: string | null;
+  place: MeetingRecordPlace;
   menuItems: MeetingRecordMenuItem[];
   memo: string | null;
   totalCost: number;

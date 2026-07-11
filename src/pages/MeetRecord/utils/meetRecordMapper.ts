@@ -24,8 +24,8 @@ export function mapMeetingRecordToReceipt(
   return {
     recordId: record.recordId,
     roundLabel: `${record.seq}차`,
-    placeName: record.placeName,
-    placeAddress: null,
+    placeName: record.place.name,
+    placeAddress: record.place.address,
     placePlaceholder: receiptCopy.placePlaceholder,
     menuPlaceholder: receiptCopy.menuPlaceholder,
     items:
@@ -59,7 +59,10 @@ export function toMeetingRecordRequest(receipt: ReceiptCardData): CreateMeetingR
   const selectedParticipants = receipt.participants.filter((participant) => participant.selected);
 
   return {
-    placeName: receipt.placeName.trim(),
+    place: {
+      name: receipt.placeName.trim(),
+      address: receipt.placeAddress?.trim() || null,
+    },
     menuItems: receipt.items.filter((item) => item.name.trim().length > 0).map(toRecordMenuItem),
     memo: receipt.memo.trim(),
     payer:

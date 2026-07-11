@@ -35,13 +35,25 @@ export type SummaryRecordItemResponse = {
   amount: number;
 };
 
+export type SummaryRecordPlaceResponse = {
+  name: string;
+  address: string | null;
+};
+
+export type SummaryRecordMenuItemResponse = {
+  id?: number;
+  itemName: string;
+  quantity: number;
+  price: number;
+  totalPrice: number;
+};
+
 export type SummaryRecordResponse = {
   seq: number;
-  placeName: string;
-  address?: string | null;
+  place: SummaryRecordPlaceResponse;
   memo: string | null;
   totalCost: number;
-  items?: SummaryRecordItemResponse[];
+  menuItems: SummaryRecordMenuItemResponse[];
   participants: SummaryParticipantResponse[];
 };
 
