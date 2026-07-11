@@ -1,5 +1,16 @@
-import { useState } from 'react';
-import { List, LogOut, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import {
+  ArrowRightFromLine,
+  List,
+  LogOut,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  Share2,
+  Trash2,
+  UserPlus,
+  X,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { GroupRole, HomeGroup } from '@/types/group';
 
@@ -12,8 +23,11 @@ type HomeSidebarProps = {
   onClose: () => void;
   onSelectGroup: (groupId: number) => void;
   onCreateGroup: () => void;
+  onJoinGroup: () => void;
+  onInviteGroup: () => void;
   onEditGroup: () => void;
   onDeleteGroup: () => void;
+  onLeaveGroup: () => void;
   onLogout: () => void;
 };
 
@@ -28,15 +42,35 @@ function HomeSidebar({
   onClose,
   onSelectGroup,
   onCreateGroup,
+  onJoinGroup,
+  onInviteGroup,
   onEditGroup,
   onDeleteGroup,
+  onLeaveGroup,
   onLogout,
 }: HomeSidebarProps) {
   const [isRoomListExpanded, setIsRoomListExpanded] = useState(true);
-
-  if (!isOpen) return null;
+  const [menuForGroupId, setMenuForGroupId] = useState<number | null>(null);
+  const groupMenuRef = useRef<HTMLDivElement>(null);
 
   const canManageGroup = selectedGroupRole === 'LEADER';
+  const canLeaveGroup = selectedGroupRole === 'MEMBER';
+  const isGroupMenuOpen =
+    isOpen && selectedGroupId !== null && menuForGroupId === selectedGroupId;
+
+  useEffect(() => {
+    if (!isGroupMenuOpen) return;
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (groupMenuRef.current?.contains(event.target as Node)) return;
+      setMenuForGroupId(null);
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    return () => document.removeEventListener('mousedown', handlePointerDown);
+  }, [isGroupMenuOpen]);
+
+  if (!isOpen) return null;
 
   return (
     <div
@@ -85,7 +119,7 @@ function HomeSidebar({
                   onClick={() => setIsRoomListExpanded((prev) => !prev)}
                 >
                   <List size={18} strokeWidth={2} className="shrink-0" />
-                  방 리스트
+                  내 그룹
                 </button>
               </li>
 
@@ -104,17 +138,104 @@ function HomeSidebar({
 
                     return (
                       <li key={group.id}>
-                        <button
-                          type="button"
+                        <div
                           className={cn(
-                            menuItemClass,
-                            'rounded transition-colors',
+                            'relative flex items-center rounded transition-colors',
                             isSelected && 'bg-dark-background/40 text-point',
                           )}
-                          onClick={() => onSelectGroup(group.id)}
                         >
-                          <span className="pl-[30px]">{group.name}</span>
-                        </button>
+                          <button
+                            type="button"
+                            className={cn(menuItemClass, 'min-w-0 flex-1 rounded pr-1')}
+                            onClick={() => onSelectGroup(group.id)}
+                          >
+                            <span className="truncate pl-[30px]">{group.name}</span>
+                          </button>
+
+                          {isSelected ? (
+                            <div ref={groupMenuRef} className="relative shrink-0 pr-1">
+                              <button
+                                type="button"
+                                className="inline-flex h-9 w-9 items-center justify-center rounded text-inherit"
+                                aria-label={`${group.name} 더보기`}
+                                aria-expanded={isGroupMenuOpen}
+                                aria-haspopup="menu"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  setMenuForGroupId((prev) =>
+                                    prev === group.id ? null : group.id,
+                                  );
+                                }}
+                              >
+                                <MoreHorizontal size={16} strokeWidth={2} />
+                              </button>
+
+                              {isGroupMenuOpen ? (
+                                <div
+                                  role="menu"
+                                  className="absolute right-0 top-full z-10 mt-1 min-w-[148px] rounded-lg border border-border/50 bg-background py-1 shadow-[0px_4px_16px_rgba(0,0,0,0.08)]"
+                                >
+                                  <button
+                                    type="button"
+                                    role="menuitem"
+                                    className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-caption text-text hover:bg-dark-background/30"
+                                    onClick={() => {
+                                      setMenuForGroupId(null);
+                                      onInviteGroup();
+                                    }}
+                                  >
+                                    <Share2 size={14} strokeWidth={2} />
+                                    초대 코드 공유
+                                  </button>
+
+                                  {canManageGroup ? (
+                                    <>
+                                      <button
+                                        type="button"
+                                        role="menuitem"
+                                        className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-caption text-text hover:bg-dark-background/30"
+                                        onClick={() => {
+                                          setMenuForGroupId(null);
+                                          onEditGroup();
+                                        }}
+                                      >
+                                        <Pencil size={14} strokeWidth={2} />
+                                        수정
+                                      </button>
+                                      <button
+                                        type="button"
+                                        role="menuitem"
+                                        className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-caption text-alert hover:bg-dark-background/30"
+                                        onClick={() => {
+                                          setMenuForGroupId(null);
+                                          onDeleteGroup();
+                                        }}
+                                      >
+                                        <Trash2 size={14} strokeWidth={2} />
+                                        삭제
+                                      </button>
+                                    </>
+                                  ) : null}
+
+                                  {canLeaveGroup ? (
+                                    <button
+                                      type="button"
+                                      role="menuitem"
+                                      className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-caption text-alert hover:bg-dark-background/30"
+                                      onClick={() => {
+                                        setMenuForGroupId(null);
+                                        onLeaveGroup();
+                                      }}
+                                    >
+                                      <ArrowRightFromLine size={14} strokeWidth={2} />
+                                      탈퇴
+                                    </button>
+                                  ) : null}
+                                </div>
+                              ) : null}
+                            </div>
+                          ) : null}
+                        </div>
                       </li>
                     );
                   })
@@ -122,41 +243,18 @@ function HomeSidebar({
               ) : null}
 
               <li>
-                <button type="button" className={cn(menuItemClass, 'pb-5 pt-3')} onClick={onCreateGroup}>
+                <button type="button" className={cn(menuItemClass, 'pt-3')} onClick={onCreateGroup}>
                   <Plus size={14} strokeWidth={2} className="shrink-0" />
-                  방 생성하기
+                  그룹 만들기
                 </button>
               </li>
 
-              <li aria-hidden>
-                <div className="h-px w-full bg-border/50" />
+              <li>
+                <button type="button" className={cn(menuItemClass, 'pb-5')} onClick={onJoinGroup}>
+                  <UserPlus size={16} strokeWidth={2} className="shrink-0" />
+                  코드로 참여
+                </button>
               </li>
-
-              {canManageGroup ? (
-                <>
-                  <li>
-                    <button
-                      type="button"
-                      className={cn(menuItemClass, 'pb-3 pt-5')}
-                      onClick={onEditGroup}
-                    >
-                      <Pencil size={18} strokeWidth={2} className="shrink-0" />
-                      수정
-                    </button>
-                  </li>
-
-                  <li>
-                    <button
-                      type="button"
-                      className={cn(menuItemClass, 'text-alert')}
-                      onClick={onDeleteGroup}
-                    >
-                      <Trash2 size={16} strokeWidth={2} className="shrink-0" />
-                      삭제
-                    </button>
-                  </li>
-                </>
-              ) : null}
             </ul>
           </nav>
 

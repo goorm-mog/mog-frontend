@@ -1,4 +1,4 @@
-import { CalendarPlus, HousePlus } from 'lucide-react';
+import { CalendarPlus } from 'lucide-react';
 import IconButton from '@/components/common/IconButton/IconButton';
 import { cn } from '@/lib/utils';
 import type { HomeTab } from '@/pages/Home/constants/homeMockData';
@@ -16,8 +16,6 @@ type HomeTabNavProps = {
 };
 
 function HomeTabNav({ activeTab, onTabChange, onAddClick }: HomeTabNavProps) {
-  const showActionButton = activeTab === 'all' || activeTab === 'list';
-
   return (
     <div className="relative flex items-center justify-center px-4 py-6">
       <div className="flex items-center gap-2">
@@ -49,19 +47,13 @@ function HomeTabNav({ activeTab, onTabChange, onAddClick }: HomeTabNavProps) {
         ))}
       </div>
 
-      {showActionButton ? (
-        <IconButton
-          className="absolute right-4"
-          aria-label={activeTab === 'all' ? '방 만들기' : '일정 추가'}
-          onClick={onAddClick}
-        >
-          {activeTab === 'all' ? (
-            <HousePlus size={20} strokeWidth={2} />
-          ) : (
-            <CalendarPlus size={20} strokeWidth={2} />
-          )}
-        </IconButton>
-      ) : null}
+      <IconButton
+        className="absolute right-4"
+        aria-label="약속 만들기"
+        onClick={onAddClick}
+      >
+        <CalendarPlus size={20} strokeWidth={2} />
+      </IconButton>
     </div>
   );
 }

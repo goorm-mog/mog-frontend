@@ -4,6 +4,9 @@ import type {
   GroupCreateBody,
   GroupDeleteApiResponse,
   GroupDetailApiResponse,
+  GroupJoinApiResponse,
+  GroupJoinBody,
+  GroupLeaveApiResponse,
   GroupListApiResponse,
   GroupUpdateApiResponse,
   GroupUpdateBody,
@@ -13,6 +16,7 @@ import { toHomeGroup } from '@/types/group';
 
 export async function fetchGroups(): Promise<HomeGroup[]> {
   const response = await apiFetch<GroupListApiResponse>('/api/v1/groups');
+  if (!response.data?.groups) return [];
   return response.data.groups.map(toHomeGroup);
 }
 
@@ -29,6 +33,14 @@ export async function createGroup(body: GroupCreateBody) {
   return response.data;
 }
 
+export async function joinGroup(body: GroupJoinBody) {
+  const response = await apiFetch<GroupJoinApiResponse>('/api/v1/groups/join', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  return response.data;
+}
+
 export async function updateGroup(groupId: number, body: GroupUpdateBody) {
   const response = await apiFetch<GroupUpdateApiResponse>(`/api/v1/groups/${groupId}`, {
     method: 'POST',
@@ -38,8 +50,13 @@ export async function updateGroup(groupId: number, body: GroupUpdateBody) {
 }
 
 export async function deleteGroup(groupId: number) {
-  const response = await apiFetch<GroupDeleteApiResponse>(`/api/v1/groups/${groupId}`, {
+  return apiFetch<GroupDeleteApiResponse>(`/api/v1/groups/${groupId}`, {
     method: 'DELETE',
   });
-  return response.data;
+}
+
+export async function leaveGroup(groupId: number) {
+  return apiFetch<GroupLeaveApiResponse>(`/api/v1/groups/${groupId}/leave`, {
+    method: 'DELETE',
+  });
 }

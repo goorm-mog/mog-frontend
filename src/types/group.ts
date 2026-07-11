@@ -51,6 +51,23 @@ export type GroupDeleteApiResponse = ApiResponse<{
   deletedAt: string;
 }>;
 
+export type GroupLeaveApiResponse = ApiResponse<{
+  groupId: number;
+  userId: number;
+}>;
+
+export type GroupJoinBody = {
+  inviteCode: string;
+};
+
+export type GroupJoinData = {
+  groupId: number;
+  groupName: string;
+  role: GroupRole;
+};
+
+export type GroupJoinApiResponse = ApiResponse<GroupJoinData>;
+
 export type GroupDetail = {
   groupId: number;
   groupName: string;
