@@ -36,7 +36,8 @@ export type SummaryRecordItemResponse = {
 };
 
 export type SummaryRecordPlaceResponse = {
-  name: string;
+  name?: string;
+  placeName?: string;
   address: string | null;
 };
 
@@ -50,10 +51,13 @@ export type SummaryRecordMenuItemResponse = {
 
 export type SummaryRecordResponse = {
   seq: number;
-  place: SummaryRecordPlaceResponse;
+  place?: SummaryRecordPlaceResponse;
+  placeName?: string;
+  address?: string | null;
   memo: string | null;
   totalCost: number;
-  menuItems: SummaryRecordMenuItemResponse[];
+  items?: SummaryRecordItemResponse[];
+  menuItems?: SummaryRecordMenuItemResponse[];
   participants: SummaryParticipantResponse[];
 };
 
@@ -80,7 +84,7 @@ export type SummaryCardResponse = {
   members: string[];
   photos: string[];
   records: SummaryRecordResponse[];
-  settlement: SummarySettlementResponse;
+  settlement: SummarySettlementResponse | null;
   cardImageUrl: string | null;
 };
 

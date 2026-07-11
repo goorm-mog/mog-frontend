@@ -52,19 +52,28 @@ const formatBarcodeValue = (dateString: string) => {
 };
 
 const mapReceiptPlaces = (records: SummaryRecordResponse[]): MogReceiptPlace[] =>
-  records.map((record) => ({
-    id: record.seq,
-    placeName: record.place.name,
-    address: record.place.address ?? record.memo ?? '',
-    totalCost: formatWon(record.totalCost),
-    items:
-      record.menuItems && record.menuItems.length > 0
-        ? record.menuItems.map(({ itemName, totalPrice }) => ({
-            name: itemName,
-            amount: formatAmount(totalPrice),
-          }))
-        : [],
-  }));
+  records.map((record) => {
+    const placeName =
+      record.place?.name ?? record.place?.placeName ?? record.placeName ?? '장소 미정';
+    const address = record.place?.address ?? record.address ?? record.memo ?? '';
+    const items = record.menuItems?.length
+      ? record.menuItems.map(({ itemName, totalPrice, price, quantity }) => ({
+          name: itemName,
+          amount: formatAmount(totalPrice ?? price * quantity),
+        }))
+      : (record.items?.map(({ name, amount }) => ({
+          name,
+          amount: formatAmount(amount),
+        })) ?? []);
+
+    return {
+      id: record.seq,
+      placeName,
+      address,
+      totalCost: formatWon(record.totalCost),
+      items,
+    };
+  });
 
 export function toMogReceipt(summary: SummaryCardResponse): MogReceipt | null {
   if (!summary.confirmedDate || summary.records.length === 0) {
@@ -78,7 +87,10 @@ export function toMogReceipt(summary: SummaryCardResponse): MogReceipt | null {
     participants: summary.members.join(', '),
     datetime: formatReceiptDate(summary.confirmedDate),
     places: mapReceiptPlaces(summary.records),
-    totalCost: formatWon(summary.settlement.totalCost),
+    totalCost: formatWon(
+      summary.settlement?.totalCost ??
+        summary.records.reduce((total, record) => total + record.totalCost, 0),
+    ),
     photoCount: summary.photos.length,
     representativePhotoUrl: summary.photos[0],
     barcodeValue: formatBarcodeValue(summary.confirmedDate),
