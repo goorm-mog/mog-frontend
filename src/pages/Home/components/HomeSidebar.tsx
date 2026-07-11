@@ -50,22 +50,20 @@ function HomeSidebar({
   onLogout,
 }: HomeSidebarProps) {
   const [isRoomListExpanded, setIsRoomListExpanded] = useState(true);
-  const [isGroupMenuOpen, setIsGroupMenuOpen] = useState(false);
+  const [menuForGroupId, setMenuForGroupId] = useState<number | null>(null);
   const groupMenuRef = useRef<HTMLDivElement>(null);
 
   const canManageGroup = selectedGroupRole === 'LEADER';
   const canLeaveGroup = selectedGroupRole === 'MEMBER';
-
-  useEffect(() => {
-    setIsGroupMenuOpen(false);
-  }, [selectedGroupId, isOpen]);
+  const isGroupMenuOpen =
+    isOpen && selectedGroupId !== null && menuForGroupId === selectedGroupId;
 
   useEffect(() => {
     if (!isGroupMenuOpen) return;
 
     const handlePointerDown = (event: MouseEvent) => {
       if (groupMenuRef.current?.contains(event.target as Node)) return;
-      setIsGroupMenuOpen(false);
+      setMenuForGroupId(null);
     };
 
     document.addEventListener('mousedown', handlePointerDown);
@@ -164,7 +162,9 @@ function HomeSidebar({
                                 aria-haspopup="menu"
                                 onClick={(event) => {
                                   event.stopPropagation();
-                                  setIsGroupMenuOpen((prev) => !prev);
+                                  setMenuForGroupId((prev) =>
+                                    prev === group.id ? null : group.id,
+                                  );
                                 }}
                               >
                                 <MoreHorizontal size={16} strokeWidth={2} />
@@ -180,7 +180,7 @@ function HomeSidebar({
                                     role="menuitem"
                                     className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-caption text-text hover:bg-dark-background/30"
                                     onClick={() => {
-                                      setIsGroupMenuOpen(false);
+                                      setMenuForGroupId(null);
                                       onInviteGroup();
                                     }}
                                   >
@@ -195,7 +195,7 @@ function HomeSidebar({
                                         role="menuitem"
                                         className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-caption text-text hover:bg-dark-background/30"
                                         onClick={() => {
-                                          setIsGroupMenuOpen(false);
+                                          setMenuForGroupId(null);
                                           onEditGroup();
                                         }}
                                       >
@@ -207,7 +207,7 @@ function HomeSidebar({
                                         role="menuitem"
                                         className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-caption text-alert hover:bg-dark-background/30"
                                         onClick={() => {
-                                          setIsGroupMenuOpen(false);
+                                          setMenuForGroupId(null);
                                           onDeleteGroup();
                                         }}
                                       >
@@ -223,7 +223,7 @@ function HomeSidebar({
                                       role="menuitem"
                                       className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-caption text-alert hover:bg-dark-background/30"
                                       onClick={() => {
-                                        setIsGroupMenuOpen(false);
+                                        setMenuForGroupId(null);
                                         onLeaveGroup();
                                       }}
                                     >

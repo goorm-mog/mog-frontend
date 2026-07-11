@@ -102,6 +102,7 @@ function writePendingRoom(groupId: number, room: RoomInfo) {
     parsed[String(groupId)] = [room, ...current.filter((item) => item.roomId !== room.roomId)];
     sessionStorage.setItem(PENDING_ROOMS_STORAGE_KEY, JSON.stringify(parsed));
   } catch {
+    // ignore
   }
 }
 
@@ -121,6 +122,7 @@ function clearPendingRoomsInApi(groupId: number, apiRooms: RoomInfo[]) {
     else parsed[String(groupId)] = remaining;
     sessionStorage.setItem(PENDING_ROOMS_STORAGE_KEY, JSON.stringify(parsed));
   } catch {
+    // ignore
   }
 }
 
@@ -331,7 +333,7 @@ function HomePage() {
     return applyGroups(fetched, deletedGroupIds);
   }, [applyGroups, deletedGroupIds]);
 
-  const loadRooms = useCallback(async (groupId: number) => {
+  const fetchMergedGroupRooms = useCallback(async (groupId: number) => {
     const [listedRooms, detail] = await Promise.all([
       fetchGroupRooms(groupId),
       fetchGroupDetail(groupId).catch(() => null),
@@ -346,15 +348,33 @@ function HomePage() {
     const nextRooms = mergeRooms(listedRooms, detailRooms, pendingRooms);
     clearPendingRoomsInApi(groupId, mergeRooms(listedRooms, detailRooms));
 
-    setRooms(nextRooms);
-    setRoomsGroupId(groupId);
+    return { nextRooms, detail };
+  }, []);
 
-    if (detail) {
-      upsertGroupMeta(groupId, detail.myRole, { inviteCode: detail.inviteCode });
-    }
+  const applyFetchedRooms = useCallback(
+    (
+      groupId: number,
+      result: Awaited<ReturnType<typeof fetchMergedGroupRooms>>,
+    ) => {
+      setRooms(result.nextRooms);
+      setRoomsGroupId(groupId);
+      if (result.detail) {
+        upsertGroupMeta(groupId, result.detail.myRole, {
+          inviteCode: result.detail.inviteCode,
+        });
+      }
+      return result.nextRooms;
+    },
+    [upsertGroupMeta],
+  );
 
-    return nextRooms;
-  }, [upsertGroupMeta]);
+  const loadRooms = useCallback(
+    async (groupId: number) => {
+      const result = await fetchMergedGroupRooms(groupId);
+      return applyFetchedRooms(groupId, result);
+    },
+    [applyFetchedRooms, fetchMergedGroupRooms],
+  );
 
   useEffect(() => {
     let ignore = false;
@@ -389,18 +409,23 @@ function HomePage() {
     const groupId = selectedGroupId;
     writeSelectedGroupId(groupId);
 
-    loadRooms(groupId).catch((error: unknown) => {
-      if (ignore) return;
-      const message = error instanceof ApiError ? error.message : '약속 목록을 불러오지 못했어요';
-      showToast(message);
-      setRooms(readPendingRooms(groupId));
-      setRoomsGroupId(groupId);
-    });
+    fetchMergedGroupRooms(groupId)
+      .then((result) => {
+        if (ignore) return;
+        applyFetchedRooms(groupId, result);
+      })
+      .catch((error: unknown) => {
+        if (ignore) return;
+        const message = error instanceof ApiError ? error.message : '약속 목록을 불러오지 못했어요';
+        showToast(message);
+        setRooms(readPendingRooms(groupId));
+        setRoomsGroupId(groupId);
+      });
 
     return () => {
       ignore = true;
     };
-  }, [selectedGroupId, loadRooms, showToast]);
+  }, [selectedGroupId, fetchMergedGroupRooms, applyFetchedRooms, showToast]);
 
   useEffect(() => {
     if (selectedGroupId === null || completedRooms.length === 0) return;
@@ -554,6 +579,7 @@ function HomePage() {
         const fetched = await fetchGroups();
         applyGroups(fetched, nextHiddenIds);
       } catch {
+        // ignore
       }
     } catch (error: unknown) {
       const message = error instanceof ApiError ? error.message : '그룹을 삭제하지 못했어요';
@@ -597,6 +623,7 @@ function HomePage() {
       try {
         await loadGroups();
       } catch {
+        // ignore
       }
     } finally {
       setIsGroupMutating(false);

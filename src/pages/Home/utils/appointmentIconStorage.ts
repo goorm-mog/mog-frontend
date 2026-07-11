@@ -51,6 +51,7 @@ function writeStore(store: AppointmentIconStore) {
     try {
       sessionStorage.setItem(STORAGE_KEY, raw);
     } catch {
+      // ignore
     }
   }
 }
