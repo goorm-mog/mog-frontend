@@ -27,11 +27,15 @@ export async function fetchMogCardForReceipt(roomId: number) {
   try {
     const summary = await fetchMogCard(roomId);
 
-    if (canRenderMogCard(summary)) {
-      return summary;
-    }
+    try {
+      return await fetchMogCardFallback(roomId, summary);
+    } catch (fallbackError) {
+      if (canRenderMogCard(summary)) {
+        return summary;
+      }
 
-    return await fetchMogCardFallback(roomId, summary);
+      throw fallbackError;
+    }
   } catch (error) {
     if (error instanceof ApiError && (error.status === 404 || error.status === 409)) {
       return fetchMogCardFallback(roomId);

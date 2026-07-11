@@ -2,15 +2,20 @@ import { ChevronDown } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
 import type { ReceiptPayerOption } from '@/pages/MeetRecord/types';
 import { colors } from '../../../constants/colors';
-import { typography } from '../../../constants/typography';
 
 type PayerSelectProps = {
   payerText: string;
+  hasSelectedPayer?: boolean;
   options: readonly ReceiptPayerOption[];
   onSelectPayer: (payer: ReceiptPayerOption) => void;
 };
 
-function PayerSelect({ payerText, options, onSelectPayer }: PayerSelectProps) {
+function PayerSelect({
+  payerText,
+  hasSelectedPayer = false,
+  options,
+  onSelectPayer,
+}: PayerSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const selectRef = useRef<HTMLDivElement>(null);
   const listboxId = useId();
@@ -49,7 +54,10 @@ function PayerSelect({ payerText, options, onSelectPayer }: PayerSelectProps) {
         aria-controls={listboxId}
         onClick={() => setIsOpen((current) => !current)}
       >
-        <span className={typography.caption} style={{ color: colors.border }}>
+        <span
+          className="font-pretendard text-[16px] leading-[20px]"
+          style={{ color: hasSelectedPayer ? colors.text : colors.border }}
+        >
           {payerText}
         </span>
         <ChevronDown
@@ -75,7 +83,7 @@ function PayerSelect({ payerText, options, onSelectPayer }: PayerSelectProps) {
               type="button"
               role="option"
               aria-selected={option.label === payerText}
-              className={`${typography.caption} block h-10 w-full px-3 text-left transition hover:bg-[rgb(233_227_214_/_0.52)]`}
+              className="block h-11 w-full px-3 text-left font-pretendard text-[16px] leading-[20px] transition hover:bg-[rgb(233_227_214_/_0.52)]"
               style={{ color: colors.border }}
               onClick={() => handleSelect(option)}
             >

@@ -9,10 +9,7 @@ import {
 } from '@/api/records';
 import type { ReceiptCardData } from '@/pages/MeetRecord/types';
 import type { RoomRecordPhoto } from '@/types/records';
-import {
-  createEmptyReceipt,
-  getNextReceiptSeq,
-} from '@/pages/MeetRecord/utils/receiptFactory';
+import { createEmptyReceipt, getNextReceiptSeq } from '@/pages/MeetRecord/utils/receiptFactory';
 import {
   mapMeetingRecordToReceipt,
   toMeetingRecordRequest,
@@ -33,13 +30,10 @@ export function useMeetRecordReceipts({
   initialPhotos,
 }: UseMeetRecordReceiptsParams) {
   const [receiptCards, setReceiptCards] = useState<ReceiptCardData[]>(initialReceipts);
-  const [savedReceiptCards, setSavedReceiptCards] =
-    useState<ReceiptCardData[]>(initialReceipts);
+  const [savedReceiptCards, setSavedReceiptCards] = useState<ReceiptCardData[]>(initialReceipts);
   const [roomPhotos, setRoomPhotos] = useState<RoomRecordPhoto[]>(initialPhotos);
   const [deletedRecordIds, setDeletedRecordIds] = useState<number[]>([]);
-  const [pendingScrollReceiptId, setPendingScrollReceiptId] = useState<string | null>(
-    null,
-  );
+  const [pendingScrollReceiptId, setPendingScrollReceiptId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [receiptsVersion, setReceiptsVersion] = useState(0);
@@ -69,9 +63,7 @@ export function useMeetRecordReceipts({
 
   const deleteReceipt = useCallback((receiptId: string) => {
     setReceiptCards((currentReceipts) => {
-      const deletedReceipt = currentReceipts.find(
-        (receipt) => receipt.roundLabel === receiptId,
-      );
+      const deletedReceipt = currentReceipts.find((receipt) => receipt.roundLabel === receiptId);
 
       if (deletedReceipt?.recordId != null) {
         const recordId = deletedReceipt.recordId;
@@ -137,9 +129,7 @@ export function useMeetRecordReceipts({
       }
 
       await deleteRoomPhoto(roomId, photoId);
-      setRoomPhotos((currentPhotos) =>
-        currentPhotos.filter((photo) => photo.photoId !== photoId),
-      );
+      setRoomPhotos((currentPhotos) => currentPhotos.filter((photo) => photo.photoId !== photoId));
     },
     [roomId],
   );
@@ -157,14 +147,11 @@ export function useMeetRecordReceipts({
       const invalidReceipt = receiptCards.find(
         (receipt) =>
           receipt.placeName.trim().length === 0 ||
-          receipt.participants.every((participant) => !participant.selected) ||
-          receipt.payerRoomMemberId == null ||
-          !receipt.payerBankName?.trim() ||
-          !receipt.payerAccountNumber?.trim(),
+          receipt.participants.every((participant) => !participant.selected),
       );
 
       if (invalidReceipt) {
-        throw new Error('장소, 참가자, 정산자와 계좌 정보를 확인해주세요.');
+        throw new Error('장소와 참가자를 확인해주세요.');
       }
 
       didStartServerMutation = true;
@@ -186,8 +173,7 @@ export function useMeetRecordReceipts({
       await refreshReceipts();
       window.alert('저장되었습니다');
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : '기록 저장 중 오류가 발생했습니다.';
+      const message = error instanceof Error ? error.message : '기록 저장 중 오류가 발생했습니다.';
       setSaveError(message);
 
       if (!didStartServerMutation) {

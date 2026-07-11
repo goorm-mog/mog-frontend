@@ -43,7 +43,7 @@
     max-width: 430px;
     margin: 0 auto;
     min-width: 390px;
-    min-height: 844px;
+    min-height: max(844px, 100dvh);
     background-color: var(--color-background);
     box-shadow: 0 0 12px rgba(94, 88, 71, 0.2);
   }

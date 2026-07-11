@@ -8,6 +8,7 @@ export type ReceiptParticipant = {
   id: number;
   name: string;
   selected?: boolean;
+  disabled?: boolean;
 };
 
 export type ReceiptPayerOption = {

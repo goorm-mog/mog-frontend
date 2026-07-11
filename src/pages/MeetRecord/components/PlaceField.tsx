@@ -3,7 +3,6 @@ import type { KeyboardEvent } from 'react';
 import useWheelScrollSensitivity from '@/pages/MeetRecord/hooks/useWheelScrollSensitivity';
 import type { PlaceSearchResult } from '@/pages/MeetRecord/types';
 import { colors } from '../../../constants/colors';
-import { typography } from '../../../constants/typography';
 
 type PlaceFieldProps = {
   placeholder: string;
@@ -52,7 +51,7 @@ function PlaceField({
               onChange={(event) => onQueryChange(event.target.value)}
               onKeyDown={onKeyDown}
               placeholder={placeholder}
-              className={`${typography.caption} min-w-0 flex-1 bg-transparent pl-5 pr-3 outline-none placeholder:text-[#a09583]`}
+              className="min-w-0 flex-1 bg-transparent pl-4 pr-3 font-pretendard text-[16px] leading-[20px] outline-none placeholder:text-[#a09583]"
               style={{ color: colors.text }}
               aria-label="장소 입력"
             />
@@ -61,7 +60,10 @@ function PlaceField({
             </button>
           </div>
           {selectedAddress ? (
-            <p className="mt-1 truncate pl-5 font-pretendard text-[12px] leading-[15px]" style={{ color: colors.border }}>
+            <p
+              className="mt-1 truncate pl-4 font-pretendard text-[16px] leading-[20px]"
+              style={{ color: colors.border }}
+            >
               {selectedAddress}
             </p>
           ) : null}
@@ -77,7 +79,7 @@ function PlaceField({
             onChange={(event) => onQueryChange(event.target.value)}
             onKeyDown={onKeyDown}
             placeholder={placeholder}
-            className={`${typography.caption} min-w-0 flex-1 bg-transparent pr-3 outline-none placeholder:text-[#a09583]`}
+            className="min-w-0 flex-1 bg-transparent pr-3 font-pretendard text-[16px] leading-[20px] outline-none placeholder:text-[#a09583]"
             style={{ color: colors.text }}
             aria-label="장소 검색어"
           />
@@ -99,11 +101,17 @@ function PlaceField({
           }}
         >
           {isSearching ? (
-            <p className={`${typography.caption} px-5 py-4`} style={{ color: colors.border }}>
+            <p
+              className="px-5 py-4 font-pretendard text-[16px] leading-[20px]"
+              style={{ color: colors.border }}
+            >
               검색 중...
             </p>
           ) : errorMessage ? (
-            <p className={`${typography.caption} px-5 py-4`} style={{ color: colors.border }}>
+            <p
+              className="px-5 py-4 font-pretendard text-[16px] leading-[20px]"
+              style={{ color: colors.border }}
+            >
               {errorMessage}
             </p>
           ) : places.length > 0 ? (
@@ -111,15 +119,15 @@ function PlaceField({
               <button
                 key={place.id}
                 type="button"
-                className="block h-14 w-full px-5 text-left"
+                className="block h-[72px] w-full px-5 text-left"
                 style={{ color: colors.text }}
                 onClick={() => onSelectPlace(place)}
               >
-                <span className={`${typography.caption} block truncate`}>
+                <span className="block truncate font-pretendard text-[16px] leading-[20px]">
                   {place.name}
                 </span>
                 <span
-                  className="mt-0.5 block truncate font-pretendard text-[12px] leading-[15px]"
+                  className="mt-1 block truncate font-pretendard text-[16px] leading-[20px]"
                   style={{ color: colors.border }}
                 >
                   {place.address}
@@ -127,7 +135,10 @@ function PlaceField({
               </button>
             ))
           ) : (
-            <p className={`${typography.caption} px-5 py-4`} style={{ color: colors.border }}>
+            <p
+              className="px-5 py-4 font-pretendard text-[16px] leading-[20px]"
+              style={{ color: colors.border }}
+            >
               검색 결과가 없습니다
             </p>
           )}

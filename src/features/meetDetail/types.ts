@@ -4,6 +4,8 @@ export type RoomStatus = 'VOTING' | 'RECORDING' | 'COMPLETED' | 'PROCEEDING';
 
 export interface RoomStatusResponse {
   roomId: number;
+  groupId?: number;
+  groupName?: string;
   roomName: string;
   status: RoomStatus;
   currentStep: number;
@@ -40,18 +42,24 @@ export interface MeetingRecordParticipant {
   amount: number;
 }
 
+export interface MeetingRecordPlace {
+  name: string;
+  address: string | null;
+}
+
 export interface MeetingRecordMenuItem {
-  menuName: string;
-  count: number;
+  id?: number;
+  itemName: string;
+  quantity: number;
   price: number;
+  totalPrice?: number;
 }
 
 export interface MeetingRecordResponse {
   recordId: number;
   seq: number;
-  placeName: string;
-  address: string | null;
-  menuItems?: MeetingRecordMenuItem[];
+  place: MeetingRecordPlace;
+  menuItems: MeetingRecordMenuItem[];
   memo: string | null;
   totalCost: number;
   payer: MeetingRecordPayer | null;

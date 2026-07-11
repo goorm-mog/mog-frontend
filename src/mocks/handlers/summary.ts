@@ -1,4 +1,5 @@
 import { http, HttpResponse, type HttpHandler } from 'msw';
+import { groupsDb } from '@/mocks/db/group';
 import { meetingRecordPhotosDb, meetingRecordsDb } from '@/mocks/db/meetingRecord';
 import { roomsDb } from '@/mocks/db/room';
 import { settlementsDb } from '@/mocks/db/settlement';
@@ -27,6 +28,7 @@ const createErrorResponse = (status: number, code: string, message: string) => (
 
 const createSummaryResponse = (roomId: number): SummaryCardResponse | null => {
   const room = roomsDb.find((item) => item.roomId === roomId);
+  const group = groupsDb.find((item) => item.groupId === room?.groupId);
   const settlement = settlementsDb.find((item) => item.roomId === roomId);
   const records = meetingRecordsDb
     .filter((record) => record.roomId === roomId)
@@ -38,6 +40,8 @@ const createSummaryResponse = (roomId: number): SummaryCardResponse | null => {
 
   return {
     roomId,
+    groupName: group?.groupName ?? null,
+    roomName: room.roomName,
     confirmedDate: room.promiseDate.slice(0, 10),
     confirmedPlace: {
       placeName: records[0].placeName,
@@ -50,13 +54,18 @@ const createSummaryResponse = (roomId: number): SummaryCardResponse | null => {
       .map((photo) => photo.s3Url),
     records: records.map((record) => ({
       seq: record.seq,
-      placeName: record.placeName,
-      address: record.address,
+      place: {
+        name: record.placeName,
+        address: record.address,
+      },
       memo: record.memo,
       totalCost: record.totalCost,
-      items: record.menuItems.map(({ menuName, count, price }) => ({
-        name: count > 1 ? `${menuName} x ${count}` : menuName,
-        amount: price,
+      menuItems: record.menuItems.map(({ menuName, count, price }, index) => ({
+        id: index + 1,
+        itemName: menuName,
+        quantity: count,
+        price,
+        totalPrice: count * price,
       })),
       participants: record.participants.map(({ nickname, amount }) => ({
         nickname,

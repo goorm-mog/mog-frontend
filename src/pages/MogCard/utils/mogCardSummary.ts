@@ -35,22 +35,35 @@ export function buildMogCardSummary({
   const confirmedDate = confirmedSchedule
     ? `${confirmedSchedule.date}T${confirmedSchedule.time}`
     : (previousSummary?.confirmedDate ?? null);
+  const fallbackRecords: FallbackRecord[] = recordsResponse.records.map((record) => ({
+    seq: record.seq,
+    place: record.place,
+    memo: record.memo,
+    totalCost: record.totalCost,
+    participants: record.participants,
+    menuItems: record.menuItems.map((item) => ({
+      ...item,
+      totalPrice: item.totalPrice ?? item.price * item.quantity,
+    })),
+  }));
 
   return {
     roomId,
+    groupName: previousSummary?.groupName ?? null,
+    roomName: room.roomName ?? previousSummary?.roomName ?? null,
     confirmedDate,
     confirmedPlace: previousSummary?.confirmedPlace ?? null,
     totalMemberCount: room.members.length,
     members: room.members.map(({ nickname }) => nickname),
     photos: recordsResponse.photos.map(({ s3Url }) => s3Url),
-    records: recordsResponse.records,
+    records: fallbackRecords,
     settlement: {
-      totalCost: settlement?.totalCost ?? getRecordsTotalCost(recordsResponse.records),
+      totalCost: settlement?.totalCost ?? getRecordsTotalCost(fallbackRecords),
       memberTotals:
         settlement?.memberSettlements.map(({ nickname, totalAmount }) => ({
           nickname,
           totalAmount,
-        })) ?? getMemberTotalsFromRecords(recordsResponse.records),
+        })) ?? getMemberTotalsFromRecords(fallbackRecords),
     },
     cardImageUrl: previousSummary?.cardImageUrl ?? null,
   };

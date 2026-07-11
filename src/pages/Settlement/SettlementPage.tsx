@@ -89,8 +89,8 @@ function SettlementContent({
   const { showToast } = useToast();
   const [isConfirmingSettlement, setIsConfirmingSettlement] = useState(false);
   const navigateToMeetDetail = useCallback(() => {
-    navigate('/meet-detail');
-  }, [navigate]);
+    navigate(`/${roomId}/meet-detail`);
+  }, [navigate, roomId]);
   const copyAccountToClipboard = useCallback(
     async (accountText: string) => {
       try {
@@ -165,9 +165,9 @@ function SettlementContent({
   }, [completeSettlement, hasRemainingAmount, roomId, showToast]);
 
   return (
-    <main className="flex h-screen flex-col overflow-hidden bg-background text-text">
-      <section className="min-h-0 flex-1 overflow-y-auto pb-[104px]">
-        <SettlementHeader onBack={() => navigate(-1)} onSave={saveDraft} />
+    <main className="flex h-dvh flex-col overflow-hidden bg-background text-text">
+      <section className="min-h-0 flex-1 overflow-y-auto pb-[calc(112px+env(safe-area-inset-bottom))]">
+        <SettlementHeader onBack={() => navigate(`/${roomId}/meet-record`)} onSave={saveDraft} />
 
         <SettlementHero
           summary={displaySummary}
@@ -201,7 +201,7 @@ function SettlementContent({
         </div>
       </section>
 
-      <footer className="fixed bottom-0 left-1/2 z-40 w-full max-w-[430px] -translate-x-1/2 border-t border-border/70 bg-background px-[14px] pt-3 pb-5">
+      <footer className="fixed bottom-0 left-1/2 z-40 w-full max-w-[430px] -translate-x-1/2 border-t border-border/70 bg-background px-[14px] pt-3 pb-[calc(20px+env(safe-area-inset-bottom))]">
         {hasRemainingAmount && !isSettlementCompleted ? (
           <p className="mb-2 text-center text-[12px] leading-[16px] font-semibold text-alert">
             잔액이 남아있어요!
@@ -230,11 +230,7 @@ function SettlementContent({
         />
       ) : null}
 
-      {isCompletionOpen ? (
-        <SettlementCompletionDialog
-          countdownSeconds={countdownSeconds}
-        />
-      ) : null}
+      {isCompletionOpen ? <SettlementCompletionDialog countdownSeconds={countdownSeconds} /> : null}
     </main>
   );
 }
@@ -322,9 +318,7 @@ function SettlementPage() {
   if (isLoading) {
     return (
       <main className="flex h-screen items-center justify-center bg-background px-6 text-center text-text">
-        <p className="text-[14px] font-medium text-dark-border">
-          정산 정보를 불러오는 중입니다.
-        </p>
+        <p className="text-[14px] font-medium text-dark-border">정산 정보를 불러오는 중입니다.</p>
       </main>
     );
   }
@@ -340,9 +334,7 @@ function SettlementPage() {
   if (!settlement) {
     return (
       <main className="flex h-screen items-center justify-center bg-background px-6 text-center text-text">
-        <p className="text-[14px] font-medium text-dark-border">
-          정산 정보를 불러오지 못했습니다.
-        </p>
+        <p className="text-[14px] font-medium text-dark-border">정산 정보를 불러오지 못했습니다.</p>
       </main>
     );
   }

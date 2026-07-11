@@ -67,6 +67,8 @@ export type RoomSummaryPlace = {
 
 export type RoomSummary = {
   roomId: number;
+  groupName?: string | null;
+  roomName?: string | null;
   confirmedDate: string | null;
   confirmedPlace: RoomSummaryPlace | null;
   totalMemberCount: number;

@@ -1,13 +1,7 @@
 import { Sparkles, X } from 'lucide-react';
-import {
-  useEffect,
-  useRef,
-  useState,
-  type ChangeEvent,
-  type ReactNode,
-} from 'react';
-import { analyzeReceiptOcr } from '@/api/records';
+import { useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
 import { usePlaceSearch } from '@/pages/MeetRecord/hooks/usePlaceSearch';
+import { useReceiptOcr } from '@/pages/MeetRecord/hooks/useReceiptOcr';
 import { useReceiptMenu } from '@/pages/MeetRecord/hooks/useReceiptMenu';
 import type {
   PlaceSearchResult,
@@ -42,7 +36,6 @@ function ReceiptCard({
 }: ReceiptCardProps) {
   const [participants, setParticipants] = useState(receipt.participants);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-  const [isOcrAnalyzing, setIsOcrAnalyzing] = useState(false);
   const [payerAccountText, setPayerAccountText] = useState(() =>
     formatPayerAccountText(receipt.payerBankName, receipt.payerAccountNumber),
   );
@@ -52,30 +45,30 @@ function ReceiptCard({
     initialItems: receipt.items,
     receiptId: receipt.roundLabel,
   });
+  const receiptOcr = useReceiptOcr({
+    roomId,
+    onSuccess: ({ storeName, items }) => {
+      if (storeName) {
+        placeSearch.setQuery(storeName);
+      }
+
+      receiptMenu.replaceItems(items);
+    },
+  });
 
   useEffect(() => {
     onReceiptChange(receipt.roundLabel, {
       items: receiptMenu.items.map(({ id: _id, ...item }) => item),
       totalAmount: receiptMenu.totalAmount,
     });
-  }, [
-    onReceiptChange,
-    receipt.roundLabel,
-    receiptMenu.items,
-    receiptMenu.totalAmount,
-  ]);
+  }, [onReceiptChange, receipt.roundLabel, receiptMenu.items, receiptMenu.totalAmount]);
 
   useEffect(() => {
     onReceiptChange(receipt.roundLabel, {
       placeName: placeSearch.query,
       placeAddress: placeSearch.selectedAddress,
     });
-  }, [
-    onReceiptChange,
-    placeSearch.query,
-    placeSearch.selectedAddress,
-    receipt.roundLabel,
-  ]);
+  }, [onReceiptChange, placeSearch.query, placeSearch.selectedAddress, receipt.roundLabel]);
 
   const handleSelectPlace = (place: PlaceSearchResult) => {
     placeSearch.selectPlace(place);
@@ -122,51 +115,24 @@ function ReceiptCard({
       return;
     }
 
-    setIsOcrAnalyzing(true);
-
-    try {
-      const response = await analyzeReceiptOcr(roomId, image);
-      const { storeName, totalAmount, items } = response.data;
-      const nextItems =
-        items.length > 0
-          ? items.map((item) => ({
-              name: item.name,
-              count: item.count ?? 1,
-              price: item.price,
-            }))
-          : [{ name: '총액', count: 1, price: totalAmount }];
-
-      if (storeName) {
-        placeSearch.setQuery(storeName);
-      }
-
-      receiptMenu.replaceItems(nextItems);
-    } catch (error) {
-      window.alert(
-        error instanceof Error
-          ? error.message
-          : '영수증을 분석하는 중 오류가 발생했습니다.',
-      );
-    } finally {
-      setIsOcrAnalyzing(false);
-    }
+    await receiptOcr.analyzeImage(image);
   };
 
   return (
     <article
-      className="receipt-paper relative min-h-[590px] px-5 pb-7 pt-10"
+      className="receipt-paper relative min-h-[590px] px-6 pb-8 pt-14"
       data-receipt-id={receipt.roundLabel}
     >
       <input
         ref={ocrInputRef}
         type="file"
         className="sr-only"
-        accept="image/*"
+        accept={receiptOcr.acceptedImageTypes}
         onChange={handleOcrImageSelect}
       />
 
       <div
-        className="flex items-center justify-between border-b pb-5"
+        className="flex items-center justify-between border-b pb-7"
         style={{ borderColor: colors.border }}
       >
         <span
@@ -181,7 +147,7 @@ function ReceiptCard({
             type="button"
             style={{ color: colors.darkBorder }}
             aria-label="영수증 OCR 자동 채우기"
-            disabled={isOcrAnalyzing}
+            disabled={receiptOcr.isAnalyzing}
             onClick={() => ocrInputRef.current?.click()}
           >
             <Sparkles className="size-[25px]" strokeWidth={1.8} />
@@ -209,11 +175,13 @@ function ReceiptCard({
           role="dialog"
           aria-label={`${receipt.roundLabel} 삭제 확인`}
         >
-          <p className={typography.caption}>해당 차수를 삭제하시겠습니까?</p>
+          <p className="font-pretendard text-[16px] leading-[20px]">
+            해당 차수를 삭제하시겠습니까?
+          </p>
           <div className="mt-3 flex justify-end gap-2">
             <button
               type="button"
-              className={`${typography.caption} rounded-[6px] px-3 py-1.5`}
+              className="rounded-[6px] px-3 py-1.5 font-pretendard text-[16px] leading-[20px]"
               style={{ color: colors.border }}
               onClick={() => setIsDeleteConfirmOpen(false)}
             >
@@ -221,7 +189,7 @@ function ReceiptCard({
             </button>
             <button
               type="button"
-              className={`${typography.caption} rounded-[6px] px-3 py-1.5`}
+              className="rounded-[6px] px-3 py-1.5 font-pretendard text-[16px] leading-[20px]"
               style={{ backgroundColor: colors.alert, color: colors.background }}
               onClick={handleDeleteConfirm}
             >
@@ -231,7 +199,7 @@ function ReceiptCard({
         </div>
       ) : null}
 
-      <div className="space-y-7 py-7">
+      <div className="space-y-9 py-8">
         <FormRow label="장소" required>
           <PlaceField
             placeholder={receipt.placePlaceholder}
@@ -266,7 +234,7 @@ function ReceiptCard({
 
       <DashedDivider />
 
-      <FormRow label="총액" required className="py-7">
+      <FormRow label="총액" required className="py-8">
         <p className={`${typography.head1} text-right`} style={{ color: colors.text }}>
           <span className="mr-4">₩</span>
           {formatWon(receiptMenu.totalAmount)}
@@ -275,16 +243,17 @@ function ReceiptCard({
 
       <DashedDivider />
 
-      <FormRow label="참가자" required className="py-7">
+      <FormRow label="참가자" required className="py-8">
         <ParticipantPicker
           participants={participants}
           onParticipantToggle={handleParticipantToggle}
         />
       </FormRow>
 
-      <FormRow label="정산자" required>
+      <FormRow label="정산자">
         <PayerSelect
           payerText={receipt.payerPlaceholder}
+          hasSelectedPayer={receipt.payerRoomMemberId != null}
           options={payerOptions}
           onSelectPayer={(payer) =>
             onReceiptChange(receipt.roundLabel, {
@@ -295,20 +264,23 @@ function ReceiptCard({
         />
       </FormRow>
 
-      <FormRow label="계좌" required className="pt-4">
+      <FormRow label="계좌" className="pt-6">
         <input
           type="text"
-          className={`${typography.caption} h-10 w-full border-b bg-transparent px-3 outline-none placeholder:text-[inherit]`}
-          style={{ borderColor: colors.darkBorder, color: colors.border }}
-          placeholder="은행명 계좌번호"
+          className="h-10 w-full border-b bg-transparent px-3 font-pretendard text-[16px] leading-[20px] outline-none placeholder:text-[#a09583]"
+          style={{
+            borderColor: colors.darkBorder,
+            color: payerAccountText.trim() ? colors.text : colors.border,
+          }}
+          placeholder="계좌를 입력하세요"
           value={payerAccountText}
           onChange={(event) => handlePayerAccountChange(event.target.value)}
         />
       </FormRow>
 
-      <div className="my-7 border-t" style={{ borderColor: colors.border }} />
+      <div className="my-8 border-t" style={{ borderColor: colors.border }} />
 
-      <FormRow label="메모">
+      <FormRow label="메모" className="pb-10">
         <MemoField
           initialMemo={receipt.memo}
           placeholder={receipt.memoPlaceholder}
@@ -328,8 +300,11 @@ type FormRowProps = {
 
 function FormRow({ label, required = false, className = '', children }: FormRowProps) {
   return (
-    <div className={`grid grid-cols-[90px_1fr] items-start gap-4 px-2 ${className}`}>
-      <label className={`${typography.body} pt-3`} style={{ color: colors.text }}>
+    <div className={`grid grid-cols-[64px_minmax(0,1fr)] items-start gap-4 px-1 ${className}`}>
+      <label
+        className="pt-3 font-pretendard text-[16px] leading-[20px] font-semibold"
+        style={{ color: colors.text }}
+      >
         {label}
         {required ? (
           <span className="ml-1" style={{ color: colors.alert }}>

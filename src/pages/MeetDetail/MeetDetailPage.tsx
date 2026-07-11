@@ -1,69 +1,30 @@
 import { ClipboardList } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Button from '@/components/common/Button/Button';
 import StepHeader from '@/components/common/Header/StepHeader/StepHeader';
 import TopAppBar from '@/components/common/TopAppBar/TopAppBar';
-import { fetchMeetDetail } from '@/features/meetDetail/api/meetDetail';
-import type { MeetDetailData } from '@/features/meetDetail/types';
-import { ApiError } from '@/lib/apiFetch';
+import { useRouteRoomId } from '@/hooks/useRouteRoomId';
 import PromisePhotoGallery from '@/pages/MeetDetail/components/PromisePhotoGallery';
 import SettlementCard from '@/pages/MeetDetail/components/SettlementCard';
+import { useMeetDetailData } from '@/pages/MeetDetail/hooks/useMeetDetailData';
 
 function MeetDetailPage() {
   const navigate = useNavigate();
-  const { roomId: roomIdParam } = useParams<{ roomId: string }>();
-  const roomId = Number(roomIdParam);
-  const isValidRoomId = Number.isFinite(roomId);
-  const [meetDetail, setMeetDetail] = useState<MeetDetailData | null>(null);
-  const [loadedRoomId, setLoadedRoomId] = useState<number | null>(null);
-  const [errorState, setErrorState] = useState<{ roomId: number; message: string } | null>(null);
-
-  useEffect(() => {
-    if (!isValidRoomId) return;
-
-    let ignore = false;
-
-    fetchMeetDetail(roomId)
-      .then((data) => {
-        if (ignore) return;
-        setMeetDetail(data);
-        setLoadedRoomId(roomId);
-        setErrorState(null);
-      })
-      .catch((error: unknown) => {
-        if (ignore) return;
-        const message =
-          error instanceof ApiError ? error.message : '약속 상세 정보를 불러오지 못했어요';
-        setLoadedRoomId(roomId);
-        setErrorState({ roomId, message });
-      });
-
-    return () => {
-      ignore = true;
-    };
-  }, [isValidRoomId, roomId]);
-
-  const currentMeetDetail = loadedRoomId === roomId ? meetDetail : null;
-  const errorMessage = !isValidRoomId
-    ? '방 정보를 확인할 수 없습니다.'
-    : errorState?.roomId === roomId
-      ? errorState.message
-      : null;
-  const isLoading = isValidRoomId && currentMeetDetail === null && errorMessage === null;
+  const roomId = useRouteRoomId();
+  const { meetDetail, errorMessage, isLoading } = useMeetDetailData(roomId);
 
   return (
     <>
       <TopAppBar
         title="기록"
         showBack
-        className="fixed top-0 left-1/2 z-50 w-full max-w-[390px] -translate-x-1/2"
+        className="fixed top-0 left-1/2 z-50 w-full max-w-[430px] -translate-x-1/2"
         rightSlot={<span aria-hidden className="block size-4" />}
-        onBack={() => navigate(-1)}
+        onBack={() => navigate('/home')}
       />
 
-      <main className="fixed top-[50px] bottom-0 left-1/2 w-full max-w-[390px] -translate-x-1/2 overflow-hidden bg-background">
-        <section className="h-full overflow-y-auto pb-[19px]">
+      <main className="fixed top-[50px] bottom-0 left-1/2 w-full max-w-[430px] -translate-x-1/2 overflow-hidden bg-background">
+        <section className="mx-auto h-full w-full max-w-[390px] overflow-y-auto pb-[19px]">
           <StepHeader
             showStep={false}
             wrapperClassName="px-[14px] pt-[19px] pb-0"
@@ -72,10 +33,10 @@ function MeetDetailPage() {
             <div className="grid min-h-[112px] grid-cols-[1fr_130px]">
               <div className="flex flex-col justify-center gap-2 px-6">
                 <h1 className="text-[23px] leading-[28px] font-semibold text-text">
-                  {currentMeetDetail?.summary.title ?? '약속 상세'}
+                  {meetDetail?.summary.title ?? '약속 상세'}
                 </h1>
                 <p className="text-caption text-dark-border">
-                  {currentMeetDetail?.summary.datetime ?? '불러오는 중'}
+                  {meetDetail?.summary.datetime ?? '불러오는 중'}
                 </p>
               </div>
 
@@ -85,9 +46,9 @@ function MeetDetailPage() {
                   size="md"
                   fullWidth={false}
                   className="gap-2 text-[16px] font-semibold"
-                  disabled={!currentMeetDetail}
+                  disabled={!meetDetail}
                   onClick={() => {
-                    if (currentMeetDetail) navigate(`/${currentMeetDetail.summary.roomId}/mog-card`);
+                    if (meetDetail) navigate(`/${meetDetail.summary.roomId}/mog-card`);
                   }}
                 >
                   <ClipboardList size={18} strokeWidth={2.2} />
@@ -101,7 +62,7 @@ function MeetDetailPage() {
               <div className="flex items-center gap-4">
                 <span className="text-[14px] leading-[17px] font-medium text-text">1인당</span>
                 <span className="text-[22px] leading-[27px] font-semibold text-text">
-                  {currentMeetDetail?.summary.perPersonCost ?? '₩ 0'}
+                  {meetDetail?.summary.perPersonCost ?? '₩ 0'}
                 </span>
               </div>
             </div>
@@ -114,11 +75,11 @@ function MeetDetailPage() {
               </p>
             ) : errorMessage ? (
               <p className="py-8 text-center text-xs text-dark-border">{errorMessage}</p>
-            ) : currentMeetDetail ? (
+            ) : meetDetail ? (
               <>
-                <PromisePhotoGallery photos={currentMeetDetail.photos} />
-                {currentMeetDetail.rounds.length > 0 ? (
-                  currentMeetDetail.rounds.map((round) => (
+                <PromisePhotoGallery photos={meetDetail.photos} />
+                {meetDetail.rounds.length > 0 ? (
+                  meetDetail.rounds.map((round) => (
                     <SettlementCard key={round.id} round={round} />
                   ))
                 ) : (

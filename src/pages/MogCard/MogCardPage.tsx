@@ -1,62 +1,115 @@
-import { useNavigate, useParams } from 'react-router-dom';
-import { Share2, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Download, Share2, X } from 'lucide-react';
 import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { typography } from '@/constants/typography';
+import { useRouteRoomId } from '@/hooks/useRouteRoomId';
 import { useToast } from '@/hooks/useToast';
+import { saveMogCardImage } from '@/pages/MogCard/api/mogCard';
 import MogReceiptCard from '@/pages/MogCard/components/MogReceiptCard';
 import { useReceiptPageBackground } from '@/pages/MogCard/hooks/useReceiptPageBackground';
-import { useReceiptShareFile } from '@/pages/MogCard/hooks/useReceiptShareFile';
-import { useMogCardSummary } from '@/pages/MogCard/hooks/useMogCardSummary';
 import {
-  ReceiptImageShareUnsupportedError,
-  shareReceiptImageFile,
-} from '@/pages/MogCard/utils/downloadReceiptImage';
+  createReceiptCardPngBlob,
+  downloadBlob,
+} from '@/pages/MogCard/utils/downloadReceiptCard';
+import { useMogCardSummary } from '@/pages/MogCard/hooks/useMogCardSummary';
 import { toMogReceipt } from '@/pages/MogCard/utils/mogReceipt';
 
 const RECEIPT_SCREEN_BACKGROUND = '#4d4b48';
 
 function MogCardPage() {
   const navigate = useNavigate();
+  const roomId = useRouteRoomId();
   const { showToast } = useToast();
-  const { roomId } = useParams<{ roomId: string }>();
-  const receiptRef = useRef<HTMLElement>(null);
+  const receiptCardRef = useRef<HTMLElement>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
-  const numericRoomId = Number(roomId);
-  const isValidRoomId = Number.isFinite(numericRoomId);
-  const { summary, errorMessage, isLoading } = useMogCardSummary(
-    numericRoomId,
-    isValidRoomId,
-  );
+  const { summary, errorMessage, isLoading } = useMogCardSummary(roomId);
   const receipt = useMemo(() => (summary ? toMogReceipt(summary) : null), [summary]);
   const emptyMessage =
     summary && !summary.confirmedDate
       ? '확정 일정이 있는 약속만 모그카드를 만들 수 있어요.'
       : (errorMessage ?? '해당 약속의 영수증을 찾을 수 없습니다.');
-  const { shareFile, isPreparingShare } = useReceiptShareFile(receiptRef, receipt);
-  const canUseReceiptAction =
-    Boolean(shareFile) && !isSharing && !isLoading && !isPreparingShare;
 
   useReceiptPageBackground(RECEIPT_SCREEN_BACKGROUND);
 
-  const handleShare = async () => {
-    if (!shareFile || isSharing) {
-      if (!isPreparingShare) {
-        showToast('공유 이미지를 준비하지 못했어요.');
+  const createReceiptImageBlob = async () => {
+    if (!receipt) {
+      throw new Error('공유할 모그카드를 찾을 수 없습니다.');
+    }
+
+    const cardWidth = receiptCardRef.current?.getBoundingClientRect().width;
+
+    return createReceiptCardPngBlob(receipt, {
+      width: cardWidth ? Math.ceil(cardWidth) : undefined,
+    });
+  };
+
+  const handleSave = async () => {
+    if (!roomId || !receipt || isSaving || isSharing) {
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const imageBlob = await createReceiptImageBlob();
+
+      downloadBlob(imageBlob, receipt.downloadFileName);
+      showToast('모그카드가 저장되었습니다.', 'success');
+
+      try {
+        await saveMogCardImage(roomId, imageBlob);
+      } catch {
+        // 로컬 이미지 저장은 완료되었으므로 서버 업로드 실패는 사용자 흐름을 막지 않습니다.
       }
+    } catch {
+      showToast('모그카드 저장에 실패했습니다.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleShare = async () => {
+    if (!receipt || isSaving || isSharing) {
       return;
     }
 
     setIsSharing(true);
 
     try {
-      await shareReceiptImageFile(shareFile);
+      const previewWindow = !navigator.share ? window.open('', '_blank') : null;
+      const imageBlob = await createReceiptImageBlob();
+      const imageFile = new File([imageBlob], receipt.downloadFileName, {
+        type: 'image/png',
+      });
+      const shareData: ShareData = {
+        files: [imageFile],
+      };
+
+      if (!navigator.share) {
+        openImagePreview(imageBlob, previewWindow);
+        showToast(
+          window.isSecureContext
+            ? '공유 미지원 브라우저라 이미지를 새 창으로 열었습니다.'
+            : '공유 기능은 HTTPS에서만 사용할 수 있어 이미지를 새 창으로 열었습니다.',
+          'success',
+        );
+        return;
+      }
+
+      if (navigator.canShare && !navigator.canShare(shareData)) {
+        openImagePreview(imageBlob, previewWindow);
+        showToast('이미지 공유 미지원 기기라 이미지를 새 창으로 열었습니다.', 'success');
+        return;
+      }
+
+      await navigator.share(shareData);
     } catch (error) {
-      console.error(error);
-      showToast(
-        error instanceof ReceiptImageShareUnsupportedError
-          ? '이 브라우저에서는 이미지 공유를 지원하지 않아요.'
-          : '영수증 이미지를 공유하지 못했어요.',
-      );
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
+
+      showToast('모그카드 공유에 실패했습니다.');
     } finally {
       setIsSharing(false);
     }
@@ -88,9 +141,16 @@ function MogCardPage() {
 
           <div className="flex items-center gap-3">
             <ActionButton
+              label="저장"
+              onClick={handleSave}
+              disabled={!receipt || isSaving}
+            >
+              <Download size={20} strokeWidth={2.1} />
+            </ActionButton>
+            <ActionButton
               label="공유"
               onClick={handleShare}
-              disabled={!canUseReceiptAction}
+              disabled={!receipt || isSharing}
             >
               <Share2 size={20} strokeWidth={2.1} />
             </ActionButton>
@@ -101,7 +161,7 @@ function MogCardPage() {
           {isLoading ? (
             <ReceiptStateMessage>영수증을 불러오는 중입니다.</ReceiptStateMessage>
           ) : receipt ? (
-            <MogReceiptCard ref={receiptRef} receipt={receipt} />
+            <MogReceiptCard ref={receiptCardRef} receipt={receipt} />
           ) : (
             <ReceiptStateMessage>{emptyMessage}</ReceiptStateMessage>
           )}
@@ -109,6 +169,18 @@ function MogCardPage() {
       </div>
     </main>
   );
+}
+
+function openImagePreview(imageBlob: Blob, previewWindow: Window | null) {
+  const imageUrl = URL.createObjectURL(imageBlob);
+
+  if (previewWindow) {
+    previewWindow.location.href = imageUrl;
+  } else {
+    window.open(imageUrl, '_blank');
+  }
+
+  window.setTimeout(() => URL.revokeObjectURL(imageUrl), 60_000);
 }
 
 function ReceiptStateMessage({ children }: { children: ReactNode }) {

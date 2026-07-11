@@ -22,6 +22,7 @@ type MemberAvatarProps = {
   unselectedTone?: MemberAvatarTone;
   labelTone?: MemberAvatarTone;
   labelPosition?: MemberAvatarLabelPosition;
+  labelClassName?: string;
 } & Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children' | 'disabled'>;
 
 const toneColor: Record<MemberAvatarTone, string> = {
@@ -57,6 +58,7 @@ function MemberAvatar({
   unselectedTone = 'muted',
   labelTone,
   labelPosition = 'bottom',
+  labelClassName,
   className = '',
   style,
   ...buttonProps
@@ -72,9 +74,7 @@ function MemberAvatar({
     <button
       type="button"
       className={`shrink-0 disabled:cursor-not-allowed ${
-        labelPosition === 'right'
-          ? 'inline-flex items-center gap-2 text-left'
-          : 'text-center'
+        labelPosition === 'right' ? 'inline-flex items-center gap-2 text-left' : 'text-center'
       } ${className}`}
       style={{ width: labelPosition === 'bottom' ? sizePx : undefined, ...style }}
       aria-pressed={selected}
@@ -112,7 +112,7 @@ function MemberAvatar({
           </svg>
         ) : null}
         <Cloud size={sizePx * 0.55} strokeWidth={2} />
-        {showCheck ? (
+        {showCheck && selected ? (
           <span
             className="absolute grid place-items-center rounded-full"
             style={{
@@ -129,7 +129,10 @@ function MemberAvatar({
         ) : null}
       </span>
       <span className={`block ${labelPosition === 'bottom' ? 'mt-2' : ''}`}>
-        <span className={`${typography.caption} block truncate`} style={{ color: labelColor }}>
+        <span
+          className={`${labelClassName ?? typography.caption} block truncate`}
+          style={{ color: labelColor }}
+        >
           {name}
         </span>
         {subLabel ? (

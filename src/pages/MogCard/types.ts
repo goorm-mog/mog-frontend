@@ -35,13 +35,29 @@ export type SummaryRecordItemResponse = {
   amount: number;
 };
 
+export type SummaryRecordPlaceResponse = {
+  name?: string;
+  placeName?: string;
+  address: string | null;
+};
+
+export type SummaryRecordMenuItemResponse = {
+  id?: number;
+  itemName: string;
+  quantity: number;
+  price: number;
+  totalPrice: number;
+};
+
 export type SummaryRecordResponse = {
   seq: number;
-  placeName: string;
+  place?: SummaryRecordPlaceResponse;
+  placeName?: string;
   address?: string | null;
   memo: string | null;
   totalCost: number;
   items?: SummaryRecordItemResponse[];
+  menuItems?: SummaryRecordMenuItemResponse[];
   participants: SummaryParticipantResponse[];
 };
 
@@ -62,13 +78,15 @@ export type SummaryPlaceResponse = {
 
 export type SummaryCardResponse = {
   roomId: number;
+  groupName?: string | null;
+  roomName?: string | null;
   confirmedDate: string | null;
   confirmedPlace: SummaryPlaceResponse | null;
   totalMemberCount: number;
   members: string[];
   photos: string[];
   records: SummaryRecordResponse[];
-  settlement: SummarySettlementResponse;
+  settlement: SummarySettlementResponse | null;
   cardImageUrl: string | null;
 };
 

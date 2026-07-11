@@ -15,19 +15,19 @@ const initialSummaryState: SummaryState = {
   errorMessage: null,
 };
 
-export function useMogCardSummary(roomId: number, isValidRoomId: boolean) {
+export function useMogCardSummary(roomId: number | null) {
   const [summaryState, setSummaryState] = useState<SummaryState>(initialSummaryState);
   const hasCurrentSummaryState = summaryState.roomId === roomId;
   const summary = hasCurrentSummaryState ? summaryState.summary : null;
-  const errorMessage = !isValidRoomId
+  const errorMessage = roomId == null
     ? '잘못된 약속 정보입니다.'
     : hasCurrentSummaryState
       ? summaryState.errorMessage
       : null;
-  const isLoading = isValidRoomId && !hasCurrentSummaryState;
+  const isLoading = roomId != null && !hasCurrentSummaryState;
 
   useEffect(() => {
-    if (!isValidRoomId) return;
+    if (roomId == null) return;
 
     let ignore = false;
 
@@ -56,7 +56,7 @@ export function useMogCardSummary(roomId: number, isValidRoomId: boolean) {
     return () => {
       ignore = true;
     };
-  }, [isValidRoomId, roomId]);
+  }, [roomId]);
 
   return {
     summary,

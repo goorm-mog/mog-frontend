@@ -16,7 +16,10 @@ function MeetSummary({ title, dateText }: MeetSummaryProps) {
           <h2 className={`${typography.body} truncate`} style={{ color: colors.text }}>
             {title}
           </h2>
-          <p className={`${typography.body2} mt-1`} style={{ color: colors.darkBorder }}>
+          <p
+            className="mt-1 font-pretendard text-[16px] leading-[20px] font-medium"
+            style={{ color: colors.darkBorder }}
+          >
             {dateText}
           </p>
         </div>

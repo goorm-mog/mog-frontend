@@ -11,11 +11,14 @@ function SettlementHeader({ onBack, onSave }: SettlementHeaderProps) {
       <div className="flex items-center">
         <button
           type="button"
-          aria-label="뒤로가기"
-          className="inline-flex size-6 items-center justify-center bg-transparent p-0 text-text"
+          aria-label="기록으로 이동"
+          className="inline-flex items-center gap-1.5 bg-transparent p-0 text-text"
           onClick={onBack}
         >
           <ArrowLeft size={16} strokeWidth={2} />
+          <span className="whitespace-nowrap text-[10px] leading-[12px] font-medium text-dark-border">
+            기록으로 이동
+          </span>
         </button>
       </div>
 

@@ -12,7 +12,9 @@ const RECEIPT_FOOTER = '세상의 모든 추억을 모읍니다 • 모그';
 
 const formatWon = (amount: number) => `₩ ${WON_FORMATTER.format(amount)}`;
 const formatAmount = (amount: number) => WON_FORMATTER.format(amount);
-const formatFileDate = (dateString: string) => dateString.slice(0, 10);
+const formatFileDate = (dateString: string) => dateString.slice(0, 10).replaceAll('-', '');
+const sanitizeFileNamePart = (value: string) =>
+  value.trim().replace(/[\\/:*?"<>|]/g, '_') || '약속';
 
 const parseDate = (dateString: string) => {
   if (dateString.includes('T')) {
@@ -52,19 +54,28 @@ const formatBarcodeValue = (dateString: string) => {
 };
 
 const mapReceiptPlaces = (records: SummaryRecordResponse[]): MogReceiptPlace[] =>
-  records.map((record) => ({
-    id: record.seq,
-    placeName: record.placeName,
-    address: record.address ?? record.memo ?? '',
-    totalCost: formatWon(record.totalCost),
-    items:
-      record.items && record.items.length > 0
-        ? record.items.map(({ name, amount }) => ({
-            name,
-            amount: formatAmount(amount),
-          }))
-        : [],
-  }));
+  records.map((record) => {
+    const placeName =
+      record.place?.name ?? record.place?.placeName ?? record.placeName ?? '장소 미정';
+    const address = record.place?.address ?? record.address ?? record.memo ?? '';
+    const items = record.menuItems?.length
+      ? record.menuItems.map(({ itemName, totalPrice, price, quantity }) => ({
+          name: itemName,
+          amount: formatAmount(totalPrice ?? price * quantity),
+        }))
+      : (record.items?.map(({ name, amount }) => ({
+          name,
+          amount: formatAmount(amount),
+        })) ?? []);
+
+    return {
+      id: record.seq,
+      placeName,
+      address,
+      totalCost: formatWon(record.totalCost),
+      items,
+    };
+  });
 
 export function toMogReceipt(summary: SummaryCardResponse): MogReceipt | null {
   if (!summary.confirmedDate || summary.records.length === 0) {
@@ -73,12 +84,15 @@ export function toMogReceipt(summary: SummaryCardResponse): MogReceipt | null {
 
   return {
     title: RECEIPT_TITLE,
-    downloadFileName: `[MOG]room-${summary.roomId}_${formatFileDate(summary.confirmedDate)}.png`,
+    downloadFileName: `[MOG] ${sanitizeFileNamePart(summary.roomName ?? '약속')}_${formatFileDate(summary.confirmedDate)}.png`,
     participantCount: summary.totalMemberCount,
     participants: summary.members.join(', '),
     datetime: formatReceiptDate(summary.confirmedDate),
     places: mapReceiptPlaces(summary.records),
-    totalCost: formatWon(summary.settlement.totalCost),
+    totalCost: formatWon(
+      summary.settlement?.totalCost ??
+        summary.records.reduce((total, record) => total + record.totalCost, 0),
+    ),
     photoCount: summary.photos.length,
     representativePhotoUrl: summary.photos[0],
     barcodeValue: formatBarcodeValue(summary.confirmedDate),

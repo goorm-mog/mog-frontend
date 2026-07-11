@@ -80,6 +80,9 @@ const getRoomData = (roomId: number) => {
   return recordsByRoomId[roomId];
 };
 
+export const getMeetingRecordsByRoomId = (roomId: number): MeetingRecord[] =>
+  getRoomData(roomId).records.map(cloneRecord).sort((a, b) => a.seq - b.seq);
+
 const findRoomMember = (roomId: number, roomMemberId: number) =>
   mockDb.roomMembers.find(
     (member) => member.roomId === roomId && member.roomMemberId === roomMemberId,
@@ -185,8 +188,7 @@ export const recordsHandlers: HttpHandler[] = [
     const record: MeetingRecord = {
       recordId: nextRecordId,
       seq: Math.max(0, ...roomData.records.map(({ seq }) => seq)) + 1,
-      placeName: body.placeName,
-      address: body.address ?? null,
+      place: { ...body.place },
       menuItems: body.menuItems?.map((item) => ({ ...item })) ?? [],
       memo: body.memo,
       totalCost: sumParticipantsAmount(participants),
@@ -243,8 +245,7 @@ export const recordsHandlers: HttpHandler[] = [
         ? record.participants
         : mapParticipants(roomId, body.participants);
 
-    record.placeName = body.placeName ?? record.placeName;
-    record.address = body.address ?? record.address;
+    record.place = body.place == null ? record.place : { ...body.place };
     record.menuItems = body.menuItems?.map((item) => ({ ...item })) ?? record.menuItems;
     record.memo = body.memo ?? record.memo;
     record.payer = body.payer == null ? record.payer : mapPayer(roomId, body.payer);
