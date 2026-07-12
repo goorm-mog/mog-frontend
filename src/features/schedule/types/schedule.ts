@@ -8,7 +8,6 @@ export interface ScheduleSlot {
 
 export interface SlotsResponse {
   roomId: number;
-  totalParticipants: number;
   slots: ScheduleSlot[];
 }
 

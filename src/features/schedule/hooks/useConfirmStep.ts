@@ -4,7 +4,7 @@ import type { RoomMember, ScheduleSlot } from '@/features/schedule/types/schedul
 
 export function useConfirmStep(slots: ScheduleSlot[], members: RoomMember[]) {
   const [selectedDateKey, setSelectedDateKey] = useState<string>('');
-  const [activeSlotId, setActiveSlotId] = useState<number | null>(null);
+  const [userSelectedSlotId, setUserSelectedSlotId] = useState<number | null>(null);
 
   const availableDates = useMemo(
     () => [...new Set(slots.map((s) => s.date))].map((d) => parseISO(d)),
@@ -21,6 +21,11 @@ export function useConfirmStep(slots: ScheduleSlot[], members: RoomMember[]) {
         )
         .slice(0, 5),
     [slots],
+  );
+
+  const activeSlotId = useMemo(
+    () => userSelectedSlotId ?? topSlots[0]?.slotId ?? null,
+    [userSelectedSlotId, topSlots],
   );
 
   const bestDates = useMemo(() => {
@@ -55,12 +60,12 @@ export function useConfirmStep(slots: ScheduleSlot[], members: RoomMember[]) {
   const handleDateChange = (dates: Date[]) => {
     if (dates[0]) {
       setSelectedDateKey(format(dates[0], 'yyyy-MM-dd'));
-      setActiveSlotId(null);
+      setUserSelectedSlotId(null);
     }
   };
 
   const handleSlotClick = (slotId: number) => {
-    setActiveSlotId((prev) => (prev === slotId ? null : slotId));
+    setUserSelectedSlotId((prev) => (prev === slotId ? null : slotId));
   };
 
   return {

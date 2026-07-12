@@ -40,11 +40,14 @@ export function useHostReschedule(roomId: number) {
   useEffect(() => {
     const init = async () => {
       try {
-        const slotsData = await fetchSlotsIfExists(roomId);
+        const [slotsData, membersData] = await Promise.all([
+          fetchSlotsIfExists(roomId),
+          fetchRoomMembers(roomId),
+        ]);
         if (!slotsData || slotsData.slots.length === 0) return; // create step 유지
 
-        setRegisteredSlots(slotsData.slots.map(({ slotId, date, time }) => ({ slotId, date, time })));
-        setTotalParticipants(slotsData.totalParticipants);
+        setRegisteredSlots(slotsData.slots.map(({ slotId, date, time }) => ({ slotId, date, time: time.slice(0, 5) })));
+        setTotalParticipants(membersData.members.length);
         setVotedCount(countUniqueVoters(slotsData.slots));
         setStep('vote');
 
@@ -53,11 +56,8 @@ export function useHostReschedule(roomId: number) {
           myUserId !== null && slotsData.slots.some((s) => s.votedUserIds.includes(myUserId));
         if (!iVoted) return; // vote step 유지
 
-        const [slotsConfirm, membersData] = await Promise.all([
-          fetchSlots(roomId),
-          fetchRoomMembers(roomId),
-        ]);
-        setConfirmSlots(slotsConfirm.slots);
+        const slotsConfirm = await fetchSlots(roomId);
+        setConfirmSlots(slotsConfirm.slots.map((slot) => ({ ...slot, time: slot.time.slice(0, 5) })));
         setConfirmMembers(membersData.members);
         setStep('confirm');
       } catch (e) {
@@ -149,11 +149,14 @@ export function useHostReschedule(roomId: number) {
       try {
         setIsSubmitting(true);
         await registerSlots(roomId, slots);
-        const slotsData = await fetchSlots(roomId);
+        const [slotsData, membersData] = await Promise.all([
+          fetchSlots(roomId),
+          fetchRoomMembers(roomId),
+        ]);
         setRegisteredSlots(
-          slotsData.slots.map(({ slotId, date, time }) => ({ slotId, date, time })),
+          slotsData.slots.map(({ slotId, date, time }) => ({ slotId, date, time: time.slice(0, 5) })),
         );
-        setTotalParticipants(slotsData.totalParticipants);
+        setTotalParticipants(membersData.members.length);
         setVotedCount(countUniqueVoters(slotsData.slots));
         setStep('vote');
       } catch (e) {
@@ -170,8 +173,8 @@ export function useHostReschedule(roomId: number) {
           fetchSlots(roomId),
           fetchRoomMembers(roomId),
         ]);
-        setConfirmSlots(slotsData.slots);
-        setTotalParticipants(slotsData.totalParticipants);
+        setConfirmSlots(slotsData.slots.map((slot) => ({ ...slot, time: slot.time.slice(0, 5) })));
+        setTotalParticipants(membersData.members.length);
         setConfirmMembers(membersData.members);
         setStep('confirm');
       } catch (e) {
