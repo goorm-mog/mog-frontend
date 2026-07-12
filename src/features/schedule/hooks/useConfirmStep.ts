@@ -1,10 +1,10 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { format, parseISO } from 'date-fns';
 import type { RoomMember, ScheduleSlot } from '@/features/schedule/types/schedule';
 
 export function useConfirmStep(slots: ScheduleSlot[], members: RoomMember[]) {
   const [selectedDateKey, setSelectedDateKey] = useState<string>('');
-  const [activeSlotId, setActiveSlotId] = useState<number | null>(null);
+  const [userSelectedSlotId, setUserSelectedSlotId] = useState<number | null>(null);
 
   const availableDates = useMemo(
     () => [...new Set(slots.map((s) => s.date))].map((d) => parseISO(d)),
@@ -23,6 +23,11 @@ export function useConfirmStep(slots: ScheduleSlot[], members: RoomMember[]) {
     [slots],
   );
 
+  const activeSlotId = useMemo(
+    () => userSelectedSlotId ?? topSlots[0]?.slotId ?? null,
+    [userSelectedSlotId, topSlots],
+  );
+
   const bestDates = useMemo(() => {
     if (topSlots.length === 0) return [];
     const maxVote = topSlots[0].voteCount;
@@ -38,12 +43,6 @@ export function useConfirmStep(slots: ScheduleSlot[], members: RoomMember[]) {
       ),
     [slots, selectedDateKey],
   );
-
-  useEffect(() => {
-    if (activeSlotId === null && topSlots.length > 0) {
-      setActiveSlotId(topSlots[0].slotId);
-    }
-  }, [topSlots]);
 
   const activeSlot = useMemo(
     () => slots.find((s) => s.slotId === activeSlotId) ?? null,
@@ -61,12 +60,12 @@ export function useConfirmStep(slots: ScheduleSlot[], members: RoomMember[]) {
   const handleDateChange = (dates: Date[]) => {
     if (dates[0]) {
       setSelectedDateKey(format(dates[0], 'yyyy-MM-dd'));
-      setActiveSlotId(null);
+      setUserSelectedSlotId(null);
     }
   };
 
   const handleSlotClick = (slotId: number) => {
-    setActiveSlotId((prev) => (prev === slotId ? null : slotId));
+    setUserSelectedSlotId((prev) => (prev === slotId ? null : slotId));
   };
 
   return {
