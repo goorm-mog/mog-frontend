@@ -64,7 +64,6 @@ export const scheduleHandlers: HttpHandler[] = [
     }
     const response: SlotsResponse = {
       roomId: data.roomId,
-      totalParticipants: data.totalParticipants,
       slots: data.slots.map((s) => ({
         slotId: s.slotId,
         date: s.date,

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { format, parseISO } from 'date-fns';
 import type { RoomMember, ScheduleSlot } from '@/features/schedule/types/schedule';
 
@@ -38,6 +38,12 @@ export function useConfirmStep(slots: ScheduleSlot[], members: RoomMember[]) {
       ),
     [slots, selectedDateKey],
   );
+
+  useEffect(() => {
+    if (activeSlotId === null && topSlots.length > 0) {
+      setActiveSlotId(topSlots[0].slotId);
+    }
+  }, [topSlots]);
 
   const activeSlot = useMemo(
     () => slots.find((s) => s.slotId === activeSlotId) ?? null,
