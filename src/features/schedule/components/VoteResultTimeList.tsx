@@ -29,9 +29,10 @@ function VoteResultTimeList({
           <div className="flex gap-2">
             {times.map((time) => {
               const slot = slotByTime[time];
-              const opacity = slot
-                ? Math.max(0.15, slot.voteCount / Math.max(totalParticipants, 1))
-                : 0;
+              const opacity =
+                slot && slot.voteCount > 0
+                  ? Math.max(0.15, slot.voteCount / Math.max(totalParticipants, 1))
+                  : 0;
               const isActive = slot ? activeSlotId === slot.slotId : false;
 
               return (
@@ -41,9 +42,14 @@ function VoteResultTimeList({
                   disabled={!slot}
                   className={cn(
                     'relative flex-1 text-center font-pretendard font-medium text-[12px] py-1.5 rounded-sm overflow-hidden',
-                    slot
-                      ? cn('text-background', isActive && 'ring-1 ring-point ring-inset')
-                      : 'border border-dark-border text-dark-border opacity-30',
+                    !slot
+                      ? 'border border-dark-border text-dark-border opacity-30'
+                      : slot.voteCount > 0
+                        ? cn('text-background', isActive && 'ring-1 ring-point ring-inset')
+                        : cn(
+                            'border border-dark-border text-dark-border',
+                            isActive && 'ring-1 border-none ring-point ring-inset',
+                          ),
                   )}
                 >
                   {slot && <div className="absolute inset-0 bg-point" style={{ opacity }} />}

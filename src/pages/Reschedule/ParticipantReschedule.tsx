@@ -67,24 +67,27 @@ function ParticipantReschedule() {
   useEffect(() => {
     const init = async () => {
       try {
-        const data = await fetchSlotsIfExists(roomId);
+        const [data, roomData] = await Promise.all([
+          fetchSlotsIfExists(roomId),
+          fetchRoomMembers(roomId),
+        ]);
+
         if (!data || data.slots.length === 0) {
           setSlotsReady(false);
           return;
         }
 
         setSlotsReady(true);
-        setRegisteredSlots(data.slots.map(({ slotId, date, time }) => ({ slotId, date, time })));
-        setTotalParticipants(data.totalParticipants);
+        setRegisteredSlots(data.slots.map(({ slotId, date, time }) => ({ slotId, date, time: time.slice(0, 5) })));
+        setTotalParticipants(roomData.members.length);
         setVotedCount(countUniqueVoters(data.slots));
 
         const myUserId = getMyUserId();
         const iVoted =
           myUserId !== null && data.slots.some((s) => s.votedUserIds.includes(myUserId));
         if (iVoted) {
-          const membersData = await fetchRoomMembers(roomId);
-          setConfirmSlots(data.slots);
-          setConfirmMembers(membersData.members);
+          setConfirmSlots(data.slots.map((slot) => ({ ...slot, time: slot.time.slice(0, 5) })));
+          setConfirmMembers(roomData.members);
           setHasVoted(true);
         }
       } catch (e) {
@@ -108,8 +111,8 @@ function ParticipantReschedule() {
         fetchSlots(roomId),
         fetchRoomMembers(roomId),
       ]);
-      setConfirmSlots(slotsData.slots);
-      setTotalParticipants(slotsData.totalParticipants);
+      setConfirmSlots(slotsData.slots.map((slot) => ({ ...slot, time: slot.time.slice(0, 5) })));
+      setTotalParticipants(membersData.members.length);
       setVotedCount(countUniqueVoters(slotsData.slots));
       setConfirmMembers(membersData.members);
       setHasVoted(true);

@@ -1,40 +1,48 @@
 import { apiFetch, apiFetchNullOn404 } from '@/lib/apiFetch';
-import type { ConfirmScheduleResponse, RegisterSlotsResponse, RoomMembersResponse, RoomStatusResponse, SlotsResponse, VoteResponse } from '@/features/schedule/types/schedule';
+import type { ApiResponse } from '@/types/api';
+import type {
+  ConfirmScheduleResponse,
+  RegisterSlotsResponse,
+  RoomMembersResponse,
+  RoomStatusResponse,
+  SlotsResponse,
+  VoteResponse,
+} from '@/features/schedule/types/schedule';
 
 export function fetchConfirmedSchedule(roomId: number) {
-  return apiFetchNullOn404<ConfirmScheduleResponse>(`/rooms/${roomId}/schedule/confirm`);
+  return apiFetchNullOn404<ConfirmScheduleResponse>(`/api/rooms/${roomId}/schedule/confirm`);
 }
 
 export function fetchSlots(roomId: number) {
-  return apiFetch<SlotsResponse>(`/rooms/${roomId}/schedule/slots`);
+  return apiFetch<SlotsResponse>(`/api/rooms/${roomId}/schedule/slots`);
 }
 
 export function fetchSlotsIfExists(roomId: number) {
-  return apiFetchNullOn404<SlotsResponse>(`/rooms/${roomId}/schedule/slots`);
+  return apiFetchNullOn404<SlotsResponse>(`/api/rooms/${roomId}/schedule/slots`);
 }
 
 export function registerSlots(roomId: number, slots: { date: string; time: string }[]) {
-  return apiFetch<RegisterSlotsResponse>(`/rooms/${roomId}/schedule/slots`, {
+  return apiFetch<RegisterSlotsResponse>(`/api/rooms/${roomId}/schedule/slots`, {
     method: 'POST',
     body: JSON.stringify({ slots }),
   });
 }
 
 export function submitVotes(roomId: number, slotIds: number[]) {
-  return apiFetch<VoteResponse>(`/rooms/${roomId}/schedule/votes`, {
+  return apiFetch<VoteResponse>(`/api/rooms/${roomId}/schedule/votes`, {
     method: 'POST',
     body: JSON.stringify({ slotIds }),
   });
 }
 
 export function fetchRoomMembers(roomId: number): Promise<RoomMembersResponse> {
-  return apiFetch<RoomStatusResponse>(`/v1/groups/rooms/${roomId}`).then((data) => ({
-    members: data.members,
+  return apiFetch<ApiResponse<RoomStatusResponse>>(`/api/v1/groups/rooms/${roomId}`).then((response) => ({
+    members: response.data?.members ?? [],
   }));
 }
 
 export function confirmSchedule(roomId: number, date: string, time: string) {
-  return apiFetch<ConfirmScheduleResponse>(`/rooms/${roomId}/schedule/confirm`, {
+  return apiFetch<ConfirmScheduleResponse>(`/api/rooms/${roomId}/schedule/confirm`, {
     method: 'PATCH',
     body: JSON.stringify({ date, time }),
   });
