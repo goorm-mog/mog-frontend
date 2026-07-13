@@ -117,7 +117,14 @@ function MidpointPage() {
         ctaDisabled={!isHost || !selectedPlace}
         isLoading={isConfirming}
         caption={!isHost ? '방장만 확정할 수 있어요' : undefined}
-        sideAction={<ChatButton size="md" onClick={() => navigate(`/${parsedRoomId}/chat`)} />}
+        sideAction={
+          <ChatButton
+            size="md"
+            onClick={() =>
+              navigate(`/${parsedRoomId}/chat`, { state: { returnTo: location.pathname } })
+            }
+          />
+        }
       >
         {places.map((place, idx) => (
           <div

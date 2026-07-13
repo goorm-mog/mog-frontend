@@ -1,6 +1,6 @@
 import { MoreHorizontal } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { fetchMeetChatContext } from '@/api/chat';
 import TopAppBar from '@/components/common/TopAppBar/TopAppBar';
 import { getMyUserId } from '@/lib/auth-storage';
@@ -13,6 +13,7 @@ import type { MeetChatContext, MeetChatParticipant } from '@/types/chat';
 
 function MeetChatPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { roomId } = useParams();
   const numericRoomId = Number(roomId);
   const isValidRoomId = Number.isInteger(numericRoomId) && numericRoomId > 0;
@@ -68,7 +69,14 @@ function MeetChatPage() {
         title="채팅"
         showBack
         className="shrink-0 border-b border-dashed border-border/30"
-        onBack={() => navigate(-1)}
+        onBack={() => {
+          const returnTo = (location.state as { returnTo?: unknown } | null)?.returnTo;
+          if (typeof returnTo === 'string' && returnTo.startsWith('/')) {
+            navigate(returnTo);
+            return;
+          }
+          navigate(-1);
+        }}
         rightSlot={
           <button
             type="button"

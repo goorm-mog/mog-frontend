@@ -54,7 +54,7 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
   });
 
   if (!response.ok) {
-    if (response.status === 403) {
+    if (response.status === 401) {
       clearAuthSession();
       window.location.href = '/login';
       return new Promise(() => {});
