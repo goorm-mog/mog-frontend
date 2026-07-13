@@ -316,7 +316,7 @@ function HomePage() {
                     key={room.roomId || `selected-${index}`}
                     title={room.roomName}
                     icon={resolveAppointmentIcon(room, appointmentIcons)}
-                    location={`단계 · ${roomStatusLabel(room.status)}`}
+                    location={`${roomStatusLabel(room.status)}`}
                     locationIcon={ListChecks}
                     action={appointmentMenu(room)}
                     onClick={() => navigate(roomDetailPath(room, selectedGroupRole))}
@@ -338,7 +338,7 @@ function HomePage() {
                       key={room.roomId || `undated-${index}`}
                       title={room.roomName}
                       icon={resolveAppointmentIcon(room, appointmentIcons)}
-                      location={`단계 · ${roomStatusLabel(room.status)}`}
+                      location={`${roomStatusLabel(room.status)}`}
                       locationIcon={ListChecks}
                       action={appointmentMenu(room)}
                       onClick={() => navigate(roomDetailPath(room, selectedGroupRole))}
@@ -362,7 +362,7 @@ function HomePage() {
                       <ScheduleCard
                         key={room.roomId || `progress-${index}`}
                         title={room.roomName}
-                        location={`단계 · ${roomStatusLabel(room.status)}`}
+                        location={`${roomStatusLabel(room.status)}`}
                         locationIcon={ListChecks}
                         icon={resolveAppointmentIcon(room, appointmentIcons)}
                         action={appointmentMenu(room)}
