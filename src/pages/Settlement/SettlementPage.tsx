@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Button from '@/components/common/Button/Button';
+import ChatButton from '@/components/common/ChatButton/ChatButton';
 import {
   calculateSettlement,
   confirmSettlement,
@@ -207,19 +208,28 @@ function SettlementContent({
             잔액이 남아있어요!
           </p>
         ) : null}
-        <Button
-          variant="dark"
-          size="lg"
-          className="text-[16px] font-semibold disabled:opacity-55"
-          disabled={isSettlementCompleted || hasRemainingAmount}
-          onClick={openSettlementConfirm}
-        >
-          {isSettlementCompleted
-            ? '정산 완료'
-            : hasRemainingAmount
-              ? '잔액을 맞춰주세요'
-              : '정산 완료하기'}
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className="min-w-0 flex-1">
+            <Button
+              variant="point"
+              size="lg"
+              className="text-[16px] font-semibold disabled:opacity-55"
+              disabled={isSettlementCompleted || hasRemainingAmount}
+              onClick={openSettlementConfirm}
+            >
+              {isSettlementCompleted
+                ? '정산 완료'
+                : hasRemainingAmount
+                  ? '잔액을 맞춰주세요'
+                  : '정산 완료하기'}
+            </Button>
+          </div>
+          <ChatButton
+            size="lg"
+            aria-label="정산 중 채팅 열기"
+            onClick={() => navigate(`/${roomId}/chat`)}
+          />
+        </div>
       </footer>
 
       {isConfirmOpen ? (

@@ -26,9 +26,13 @@ export interface MeetChatParticipant {
 
 export interface MeetChatRoom {
   roomId: number;
-  groupId: number;
   groupName: string;
   roomName: string;
-  promiseDate: string;
+  promiseDate: string | null;
   location: string;
+}
+
+export interface MeetChatContext {
+  room: MeetChatRoom;
+  participants: MeetChatParticipant[];
 }

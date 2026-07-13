@@ -20,7 +20,7 @@ function MeetChatSummary({ room, joinedCount, totalCount }: MeetChatSummaryProps
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[12px] leading-[15px] font-medium text-dark-border">
-              {room.groupName}
+              {room.groupName || '약속'}
             </p>
             <h1 className="mt-1 truncate text-[22px] leading-[27px] font-semibold text-text">
               {room.roomName}
@@ -35,11 +35,11 @@ function MeetChatSummary({ room, joinedCount, totalCount }: MeetChatSummaryProps
         <div className="mt-4 grid gap-2 border-t border-dashed border-border/50 pt-3">
           <div className="flex items-center gap-2 text-[13px] leading-[16px] text-dark-border">
             <CalendarDays size={15} strokeWidth={1.8} />
-            <span>{formatMeetDateTime(room.promiseDate)}</span>
+            <span>{room.promiseDate ? formatMeetDateTime(room.promiseDate) : '일정 미정'}</span>
           </div>
           <div className="flex items-center gap-2 text-[13px] leading-[16px] text-dark-border">
             <MapPin size={15} strokeWidth={1.8} />
-            <span className="truncate">{room.location}</span>
+            <span className="truncate">{room.location || '장소 미정'}</span>
           </div>
         </div>
       </RoughBorder>

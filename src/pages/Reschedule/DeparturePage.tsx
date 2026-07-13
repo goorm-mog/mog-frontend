@@ -7,7 +7,7 @@ import { useDeparture } from '@/features/departure/hooks/useDeparture';
 import { useDepartureForm } from '@/features/departure/hooks/useDepartureForm';
 import { calculateMidpoint } from '@/features/midpoint/api/midpoint';
 import { useToast } from '@/hooks/useToast';
-import { RoomStatusContext } from '@/components/common/RoomGuard';
+import { RoomStatusContext } from '@/components/common/room-status-context';
 import { getMyUserId } from '@/lib/auth-storage';
 
 function DeparturePage() {

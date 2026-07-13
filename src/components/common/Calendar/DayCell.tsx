@@ -107,8 +107,13 @@ function DayCell({
         <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-point z-10" />
       )}
 
-      {isMarked && !isSelected && !isInDragRange && (
-        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[#865300] z-10" />
+      {isMarked && !isInDragRange && (
+        <div
+          className={cn(
+            'absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full z-10',
+            isSelected ? 'bg-background' : 'bg-[#865300]',
+          )}
+        />
       )}
     </div>
   );

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchMeetChatMessages, MeetChatSocket, sendMeetChatMessageMock } from '@/api/chat';
+import { ApiError } from '@/lib/apiFetch';
 import type { ListChatMessageResponse } from '@/types/chat';
 
 const isMockEnabled = import.meta.env.VITE_MSW_ENABLED === 'true';
@@ -35,8 +36,16 @@ export function useMeetChat(roomId: number | null) {
         setErrorMessage(null);
         setMessages(data);
       })
-      .catch(() => {
-        if (!ignore) setErrorMessage('채팅 정보를 불러오지 못했습니다.');
+      .catch((error: unknown) => {
+        if (ignore) return;
+
+        if (error instanceof ApiError && error.status === 404) {
+          setMessages([]);
+          setErrorMessage(null);
+          return;
+        }
+
+        setErrorMessage('이전 채팅 내역을 불러오지 못했습니다.');
       })
       .finally(() => {
         if (!ignore) setIsLoading(false);
