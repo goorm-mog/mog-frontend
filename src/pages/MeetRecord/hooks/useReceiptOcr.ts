@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { analyzeReceiptOcr } from '@/api/records';
 import type { ReceiptItem } from '@/pages/MeetRecord/types';
 import { normalizeReceiptItemsTotal } from '@/pages/MeetRecord/utils/receipt';
+import { prepareOcrImage } from '@/pages/MeetRecord/utils/prepareOcrImage';
 
 const OCR_ACCEPTED_IMAGE_TYPES = 'image/jpeg,image/png,image/gif,image/webp';
 const OCR_ALLOWED_IMAGE_TYPES = new Set(OCR_ACCEPTED_IMAGE_TYPES.split(','));
@@ -34,7 +35,8 @@ export function useReceiptOcr({ roomId, onSuccess }: UseReceiptOcrParams) {
     setIsAnalyzing(true);
 
     try {
-      const response = await analyzeReceiptOcr(roomId, image);
+      const uploadImage = await prepareOcrImage(image);
+      const response = await analyzeReceiptOcr(roomId, uploadImage);
       const { storeName, items } = response.data;
       const totalAmount = Number.isFinite(response.data.totalAmount)
         ? Math.max(0, response.data.totalAmount)
