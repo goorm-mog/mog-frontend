@@ -1,0 +1,45 @@
+export type ReceiptItem = {
+  name: string;
+  count: number;
+  price: number;
+};
+
+export type ReceiptParticipant = {
+  id: number;
+  name: string;
+  selected?: boolean;
+  disabled?: boolean;
+};
+
+export type ReceiptPayerOption = {
+  id: number;
+  label: string;
+};
+
+export type ReceiptCardData = {
+  recordId?: number;
+  roundLabel: string;
+  placeName: string;
+  placeAddress?: string | null;
+  placePlaceholder: string;
+  menuPlaceholder: string;
+  items: ReceiptItem[];
+  totalAmount: number;
+  participants: ReceiptParticipant[];
+  payerPlaceholder: string;
+  payerRoomMemberId?: number | null;
+  payerBankName?: string | null;
+  payerAccountNumber?: string | null;
+  memo: string;
+  memoPlaceholder: string;
+};
+
+export type PlaceSearchResult = {
+  id: string;
+  name: string;
+  address: string;
+};
+
+export type EditableReceiptItem = ReceiptItem & {
+  id: string;
+};

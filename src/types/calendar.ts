@@ -1,0 +1,9 @@
+export type CalendarDay = {
+  date: Date;
+  isCurrentMonth: boolean;
+  isToday: boolean;
+};
+
+export type CalendarMode = 'single' | 'multiple';
+
+export type CalendarAppearance = 'default' | 'home';

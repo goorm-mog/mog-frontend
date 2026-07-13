@@ -7,10 +7,24 @@ function Example() {
       <h1 className="text-head1 text-mog-text">예시 모음</h1>
 
       <Link
-        to="/design-system"
+        to="/example/design-system"
         className="text-caption bg-point px-4 py-2 w-fit rounded-md text-background"
       >
         디자인 시스템
+      </Link>
+
+      <Link
+        to="/example/calendar-component"
+        className="text-caption bg-point px-4 py-2 w-fit rounded-md text-background"
+      >
+        캘린더 컴포넌트
+      </Link>
+
+      <Link
+        to="/example/title-component"
+        className="text-caption bg-point px-4 py-2 w-fit rounded-md text-background"
+      >
+        Title 컴포넌트
       </Link>
     </div>
   );

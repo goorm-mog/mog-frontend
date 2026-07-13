@@ -1,0 +1,68 @@
+import type { NotificationResponse } from '@/types/notification';
+
+export const notificationsDb: NotificationResponse[] = [
+  {
+    notificationId: 8,
+    type: 'ROOM_CREATED',
+    message: '[동네 러닝 크루] 토요일 남산 러닝 약속이 개설됐습니다.',
+    roomId: 80,
+    isRead: false,
+    createdAt: '2026-07-02T08:00:00',
+  },
+  {
+    notificationId: 7,
+    type: 'DATE_CONFIRMED',
+    message: '[브랜드 팀] Q3 브랜드 워크샵이 7월 20일 오전 10시로 확정됐습니다.',
+    roomId: 60,
+    isRead: false,
+    createdAt: '2026-07-01T09:00:00',
+  },
+  {
+    notificationId: 6,
+    type: 'ROOM_CREATED',
+    message: '[대학 친구들] 한강 피크닉 약속이 개설됐습니다.',
+    roomId: 47,
+    isRead: false,
+    createdAt: '2026-07-01T10:10:00',
+  },
+  {
+    notificationId: 5,
+    type: 'SETTLEMENT_DONE',
+    message: '[브랜드 팀] 런칭 회고 저녁 정산이 완료됐습니다. 내 부담액: 0원',
+    roomId: 61,
+    isRead: true,
+    createdAt: '2026-06-30T21:10:00',
+  },
+  {
+    notificationId: 4,
+    type: 'ROOM_CREATED',
+    message: '[가족 모임] 여름 가족 여행 약속이 개설됐습니다.',
+    roomId: 70,
+    isRead: true,
+    createdAt: '2026-06-28T19:00:00',
+  },
+  {
+    notificationId: 3,
+    type: 'SETTLEMENT_DONE',
+    message: '[대학 친구들] 강남역 삼겹살 모임 정산이 준비됐습니다. 내 부담액: 38,000원',
+    roomId: 45,
+    isRead: false,
+    createdAt: '2026-07-08T22:30:00',
+  },
+  {
+    notificationId: 2,
+    type: 'DATE_CONFIRMED',
+    message: '[대학 친구들] 강남역 삼겹살 모임이 7월 8일 오후 6시 30분으로 확정됐습니다.',
+    roomId: 45,
+    isRead: false,
+    createdAt: '2026-07-05T10:00:00',
+  },
+  {
+    notificationId: 1,
+    type: 'ROOM_CREATED',
+    message: '[대학 친구들] 강남역 삼겹살 모임 방이 개설됐습니다.',
+    roomId: 45,
+    isRead: true,
+    createdAt: '2026-06-16T14:30:00',
+  },
+];

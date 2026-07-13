@@ -6,7 +6,15 @@ import App from './App.tsx'
 async function prepare() {
   if (import.meta.env.VITE_MSW_ENABLED === 'true') {
     const { worker } = await import('./mocks/browser')
-    return worker.start({ onUnhandledRequest: 'warn' })
+    return worker.start({
+      onUnhandledRequest(request, print) {
+        const apiBase = import.meta.env.VITE_API_BASE_URL ?? '';
+        const isApiRequest = apiBase
+          ? request.url.startsWith(apiBase)
+          : request.url.includes('/api/') || request.url.startsWith('/');
+        if (isApiRequest) print.warning();
+      },
+    })
   }
 }
 
