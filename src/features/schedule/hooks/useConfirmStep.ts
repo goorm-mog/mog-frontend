@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
 import { format, parseISO } from 'date-fns';
-import type { RoomMember, ScheduleSlot } from '@/features/schedule/types/schedule';
+import type { ScheduleSlot } from '@/features/schedule/types/schedule';
 
-export function useConfirmStep(slots: ScheduleSlot[], members: RoomMember[]) {
+export function useConfirmStep(slots: ScheduleSlot[]) {
   const [selectedDateKey, setSelectedDateKey] = useState<string>('');
   const [userSelectedSlotId, setUserSelectedSlotId] = useState<number | null>(null);
 
@@ -49,14 +49,6 @@ export function useConfirmStep(slots: ScheduleSlot[], members: RoomMember[]) {
     [slots, activeSlotId],
   );
 
-  const activeMemberList = useMemo(() => {
-    if (activeSlotId === null) return [];
-    const slot = slots.find((s) => s.slotId === activeSlotId);
-    return (slot?.votedUserIds ?? [])
-      .map((uid) => members.find((m) => m.userId === uid))
-      .filter((m): m is RoomMember => m !== undefined);
-  }, [activeSlotId, slots, members]);
-
   const handleDateChange = (dates: Date[]) => {
     if (dates[0]) {
       setSelectedDateKey(format(dates[0], 'yyyy-MM-dd'));
@@ -74,7 +66,6 @@ export function useConfirmStep(slots: ScheduleSlot[], members: RoomMember[]) {
     bestDates,
     activeSlot,
     slotsForDate,
-    activeMemberList,
     selectedDateKey,
     activeSlotId,
     handleDateChange,

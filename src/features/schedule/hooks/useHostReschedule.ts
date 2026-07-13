@@ -6,7 +6,7 @@ import { getMyUserId } from '@/lib/auth-storage';
 import { useToast } from '@/hooks/useToast';
 import { useVoteStep } from '@/features/schedule/hooks/useVoteStep';
 import { useConfirmStep } from '@/features/schedule/hooks/useConfirmStep';
-import type { RegisteredSlot, RoomMember, ScheduleSlot } from '@/features/schedule/types/schedule';
+import type { RegisteredSlot, ScheduleSlot } from '@/features/schedule/types/schedule';
 import { countUniqueVoters } from '@/features/schedule/utils/slotUtils';
 
 export type HostStep = 'create' | 'vote' | 'confirm';
@@ -32,8 +32,7 @@ export function useHostReschedule(roomId: number) {
 
   // confirm step
   const [confirmSlots, setConfirmSlots] = useState<ScheduleSlot[]>([]);
-  const [confirmMembers, setConfirmMembers] = useState<RoomMember[]>([]);
-  const confirmStep = useConfirmStep(confirmSlots, confirmMembers);
+  const confirmStep = useConfirmStep(confirmSlots);
 
   const [isLoading, setIsLoading] = useState(true);
 
@@ -46,9 +45,10 @@ export function useHostReschedule(roomId: number) {
         ]);
         if (!slotsData || slotsData.slots.length === 0) return; // create step 유지
 
+        const uniqueVoterCount = countUniqueVoters(slotsData.slots);
         setRegisteredSlots(slotsData.slots.map(({ slotId, date, time }) => ({ slotId, date, time: time.slice(0, 5) })));
-        setTotalParticipants(membersData.members.length);
-        setVotedCount(countUniqueVoters(slotsData.slots));
+        setTotalParticipants(Math.max(membersData.members.length, uniqueVoterCount));
+        setVotedCount(uniqueVoterCount);
         setStep('vote');
 
         const myUserId = getMyUserId();
@@ -58,7 +58,6 @@ export function useHostReschedule(roomId: number) {
 
         const slotsConfirm = await fetchSlots(roomId);
         setConfirmSlots(slotsConfirm.slots.map((slot) => ({ ...slot, time: slot.time.slice(0, 5) })));
-        setConfirmMembers(membersData.members);
         setStep('confirm');
       } catch (e) {
         showToast(e instanceof Error ? e.message : '초기 데이터를 불러오는 데 실패했습니다.', 'error');
@@ -153,11 +152,12 @@ export function useHostReschedule(roomId: number) {
           fetchSlots(roomId),
           fetchRoomMembers(roomId),
         ]);
+        const uniqueVoterCount = countUniqueVoters(slotsData.slots);
         setRegisteredSlots(
           slotsData.slots.map(({ slotId, date, time }) => ({ slotId, date, time: time.slice(0, 5) })),
         );
-        setTotalParticipants(membersData.members.length);
-        setVotedCount(countUniqueVoters(slotsData.slots));
+        setTotalParticipants(Math.max(membersData.members.length, uniqueVoterCount));
+        setVotedCount(uniqueVoterCount);
         setStep('vote');
       } catch (e) {
         showToast(e instanceof Error ? e.message : '슬롯 등록에 실패했습니다.', 'error');
@@ -174,8 +174,7 @@ export function useHostReschedule(roomId: number) {
           fetchRoomMembers(roomId),
         ]);
         setConfirmSlots(slotsData.slots.map((slot) => ({ ...slot, time: slot.time.slice(0, 5) })));
-        setTotalParticipants(membersData.members.length);
-        setConfirmMembers(membersData.members);
+        setTotalParticipants(Math.max(membersData.members.length, countUniqueVoters(slotsData.slots)));
         setStep('confirm');
       } catch (e) {
         showToast(e instanceof Error ? e.message : '투표 제출에 실패했습니다.', 'error');
@@ -211,7 +210,6 @@ export function useHostReschedule(roomId: number) {
     canSubmit,
     voteStep,
     confirmStep,
-    confirmMembers,
     handleDateChange,
     handleToggle,
     handleSelectSection,

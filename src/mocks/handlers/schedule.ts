@@ -1,7 +1,7 @@
 import { http, HttpResponse, type HttpHandler } from 'msw';
 import { mockDb } from '@/mocks/fixtures/mockDb';
 import { confirmedSchedulesDb, scheduleSlotsDb } from '@/mocks/db/schedule';
-import type { RegisteredSlot, RoomStatusResponse, ScheduleSlot, SlotsResponse } from '@/features/schedule/types/schedule';
+import type { RegisteredSlot, RoomProgress, RoomStatusResponse, ScheduleSlot, SlotsResponse } from '@/features/schedule/types/schedule';
 
 const BASE = import.meta.env.VITE_API_BASE_URL ?? '';
 
@@ -158,6 +158,29 @@ export const scheduleHandlers: HttpHandler[] = [
   http.get(`${BASE}/api/rooms/:roomId/schedule/confirm`, ({ params }) => {
     const roomId = Number(params.roomId);
     return getConfirmedScheduleResponse(roomId);
+  }),
+
+  http.get(`${BASE}/rooms/:roomId/schedule/status`, ({ params }) => {
+    const roomId = Number(params.roomId);
+    const hasSlots = (mutableSlots[roomId]?.slots.length ?? 0) > 0;
+    const hasConfirmed = Boolean(confirmedSchedules[roomId]);
+
+    const status: RoomProgress['status'] = !hasSlots
+      ? 'WAITING'
+      : !hasConfirmed
+        ? 'SCHEDULE_VOTING'
+        : 'DEPARTURE_INPUT';
+
+    const descriptions: Record<RoomProgress['status'], string> = {
+      WAITING: '방장이 투표 슬롯을 아직 등록하지 않았습니다.',
+      SCHEDULE_VOTING: '날짜 및 시간 투표 진행 중입니다.',
+      DEPARTURE_INPUT: '출발지 입력 진행 중입니다.',
+      MIDPOINT_FINDING: '중간지점 찾기 진행 중입니다.',
+      COMPLETED: '중간지점 계산이 완료되었습니다.',
+    };
+
+    const response: RoomProgress = { roomId, status, description: descriptions[status] };
+    return HttpResponse.json(response);
   }),
 
   http.patch(`${BASE}/rooms/:roomId/schedule/confirm`, async ({ params, request }) => {

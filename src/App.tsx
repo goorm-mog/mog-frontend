@@ -13,6 +13,7 @@ import MeetRecord from '@/pages/MeetRecord/MeetRecord';
 import MogCardPage from '@/pages/MogCard/MogCardPage';
 import SettlementPage from '@/pages/Settlement/SettlementPage';
 import MeetChatPage from '@/pages/MeetChat/MeetChatPage';
+import RoomGuard from '@/components/common/RoomGuard';
 
 function App() {
   return (
@@ -23,12 +24,12 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/oauth/kakao" element={<KakaoOAuthCallbackPage />} />
           <Route path="/home" element={<HomePage />} />
-          <Route path="/reschedule/host/:roomId" element={<HostReschedule />} />
-          <Route path="/reschedule/participant/:roomId" element={<ParticipantReschedule />} />
-          <Route path="/departure/host/:roomId" element={<DeparturePage />} />
-          <Route path="/departure/participant/:roomId" element={<DeparturePage />} />
-          <Route path="/midpoint/host/:roomId" element={<MidpointPage />} />
-          <Route path="/midpoint/participant/:roomId" element={<MidpointPage />} />
+          <Route path="/reschedule/host/:roomId" element={<RoomGuard><HostReschedule /></RoomGuard>} />
+          <Route path="/reschedule/participant/:roomId" element={<RoomGuard><ParticipantReschedule /></RoomGuard>} />
+          <Route path="/departure/host/:roomId" element={<RoomGuard><DeparturePage /></RoomGuard>} />
+          <Route path="/departure/participant/:roomId" element={<RoomGuard><DeparturePage /></RoomGuard>} />
+          <Route path="/midpoint/host/:roomId" element={<RoomGuard><MidpointPage /></RoomGuard>} />
+          <Route path="/midpoint/participant/:roomId" element={<RoomGuard><MidpointPage /></RoomGuard>} />
           <Route path="/meet-detail" element={<MeetDetailPage />} />
           <Route path="/:roomId/meet-detail" element={<MeetDetailPage />} />
           <Route path="/:roomId/meet-record" element={<MeetRecord />} />

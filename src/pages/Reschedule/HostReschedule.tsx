@@ -39,7 +39,6 @@ function HostReschedule() {
     canSubmit,
     voteStep,
     confirmStep,
-    confirmMembers,
     handleDateChange,
     handleToggle,
     handleSelectSection,
@@ -252,15 +251,12 @@ function HostReschedule() {
 
         {step === 'confirm' && (
           <>
-            <div className="flex items-center justify-between">
-              <Title
-                title="투표 결과 확인"
-                icon={CalendarClock}
-                iconStrokeWidth={2}
-                subtitle={{ text: '날짜를 선택해 투표 현황을 확인해주세요' }}
-              />
-              <VoteCountBadge votedCount={votedCount} totalParticipants={totalParticipants} />
-            </div>
+            <Title
+              title="투표 결과 확인"
+              icon={CalendarClock}
+              iconStrokeWidth={2}
+              subtitle={{ text: '날짜를 선택해 투표 현황을 확인해주세요' }}
+            />
             <Calendar
               mode="single"
               availableDates={confirmStep.availableDates}
@@ -271,9 +267,6 @@ function HostReschedule() {
               <VoteResultTimeList
                 slots={confirmStep.slotsForDate}
                 totalParticipants={totalParticipants}
-                activeMemberList={confirmStep.activeMemberList}
-                activeSlotId={confirmStep.activeSlotId}
-                onSlotClick={confirmStep.handleSlotClick}
               />
             )}
           </>
@@ -300,7 +293,6 @@ function HostReschedule() {
         >
           <TopSlotsContent
             topSlots={confirmStep.topSlots}
-            members={confirmMembers}
             activeSlotId={confirmStep.activeSlotId}
             onSlotClick={confirmStep.handleSlotClick}
           />
