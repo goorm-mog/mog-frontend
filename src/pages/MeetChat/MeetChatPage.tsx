@@ -1,37 +1,55 @@
 import { MoreHorizontal } from 'lucide-react';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { fetchMeetChatContext } from '@/api/chat';
 import TopAppBar from '@/components/common/TopAppBar/TopAppBar';
 import { getMyUserId } from '@/lib/auth-storage';
 import MeetChatComposer from '@/pages/MeetChat/components/MeetChatComposer';
 import MeetChatMessages from '@/pages/MeetChat/components/MeetChatMessages';
 import MeetChatParticipants from '@/pages/MeetChat/components/MeetChatParticipants';
 import MeetChatSummary from '@/pages/MeetChat/components/MeetChatSummary';
-import { getMeetChatContext } from '@/pages/MeetChat/constants/meetChatContext';
-import type { MeetChatParticipant } from '@/types/chat';
 import { useMeetChat } from '@/pages/MeetChat/hooks/useMeetChat';
+import type { MeetChatContext, MeetChatParticipant } from '@/types/chat';
 
 function MeetChatPage() {
   const navigate = useNavigate();
   const { roomId } = useParams();
   const numericRoomId = Number(roomId);
-  const isValidRoomId = Number.isFinite(numericRoomId);
-  const { room, participants } = useMemo(
-    () => getMeetChatContext(isValidRoomId ? numericRoomId : 45),
-    [isValidRoomId, numericRoomId],
-  );
+  const isValidRoomId = Number.isInteger(numericRoomId) && numericRoomId > 0;
+  const [context, setContext] = useState<MeetChatContext | null>(null);
+  const [isContextLoading, setIsContextLoading] = useState(isValidRoomId);
+  const [contextError, setContextError] = useState<string | null>(null);
+  const room = context?.room;
+  const participants = useMemo(() => context?.participants ?? [], [context]);
   const currentUserId = getMyUserId() ?? 1;
-  const {
-    messages,
-    draft,
-    setDraft,
-    isLoading,
-    isSending,
-    isConnected,
-    errorMessage,
-    submit,
-  } = useMeetChat(isValidRoomId ? numericRoomId : null);
-  const routeErrorMessage = isValidRoomId ? null : '방 정보를 확인할 수 없습니다.';
+  const { messages, draft, setDraft, isSending, isConnected, errorMessage, submit } =
+    useMeetChat(isValidRoomId ? numericRoomId : null);
+
+  useEffect(() => {
+    if (!isValidRoomId) {
+      setIsContextLoading(false);
+      return;
+    }
+
+    let ignore = false;
+    setIsContextLoading(true);
+    setContextError(null);
+
+    fetchMeetChatContext(numericRoomId)
+      .then((nextContext) => {
+        if (!ignore) setContext(nextContext);
+      })
+      .catch(() => {
+        if (!ignore) setContextError('약속 정보를 불러오지 못했습니다.');
+      })
+      .finally(() => {
+        if (!ignore) setIsContextLoading(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [isValidRoomId, numericRoomId]);
 
   const participantsById = useMemo(
     () =>
@@ -43,7 +61,6 @@ function MeetChatPage() {
   );
 
   const joinedCount = participants.filter((participant) => participant.status !== 'pending').length;
-
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-background">
@@ -63,11 +80,11 @@ function MeetChatPage() {
         }
       />
 
-      {isLoading && isValidRoomId ? (
+      {isContextLoading ? (
         <div className="grid flex-1 place-items-center px-6 text-center text-[14px] leading-[20px] text-dark-border">
-          채팅을 불러오는 중입니다.
+          약속 정보를 불러오는 중입니다.
         </div>
-      ) : isValidRoomId ? (
+      ) : isValidRoomId && room ? (
         <>
           <MeetChatSummary
             room={room}
@@ -87,7 +104,7 @@ function MeetChatPage() {
           ) : null}
           <MeetChatComposer
             value={draft}
-            placeholder={`${room.roomName} 방에 메시지 보내기`}
+            placeholder={`${room.roomName || '약속'} 방에 메시지 보내기`}
             disabled={isSending || !isConnected}
             onChange={setDraft}
             onSubmit={submit}
@@ -95,7 +112,7 @@ function MeetChatPage() {
         </>
       ) : (
         <div className="grid flex-1 place-items-center px-6 text-center text-[14px] leading-[20px] text-alert">
-          {routeErrorMessage ?? errorMessage ?? '채팅 정보를 불러오지 못했습니다.'}
+          {isValidRoomId ? contextError : '방 정보를 확인할 수 없습니다.'}
         </div>
       )}
     </div>

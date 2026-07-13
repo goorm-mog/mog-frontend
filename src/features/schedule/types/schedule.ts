@@ -25,9 +25,11 @@ export interface VoteResponse {
 }
 
 export interface RoomMember {
+  roomMemberId?: number;
   userId: number;
   nickname: string;
-  role: GroupRole;
+  role?: GroupRole;
+  isJoined?: boolean;
 }
 
 export type RoomPhase =

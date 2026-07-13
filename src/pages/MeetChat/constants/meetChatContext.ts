@@ -27,7 +27,6 @@ const buildRoomContext = (roomId: number): MeetChatRoom => {
 
   return {
     roomId: room.roomId,
-    groupId: room.groupId,
     groupName: group?.groupName ?? '',
     roomName: room.roomName,
     promiseDate: room.promiseDate ?? '',
