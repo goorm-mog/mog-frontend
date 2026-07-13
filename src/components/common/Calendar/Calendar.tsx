@@ -14,6 +14,7 @@ interface CalendarProps {
   appearance?: CalendarAppearance;
   initialMonth?: Date;
   defaultSelected?: Date[];
+  allowDeselect?: boolean;
   markedDates?: Date[];
   availableDates?: Date[];
   dotDates?: Date[];
@@ -27,6 +28,7 @@ function Calendar({
   appearance = 'default',
   initialMonth,
   defaultSelected,
+  allowDeselect = false,
   markedDates,
   availableDates,
   dotDates,
@@ -49,7 +51,7 @@ function Calendar({
     handleMouseDown,
     handleMouseEnter,
     handleClick,
-  } = useCalendarSelection(mode, availableDates, defaultSelected);
+  } = useCalendarSelection(mode, availableDates, defaultSelected, allowDeselect);
 
   const days = getCalendarDays(currentDate.getFullYear(), currentDate.getMonth());
 
@@ -68,7 +70,13 @@ function Calendar({
   }, [selectedDates]);
 
   return (
-    <div className={cn('w-full select-none p-4 rounded-xl', !isHome && 'bg-dark-background/50', className)}>
+    <div
+      className={cn(
+        'w-full select-none p-4 rounded-xl',
+        !isHome && 'bg-dark-background/50',
+        className,
+      )}
+    >
       <CalendarHeader
         currentDate={currentDate}
         appearance={appearance}
@@ -88,7 +96,9 @@ function Calendar({
             isInDragRange={isInDragRange(day.date)}
             prevInDragRange={isInDragRange(addDays(day.date, -1))}
             nextInDragRange={isInDragRange(addDays(day.date, 1))}
-            isDisabled={availableDates !== undefined && !availableDates.some((d) => isSameDay(d, day.date))}
+            isDisabled={
+              availableDates !== undefined && !availableDates.some((d) => isSameDay(d, day.date))
+            }
             hasDot={dotDates?.some((d) => isSameDay(d, day.date)) ?? false}
             isMarked={markedDates?.some((d) => isSameDay(d, day.date)) ?? false}
             onMouseDown={(shiftKey) => handleMouseDown(day.date, shiftKey)}
