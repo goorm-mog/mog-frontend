@@ -80,3 +80,9 @@ export type RoomSummary = {
 };
 
 export type RoomSummaryApiResponse = ApiResponse<RoomSummary>;
+
+export type RoomStepBody = {
+  nextStatus: RoomStatus;
+};
+
+export type RoomStepApiResponse = ApiResponse<null>;

@@ -32,14 +32,14 @@ function createMidpointContent(): HTMLElement {
   return el;
 }
 
-function createDepartureContent(nickname?: string, durationMinutes?: number, transportType?: string): HTMLElement {
+function createDepartureContent(label?: string, durationMinutes?: number, transportType?: string): HTMLElement {
   const el = document.createElement('div');
   el.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:2px;';
   el.innerHTML = `
     <div style="background:rgba(255,255,255,0.95);border-radius:6px;padding:3px 8px;
                 font-size:11px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,0.25);
-                text-align:center;font-family:'Pretendard Variable',sans-serif;">
-      <div style="font-weight:600;color:${colors.text};">${nickname ?? '참여자'}</div>
+                text-align:center;font-family:'Pretendard Variable',sans-serif;max-width:120px;overflow:hidden;text-overflow:ellipsis;">
+      <div style="font-weight:600;color:${colors.text};overflow:hidden;text-overflow:ellipsis;">${label ?? '출발지'}</div>
       ${durationMinutes !== undefined ? `<div style="color:${colors.darkBorder};">${durationMinutes}분</div>` : ''}
     </div>
     <div style="position:relative;width:24px;height:34px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
@@ -134,9 +134,10 @@ export function useMidpointMapSetup(
     departureOverlaysRef.current.forEach((o) => o.setMap(null));
     departureOverlaysRef.current = [];
 
-    departures.forEach(({ latitude, longitude, nickname, durationMinutes, transportType }) => {
+    departures.forEach(({ latitude, longitude, nickname, placeName, address, durationMinutes, transportType }) => {
       const pos = new window.kakao.maps.LatLng(latitude, longitude);
-      const content = createDepartureContent(nickname, durationMinutes, transportType);
+      const label = nickname ?? placeName ?? address;
+      const content = createDepartureContent(label, durationMinutes, transportType);
       const overlay = new window.kakao.maps.CustomOverlay({
         content,
         position: pos,

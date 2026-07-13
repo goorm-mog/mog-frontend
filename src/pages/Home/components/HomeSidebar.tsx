@@ -12,6 +12,8 @@ import {
   X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import MemberAvatar from '@/components/common/MemberAvatar/MemberAvatar';
+import { getMyNickname, getMyProfileImageUrl } from '@/lib/auth-storage';
 import type { GroupRole, HomeGroup } from '@/types/group';
 
 type HomeSidebarProps = {
@@ -110,6 +112,21 @@ function HomeSidebar({
           </header>
 
           <nav className="flex flex-1 flex-col">
+            <div className="mb-6 border-b border-border pb-6 px-2">
+              <MemberAvatar
+                name={getMyNickname() ?? '사용자'}
+                profileImageUrl={getMyProfileImageUrl()}
+                size="lg"
+                borderStyle="solid"
+                showCheck={false}
+                labelPosition="right"
+                labelTone="default"
+                labelClassName="text-body font-semibold"
+                className="pointer-events-none"
+                tabIndex={-1}
+              />
+            </div>
+
             <ul className="flex flex-col gap-2">
               <li>
                 <button

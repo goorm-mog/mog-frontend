@@ -30,6 +30,8 @@ export interface DepartureWithLabel {
   userId: number;
   latitude: number;
   longitude: number;
+  placeName?: string;
+  address?: string;
   nickname?: string;        // 실제 API 미제공, MSW 전용
   durationMinutes?: number;
   transportType?: string;

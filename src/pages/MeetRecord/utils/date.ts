@@ -10,7 +10,8 @@ export function formatMeetDate(schedule?: ConfirmedSchedule | null) {
     return meetDateFallback;
   }
 
-  const date = new Date(`${schedule.date}T${schedule.time}:00`);
+  const time = schedule.time.slice(0, 5);
+  const date = new Date(`${schedule.date}T${time}:00`);
   const dateText = new Intl.DateTimeFormat('ko-KR', {
     year: 'numeric',
     month: '2-digit',

@@ -30,7 +30,7 @@ function MidpointPage() {
     setSelectedPlace,
     isConfirming,
     confirmPlace,
-  } = useMidpoint(parsedRoomId);
+  } = useMidpoint(parsedRoomId, () => navigate(`/${parsedRoomId}/meet-record`));
 
   const handleMarkerClick = useCallback(
     (place: MidpointPlace) => {

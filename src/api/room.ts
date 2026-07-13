@@ -7,6 +7,8 @@ import type {
   RoomListApiResponse,
   RoomSummaryApiResponse,
   RoomStatus,
+  RoomStepBody,
+  RoomStepApiResponse,
 } from '@/types/room';
 
 function toRoomId(value: unknown): number | null {
@@ -60,4 +62,15 @@ export async function fetchGroupRooms(groupId: number): Promise<RoomInfo[]> {
 export async function fetchRoomSummary(roomId: number) {
   const response = await apiFetch<RoomSummaryApiResponse>(`/api/v1/rooms/${roomId}/summary`);
   return response.data;
+}
+
+export async function advanceRoomStep(
+  roomId: number,
+  nextStatus: RoomStatus,
+): Promise<void> {
+  const body: RoomStepBody = { nextStatus };
+  await apiFetch<RoomStepApiResponse>(`/api/v1/groups/rooms/${roomId}/step`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
 }
