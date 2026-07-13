@@ -1,4 +1,5 @@
 import type { LoginResponse } from '@/types/auth';
+import type { GroupRole } from '@/types/group';
 
 const ACCESS_TOKEN_KEY = 'mog_access_token';
 const REFRESH_TOKEN_KEY = 'mog_refresh_token';
@@ -28,4 +29,27 @@ export function clearAuthSession() {
   sessionStorage.removeItem(ACCESS_TOKEN_KEY);
   sessionStorage.removeItem(REFRESH_TOKEN_KEY);
   sessionStorage.removeItem(USER_ID_KEY);
+}
+
+const ROOM_ROLES_KEY = 'mog_room_roles';
+
+export function setRoomRole(roomId: number, role: GroupRole): void {
+  try {
+    const raw = sessionStorage.getItem(ROOM_ROLES_KEY);
+    const current: Record<string, GroupRole> = raw ? JSON.parse(raw) : {};
+    sessionStorage.setItem(ROOM_ROLES_KEY, JSON.stringify({ ...current, [roomId]: role }));
+  } catch {
+    // ignore
+  }
+}
+
+export function getRoomRole(roomId: number): GroupRole | null {
+  try {
+    const raw = sessionStorage.getItem(ROOM_ROLES_KEY);
+    if (!raw) return null;
+    const roles: Record<string, GroupRole> = JSON.parse(raw);
+    return roles[String(roomId)] ?? null;
+  } catch {
+    return null;
+  }
 }

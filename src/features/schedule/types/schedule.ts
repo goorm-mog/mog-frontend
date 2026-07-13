@@ -1,3 +1,5 @@
+import type { GroupRole } from '@/types/group';
+
 export interface ScheduleSlot {
   slotId: number;
   date: string;
@@ -25,8 +27,20 @@ export interface VoteResponse {
 export interface RoomMember {
   userId: number;
   nickname: string;
-  role: 'LEADER' | 'MEMBER';
-  profileImageUrl?: string;
+  role: GroupRole;
+}
+
+export type RoomPhase =
+  | 'WAITING'
+  | 'SCHEDULE_VOTING'
+  | 'DEPARTURE_INPUT'
+  | 'MIDPOINT_FINDING'
+  | 'COMPLETED';
+
+export interface RoomProgress {
+  roomId: number;
+  status: RoomPhase;
+  description: string;
 }
 
 export interface RoomMembersResponse {

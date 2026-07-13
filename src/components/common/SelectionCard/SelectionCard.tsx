@@ -6,7 +6,7 @@ interface SelectionCardProps {
   subtitle: string;
   isSelected?: boolean;
   onClick?: () => void;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   className?: string;
 }
 
@@ -39,7 +39,9 @@ function SelectionCard({
         <span className="font-pretendard text-[13px] text-dark-border">{subtitle}</span>
       </div>
 
-      <div className="border-t border-dashed border-dark-border/40 pt-3 w-full">{children}</div>
+      {children && (
+        <div className="border-t border-dashed border-dark-border/40 pt-3 w-full">{children}</div>
+      )}
     </button>
   );
 }

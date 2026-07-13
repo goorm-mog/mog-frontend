@@ -2,7 +2,15 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '@/api/auth';
-import { createGroup, deleteGroup, fetchGroupDetail, fetchGroups, joinGroup, leaveGroup, updateGroup } from '@/api/group';
+import {
+  createGroup,
+  deleteGroup,
+  fetchGroupDetail,
+  fetchGroups,
+  joinGroup,
+  leaveGroup,
+  updateGroup,
+} from '@/api/group';
 import { createRoom, fetchGroupRooms, fetchRoomSummary } from '@/api/room';
 import { ApiError } from '@/lib/apiFetch';
 import TopAppBar from '@/components/common/TopAppBar/TopAppBar';
@@ -35,12 +43,14 @@ import {
   resolveAppointmentIcon,
   saveAppointmentIcon,
 } from '@/pages/Home/utils/appointmentIconStorage';
+import { setRoomRole } from '@/lib/auth-storage';
 
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'] as const;
 const SELECTED_GROUP_STORAGE_KEY = 'mog-selected-group-id';
 const PENDING_ROOMS_STORAGE_KEY = 'mog-pending-rooms';
 // 백엔드 수정 전 우회 코드: GET /groups가 soft-deleted 그룹을 내려주는 동안 프론트에서 숨김
 const DELETED_GROUP_IDS_KEY = 'mog-deleted-group-ids';
+const GROUP_ROLES_KEY = 'mog-group-roles';
 
 function readDeletedGroupIds() {
   try {
@@ -80,6 +90,24 @@ function writeSelectedGroupId(groupId: number | null) {
     return;
   }
   sessionStorage.setItem(SELECTED_GROUP_STORAGE_KEY, String(groupId));
+}
+
+function readGroupRoles(): Partial<Record<number, GroupRole>> {
+  try {
+    const raw = sessionStorage.getItem(GROUP_ROLES_KEY);
+    return raw ? (JSON.parse(raw) as Partial<Record<number, GroupRole>>) : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeGroupRole(groupId: number, role: GroupRole) {
+  try {
+    const current = readGroupRoles();
+    sessionStorage.setItem(GROUP_ROLES_KEY, JSON.stringify({ ...current, [groupId]: role }));
+  } catch {
+    // ignore
+  }
 }
 
 function readPendingRooms(groupId: number): RoomInfo[] {
@@ -136,9 +164,7 @@ function mergeRooms(...lists: RoomInfo[][]): RoomInfo[] {
   return [...byId.values()];
 }
 
-function toRoomInfoFromDetail(
-  room: GroupDetail['rooms'][number],
-): RoomInfo | null {
+function toRoomInfoFromDetail(room: GroupDetail['rooms'][number]): RoomInfo | null {
   const roomId = Number(room.roomId);
   if (!Number.isInteger(roomId) || roomId <= 0) return null;
   return {
@@ -172,8 +198,12 @@ function roomStatusLabel(status: RoomInfo['status']): string {
   return '완료';
 }
 
-function roomDetailPath(room: RoomInfo): string {
-  if (room.status === 'VOTING') return `/reschedule/host/${room.roomId}`;
+function roomDetailPath(room: RoomInfo, role: GroupRole | null): string {
+  if (room.status === 'VOTING') {
+    return role === 'LEADER'
+      ? `/reschedule/host/${room.roomId}`
+      : `/reschedule/participant/${room.roomId}`;
+  }
   return `/${room.roomId}/meet-detail`;
 }
 
@@ -201,10 +231,19 @@ function HomePage() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [groups, setGroups] = useState<HomeGroup[]>([]);
   const [deletedGroupIds, setDeletedGroupIds] = useState<Set<number>>(readDeletedGroupIds);
-  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(() => readSelectedGroupId());
+  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(() =>
+    readSelectedGroupId(),
+  );
   const [groupMetaById, setGroupMetaById] = useState<
     Record<number, { role: GroupRole; inviteCode: string; kakaoShareUrl: string }>
-  >({});
+  >(() => {
+    const cachedRoles = readGroupRoles();
+    return Object.fromEntries(
+      Object.entries(cachedRoles)
+        .filter((entry): entry is [string, GroupRole] => entry[1] !== undefined)
+        .map(([id, role]) => [Number(id), { role, inviteCode: '', kakaoShareUrl: '' }]),
+    );
+  });
   const [isGroupsLoading, setIsGroupsLoading] = useState(true);
   const [isGroupMutating, setIsGroupMutating] = useState(false);
   const [isCreatingAppointment, setIsCreatingAppointment] = useState(false);
@@ -215,8 +254,8 @@ function HomePage() {
   const [roomsGroupId, setRoomsGroupId] = useState<number | null>(() => readSelectedGroupId());
   const [roomSummaries, setRoomSummaries] = useState<Record<number, RoomSummary>>({});
   const [summariesGroupId, setSummariesGroupId] = useState<number | null>(null);
-  const [appointmentIcons, setAppointmentIcons] = useState<Record<number, AppointmentIconId>>(
-    () => loadAppointmentIconMap(),
+  const [appointmentIcons, setAppointmentIcons] = useState<Record<number, AppointmentIconId>>(() =>
+    loadAppointmentIconMap(),
   );
 
   const selectedDateKey = format(selectedDate, 'yyyy-MM-dd');
@@ -262,9 +301,7 @@ function HomePage() {
 
   const activeRoomSummaries = useMemo(
     () =>
-      selectedGroupId !== null &&
-      summariesGroupId === selectedGroupId &&
-      completedRooms.length > 0
+      selectedGroupId !== null && summariesGroupId === selectedGroupId && completedRooms.length > 0
         ? roomSummaries
         : {},
     [selectedGroupId, summariesGroupId, completedRooms, roomSummaries],
@@ -282,6 +319,7 @@ function HomePage() {
       role: GroupRole,
       options?: { inviteCode?: string; kakaoShareUrl?: string },
     ) => {
+      writeGroupRole(groupId, role);
       setGroupMetaById((prev) => {
         const current = prev[groupId];
         const inviteCode = options?.inviteCode ?? current?.inviteCode ?? '';
@@ -340,9 +378,8 @@ function HomePage() {
     ]);
 
     const detailRooms =
-      detail?.rooms
-        ?.map(toRoomInfoFromDetail)
-        .filter((room): room is RoomInfo => room !== null) ?? [];
+      detail?.rooms?.map(toRoomInfoFromDetail).filter((room): room is RoomInfo => room !== null) ??
+      [];
 
     const pendingRooms = readPendingRooms(groupId);
     const nextRooms = mergeRooms(listedRooms, detailRooms, pendingRooms);
@@ -352,16 +389,14 @@ function HomePage() {
   }, []);
 
   const applyFetchedRooms = useCallback(
-    (
-      groupId: number,
-      result: Awaited<ReturnType<typeof fetchMergedGroupRooms>>,
-    ) => {
+    (groupId: number, result: Awaited<ReturnType<typeof fetchMergedGroupRooms>>) => {
       setRooms(result.nextRooms);
       setRoomsGroupId(groupId);
       if (result.detail) {
         upsertGroupMeta(groupId, result.detail.myRole, {
           inviteCode: result.detail.inviteCode,
         });
+        result.nextRooms.forEach((room) => setRoomRole(room.roomId, result.detail!.myRole));
       }
       return result.nextRooms;
     },
@@ -722,7 +757,7 @@ function HomePage() {
                     key={room.roomId || `selected-${index}`}
                     title={room.roomName}
                     icon={resolveAppointmentIcon(room, appointmentIcons)}
-                    onClick={() => navigate(roomDetailPath(room))}
+                    onClick={() => navigate(roomDetailPath(room, selectedGroupRole))}
                   />
                 ))
               ) : roomsWithoutDate.length === 0 ? (
@@ -739,7 +774,7 @@ function HomePage() {
                       key={room.roomId || `undated-${index}`}
                       title={room.roomName}
                       icon={resolveAppointmentIcon(room, appointmentIcons)}
-                      onClick={() => navigate(roomDetailPath(room))}
+                      onClick={() => navigate(roomDetailPath(room, selectedGroupRole))}
                     />
                   ))}
                 </div>
@@ -762,7 +797,7 @@ function HomePage() {
                         title={room.roomName}
                         location={roomStatusLabel(room.status)}
                         icon={resolveAppointmentIcon(room, appointmentIcons)}
-                        onClick={() => navigate(roomDetailPath(room))}
+                        onClick={() => navigate(roomDetailPath(room, selectedGroupRole))}
                       />
                     ))}
                   </div>
@@ -777,8 +812,10 @@ function HomePage() {
                       datetime={formatArchivalDatetime(summary?.confirmedDate ?? room.promiseDate)}
                       location={summary?.confirmedPlace?.placeName ?? '장소 미정'}
                       totalAmount={formatCurrency(summary?.settlement?.totalCost)}
-                      meta={summary ? [{ label: '인원', value: `${summary.totalMemberCount}명` }] : []}
-                      onClick={() => navigate(roomDetailPath(room))}
+                      meta={
+                        summary ? [{ label: '인원', value: `${summary.totalMemberCount}명` }] : []
+                      }
+                      onClick={() => navigate(roomDetailPath(room, selectedGroupRole))}
                     />
                   );
                 })}

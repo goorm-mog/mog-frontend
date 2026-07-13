@@ -17,7 +17,7 @@ import { getMyUserId } from '@/lib/auth-storage';
 import { useToast } from '@/hooks/useToast';
 import { useVoteStep } from '@/features/schedule/hooks/useVoteStep';
 import { useConfirmStep } from '@/features/schedule/hooks/useConfirmStep';
-import type { RegisteredSlot, RoomMember, ScheduleSlot } from '@/features/schedule/types/schedule';
+import type { RegisteredSlot, ScheduleSlot } from '@/features/schedule/types/schedule';
 import { countUniqueVoters } from '@/features/schedule/utils/slotUtils';
 
 function ParticipantReschedule() {
@@ -35,8 +35,7 @@ function ParticipantReschedule() {
   const [bottomSheetExpanded, setBottomSheetExpanded] = useState(true);
 
   const [confirmSlots, setConfirmSlots] = useState<ScheduleSlot[]>([]);
-  const [confirmMembers, setConfirmMembers] = useState<RoomMember[]>([]);
-  const confirmStep = useConfirmStep(confirmSlots, confirmMembers);
+  const confirmStep = useConfirmStep(confirmSlots);
 
   const {
     timesByDate,
@@ -78,16 +77,16 @@ function ParticipantReschedule() {
         }
 
         setSlotsReady(true);
+        const uniqueVoterCount = countUniqueVoters(data.slots);
         setRegisteredSlots(data.slots.map(({ slotId, date, time }) => ({ slotId, date, time: time.slice(0, 5) })));
-        setTotalParticipants(roomData.members.length);
-        setVotedCount(countUniqueVoters(data.slots));
+        setTotalParticipants(Math.max(roomData.members.length, uniqueVoterCount));
+        setVotedCount(uniqueVoterCount);
 
         const myUserId = getMyUserId();
         const iVoted =
           myUserId !== null && data.slots.some((s) => s.votedUserIds.includes(myUserId));
         if (iVoted) {
           setConfirmSlots(data.slots.map((slot) => ({ ...slot, time: slot.time.slice(0, 5) })));
-          setConfirmMembers(roomData.members);
           setHasVoted(true);
         }
       } catch (e) {
@@ -112,9 +111,9 @@ function ParticipantReschedule() {
         fetchRoomMembers(roomId),
       ]);
       setConfirmSlots(slotsData.slots.map((slot) => ({ ...slot, time: slot.time.slice(0, 5) })));
-      setTotalParticipants(membersData.members.length);
-      setVotedCount(countUniqueVoters(slotsData.slots));
-      setConfirmMembers(membersData.members);
+      const uniqueVoterCount = countUniqueVoters(slotsData.slots);
+      setTotalParticipants(Math.max(membersData.members.length, uniqueVoterCount));
+      setVotedCount(uniqueVoterCount);
       setHasVoted(true);
     } catch (e) {
       showToast(e instanceof Error ? e.message : '투표에 실패했습니다.', 'error');
@@ -158,7 +157,7 @@ function ParticipantReschedule() {
             iconStrokeWidth={2}
             subtitle={{ text: voteSubtitle }}
           />
-          <VoteCountBadge votedCount={votedCount} totalParticipants={totalParticipants} />
+          {!hasVoted && <VoteCountBadge votedCount={votedCount} totalParticipants={totalParticipants} />}
         </div>
 
         {isLoading ? (
@@ -175,9 +174,6 @@ function ParticipantReschedule() {
               <VoteResultTimeList
                 slots={confirmStep.slotsForDate}
                 totalParticipants={totalParticipants}
-                activeMemberList={confirmStep.activeMemberList}
-                activeSlotId={confirmStep.activeSlotId}
-                onSlotClick={confirmStep.handleSlotClick}
               />
             )}
           </>
@@ -279,7 +275,6 @@ function ParticipantReschedule() {
         >
           <TopSlotsContent
             topSlots={confirmStep.topSlots}
-            members={confirmMembers}
             activeSlotId={confirmStep.activeSlotId}
             onSlotClick={confirmStep.handleSlotClick}
           />

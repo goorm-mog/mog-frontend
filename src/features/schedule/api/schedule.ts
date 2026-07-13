@@ -4,6 +4,7 @@ import type {
   ConfirmScheduleResponse,
   RegisterSlotsResponse,
   RoomMembersResponse,
+  RoomProgress,
   RoomStatusResponse,
   SlotsResponse,
   VoteResponse,
@@ -39,6 +40,10 @@ export function fetchRoomMembers(roomId: number): Promise<RoomMembersResponse> {
   return apiFetch<ApiResponse<RoomStatusResponse>>(`/api/v1/groups/rooms/${roomId}`).then((response) => ({
     members: response.data?.members ?? [],
   }));
+}
+
+export function fetchRoomProgress(roomId: number): Promise<RoomProgress> {
+  return apiFetch<RoomProgress>(`/api/rooms/${roomId}/schedule/status`);
 }
 
 export function confirmSchedule(roomId: number, date: string, time: string) {
