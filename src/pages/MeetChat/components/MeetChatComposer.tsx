@@ -1,4 +1,5 @@
 import { Paperclip, Send } from 'lucide-react';
+import { useRef } from 'react';
 
 type MeetChatComposerProps = {
   value: string;
@@ -16,6 +17,7 @@ function MeetChatComposer({
   onSubmit,
 }: MeetChatComposerProps) {
   const canSubmit = value.trim().length > 0 && !disabled;
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   return (
     <form
@@ -30,9 +32,11 @@ function MeetChatComposer({
           type="button"
           className="grid size-8 shrink-0 place-items-center rounded-full text-dark-border"
           aria-label="파일 첨부"
+          onClick={() => fileInputRef.current?.click()}
         >
           <Paperclip size={18} strokeWidth={1.9} />
         </button>
+        <input ref={fileInputRef} type="file" accept="image/*" className="hidden" />
         <textarea
           className="max-h-24 min-h-8 flex-1 resize-none bg-transparent px-1 py-1 text-[14px] leading-[20px] text-text outline-none placeholder:text-border"
           value={value}
@@ -40,6 +44,12 @@ function MeetChatComposer({
           placeholder={placeholder}
           disabled={disabled}
           onChange={(event) => onChange(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing) return;
+
+            event.preventDefault();
+            if (canSubmit) onSubmit();
+          }}
         />
         <button
           type="submit"
