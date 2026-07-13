@@ -77,13 +77,6 @@ function visibleGroups(serverGroups: HomeGroup[], hiddenIds: Set<number>) {
   return serverGroups.filter((group) => !hiddenIds.has(group.id));
 }
 
-function readSelectedGroupId(): number | null {
-  const raw = sessionStorage.getItem(SELECTED_GROUP_STORAGE_KEY);
-  if (!raw) return null;
-  const groupId = Number(raw);
-  return Number.isInteger(groupId) && groupId > 0 ? groupId : null;
-}
-
 function writeSelectedGroupId(groupId: number | null) {
   if (groupId === null) {
     sessionStorage.removeItem(SELECTED_GROUP_STORAGE_KEY);
@@ -231,9 +224,7 @@ function HomePage() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [groups, setGroups] = useState<HomeGroup[]>([]);
   const [deletedGroupIds, setDeletedGroupIds] = useState<Set<number>>(readDeletedGroupIds);
-  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(() =>
-    readSelectedGroupId(),
-  );
+  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
   const [groupMetaById, setGroupMetaById] = useState<
     Record<number, { role: GroupRole; inviteCode: string; kakaoShareUrl: string }>
   >(() => {
@@ -247,11 +238,9 @@ function HomePage() {
   const [isGroupsLoading, setIsGroupsLoading] = useState(true);
   const [isGroupMutating, setIsGroupMutating] = useState(false);
   const [isCreatingAppointment, setIsCreatingAppointment] = useState(false);
-  const [rooms, setRooms] = useState<RoomInfo[]>(() => {
-    const groupId = readSelectedGroupId();
-    return groupId !== null ? readPendingRooms(groupId) : [];
-  });
-  const [roomsGroupId, setRoomsGroupId] = useState<number | null>(() => readSelectedGroupId());
+  const [rooms, setRooms] = useState<RoomInfo[]>([]);
+  const [roomsGroupId, setRoomsGroupId] = useState<number | null>(null);
+  const [isAllRoomsLoading, setIsAllRoomsLoading] = useState(true);
   const [roomSummaries, setRoomSummaries] = useState<Record<number, RoomSummary>>({});
   const [summariesGroupId, setSummariesGroupId] = useState<number | null>(null);
   const [appointmentIcons, setAppointmentIcons] = useState<Record<number, AppointmentIconId>>(() =>
@@ -261,11 +250,12 @@ function HomePage() {
   const selectedDateKey = format(selectedDate, 'yyyy-MM-dd');
 
   const activeRooms = useMemo(
-    () => (selectedGroupId !== null && roomsGroupId === selectedGroupId ? rooms : []),
+    () => (roomsGroupId === selectedGroupId ? rooms : []),
     [selectedGroupId, roomsGroupId, rooms],
   );
 
-  const isRoomsLoading = selectedGroupId !== null && roomsGroupId !== selectedGroupId;
+  const isRoomsLoading =
+    selectedGroupId === null ? isAllRoomsLoading : roomsGroupId !== selectedGroupId;
 
   const markedDates = useMemo(
     () =>
@@ -301,7 +291,7 @@ function HomePage() {
 
   const activeRoomSummaries = useMemo(
     () =>
-      selectedGroupId !== null && summariesGroupId === selectedGroupId && completedRooms.length > 0
+      summariesGroupId === selectedGroupId && completedRooms.length > 0
         ? roomSummaries
         : {},
     [selectedGroupId, summariesGroupId, completedRooms, roomSummaries],
@@ -353,14 +343,12 @@ function HomePage() {
     setDeletedGroupIds(nextHiddenIds);
     setGroups(nextGroups);
     setSelectedGroupId((current) => {
-      const preferred = current ?? readSelectedGroupId();
-      if (preferred !== null && nextGroups.some((group) => group.id === preferred)) {
-        writeSelectedGroupId(preferred);
-        return preferred;
+      if (current !== null && nextGroups.some((group) => group.id === current)) {
+        writeSelectedGroupId(current);
+        return current;
       }
-      const fallback = nextGroups[0]?.id ?? null;
-      writeSelectedGroupId(fallback);
-      return fallback;
+      writeSelectedGroupId(null);
+      return null;
     });
 
     return { nextGroups, nextHiddenIds };
@@ -463,7 +451,52 @@ function HomePage() {
   }, [selectedGroupId, fetchMergedGroupRooms, applyFetchedRooms, showToast]);
 
   useEffect(() => {
-    if (selectedGroupId === null || completedRooms.length === 0) return;
+    if (selectedGroupId !== null || isGroupsLoading) return;
+
+    let ignore = false;
+    writeSelectedGroupId(null);
+
+    Promise.all(groups.map((group) => fetchMergedGroupRooms(group.id)))
+      .then((results) => {
+        if (ignore) return;
+
+        const allRooms = mergeRooms(...results.map((result) => result.nextRooms));
+        results.forEach((result, index) => {
+          const groupId = groups[index]?.id;
+          if (groupId === undefined || !result.detail) return;
+          upsertGroupMeta(groupId, result.detail.myRole, {
+            inviteCode: result.detail.inviteCode,
+          });
+          result.nextRooms.forEach((room) => setRoomRole(room.roomId, result.detail!.myRole));
+        });
+        setRooms(allRooms);
+        setRoomsGroupId(null);
+      })
+      .catch((error: unknown) => {
+        if (ignore) return;
+        const message = error instanceof ApiError ? error.message : '약속 목록을 불러오지 못했어요';
+        showToast(message);
+        setRooms([]);
+        setRoomsGroupId(null);
+      })
+      .finally(() => {
+        if (!ignore) setIsAllRoomsLoading(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [
+    selectedGroupId,
+    isGroupsLoading,
+    groups,
+    fetchMergedGroupRooms,
+    upsertGroupMeta,
+    showToast,
+  ]);
+
+  useEffect(() => {
+    if (completedRooms.length === 0) return;
 
     let ignore = false;
     const groupId = selectedGroupId;
@@ -490,8 +523,15 @@ function HomePage() {
   }, [selectedGroupId, completedRooms]);
 
   const handleSelectGroup = (groupId: number) => {
-    writeSelectedGroupId(groupId);
-    setSelectedGroupId(groupId);
+    const nextGroupId = selectedGroupId === groupId ? null : groupId;
+    writeSelectedGroupId(nextGroupId);
+    setSelectedGroupId(nextGroupId);
+    if (nextGroupId === null) {
+      setRooms([]);
+      setRoomsGroupId(null);
+      setIsAllRoomsLoading(true);
+      return;
+    }
     setRooms(readPendingRooms(groupId));
     setRoomsGroupId(groupId);
     void loadRooms(groupId).catch((error: unknown) => {

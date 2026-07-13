@@ -3,6 +3,7 @@ import MemberAvatar from '@/components/common/MemberAvatar/MemberAvatar';
 import VoteCountBadge from '@/components/common/VoteCountBadge/VoteCountBadge';
 import type { DepartureProfileMember } from '@/features/departure/hooks/useDeparture';
 import type { DepartureEntry } from '@/features/departure/types/departure';
+import { getMyProfileImageUrl } from '@/lib/auth-storage';
 
 interface DepartureProfileProps {
   members: DepartureProfileMember[];
@@ -77,6 +78,7 @@ function DepartureProfile({
             <MemberAvatar
               key={member.userId}
               name={member.nickname}
+              profileImageUrl={member.isMe ? getMyProfileImageUrl() : undefined}
               size="sm"
               subLabel={member.isHost ? '방장' : undefined}
               tone={member.isMe ? 'point' : 'default'}

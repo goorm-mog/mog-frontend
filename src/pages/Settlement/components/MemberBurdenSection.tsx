@@ -4,6 +4,7 @@ import SectionTitle from '@/pages/Settlement/components/SectionTitle';
 import type { SettlementMemberBurden } from '@/pages/Settlement/types';
 import { formatTransferWon } from '@/pages/Settlement/utils/format';
 import { calculateMemberTotalAmount } from '@/pages/Settlement/utils/settlementCalculator';
+import { getMyProfileImageUrl } from '@/lib/auth-storage';
 
 type MemberBurdenSectionProps = {
   members: SettlementMemberBurden[];
@@ -38,6 +39,9 @@ function MemberBurdenSection({
               <div className="flex items-start justify-between gap-3">
                 <MemberAvatar
                   name={member.name}
+                  profileImageUrl={
+                    member.id === currentRoomMemberId ? getMyProfileImageUrl() : undefined
+                  }
                   size="sm"
                   selected={member.id === currentRoomMemberId}
                   showCheck={false}

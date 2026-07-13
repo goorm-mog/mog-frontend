@@ -24,6 +24,7 @@ function MeetChatParticipants({ participants }: MeetChatParticipantsProps) {
             <div key={participant.userId} className="flex shrink-0 flex-col items-center gap-1">
               <MemberAvatar
                 name={participant.nickname}
+                profileImageUrl={participant.profileImageUrl}
                 size="sm"
                 selected={!isPending}
                 showCheck={false}

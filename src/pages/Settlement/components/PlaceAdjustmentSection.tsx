@@ -5,6 +5,7 @@ import type { PlaceSettlement } from '@/pages/Settlement/types';
 import { formatTransferWon } from '@/pages/Settlement/utils/format';
 import { calculatePlaceAllocatedAmount } from '@/pages/Settlement/utils/settlementCalculator';
 import { cn } from '@/lib/utils';
+import { getMyProfileImageUrl } from '@/lib/auth-storage';
 
 type PlaceAdjustmentSectionProps = {
   places: PlaceSettlement[];
@@ -136,6 +137,11 @@ function PlaceAdjustmentSection({
                         <dt className="flex min-w-0 items-center gap-2">
                           <MemberAvatar
                             name={participant.name}
+                            profileImageUrl={
+                              participant.memberId === currentRoomMemberId
+                                ? getMyProfileImageUrl()
+                                : undefined
+                            }
                             size="sm"
                             selected={participant.memberId === currentRoomMemberId}
                             showCheck={false}

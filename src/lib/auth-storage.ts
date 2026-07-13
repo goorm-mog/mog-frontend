@@ -4,6 +4,8 @@ import type { GroupRole } from '@/types/group';
 const ACCESS_TOKEN_KEY = 'mog_access_token';
 const REFRESH_TOKEN_KEY = 'mog_refresh_token';
 const USER_ID_KEY = 'mog_user_id';
+const NICKNAME_KEY = 'mog_nickname';
+const PROFILE_IMAGE_URL_KEY = 'mog_profile_image_url';
 
 export function setAuthSession({ accessToken, refreshToken, user }: LoginResponse) {
   sessionStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
@@ -11,6 +13,12 @@ export function setAuthSession({ accessToken, refreshToken, user }: LoginRespons
     sessionStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
   }
   sessionStorage.setItem(USER_ID_KEY, String(user.userId));
+  sessionStorage.setItem(NICKNAME_KEY, user.nickname);
+  if (user.profileImageUrl) {
+    sessionStorage.setItem(PROFILE_IMAGE_URL_KEY, user.profileImageUrl);
+  } else {
+    sessionStorage.removeItem(PROFILE_IMAGE_URL_KEY);
+  }
 }
 
 export function getAccessToken() {
@@ -25,10 +33,20 @@ export function getMyUserId(): number | null {
   return val ? Number(val) : null;
 }
 
+export function getMyProfileImageUrl(): string | null {
+  return sessionStorage.getItem(PROFILE_IMAGE_URL_KEY);
+}
+
+export function getMyNickname(): string | null {
+  return sessionStorage.getItem(NICKNAME_KEY);
+}
+
 export function clearAuthSession() {
   sessionStorage.removeItem(ACCESS_TOKEN_KEY);
   sessionStorage.removeItem(REFRESH_TOKEN_KEY);
   sessionStorage.removeItem(USER_ID_KEY);
+  sessionStorage.removeItem(NICKNAME_KEY);
+  sessionStorage.removeItem(PROFILE_IMAGE_URL_KEY);
 }
 
 const ROOM_ROLES_KEY = 'mog_room_roles';
