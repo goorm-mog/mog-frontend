@@ -11,15 +11,24 @@ import MeetChatSummary from '@/pages/MeetChat/components/MeetChatSummary';
 import { useMeetChat } from '@/pages/MeetChat/hooks/useMeetChat';
 import type { MeetChatContext, MeetChatParticipant } from '@/types/chat';
 
+interface ContextResult {
+  roomId: number;
+  context: MeetChatContext | null;
+  error: string | null;
+}
+
 function MeetChatPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { roomId } = useParams();
   const numericRoomId = Number(roomId);
   const isValidRoomId = Number.isInteger(numericRoomId) && numericRoomId > 0;
-  const [context, setContext] = useState<MeetChatContext | null>(null);
-  const [isContextLoading, setIsContextLoading] = useState(isValidRoomId);
-  const [contextError, setContextError] = useState<string | null>(null);
+  const [contextResult, setContextResult] = useState<ContextResult | null>(null);
+  const currentContextResult =
+    isValidRoomId && contextResult?.roomId === numericRoomId ? contextResult : null;
+  const context = currentContextResult?.context ?? null;
+  const contextError = currentContextResult?.error ?? null;
+  const isContextLoading = isValidRoomId && currentContextResult === null;
   const room = context?.room;
   const participants = useMemo(() => context?.participants ?? [], [context]);
   const currentUserId = getMyUserId() ?? 1;
@@ -27,24 +36,24 @@ function MeetChatPage() {
     useMeetChat(isValidRoomId ? numericRoomId : null);
 
   useEffect(() => {
-    if (!isValidRoomId) {
-      setIsContextLoading(false);
-      return;
-    }
+    if (!isValidRoomId) return;
 
     let ignore = false;
-    setIsContextLoading(true);
-    setContextError(null);
 
     fetchMeetChatContext(numericRoomId)
       .then((nextContext) => {
-        if (!ignore) setContext(nextContext);
+        if (!ignore) {
+          setContextResult({ roomId: numericRoomId, context: nextContext, error: null });
+        }
       })
       .catch(() => {
-        if (!ignore) setContextError('약속 정보를 불러오지 못했습니다.');
-      })
-      .finally(() => {
-        if (!ignore) setIsContextLoading(false);
+        if (!ignore) {
+          setContextResult({
+            roomId: numericRoomId,
+            context: null,
+            error: '약속 정보를 불러오지 못했습니다.',
+          });
+        }
       });
 
     return () => {
