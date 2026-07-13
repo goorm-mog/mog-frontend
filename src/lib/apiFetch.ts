@@ -1,5 +1,5 @@
 import { HTTP_ERRORS } from '@/constants/errors';
-import { getAccessToken } from '@/lib/auth-storage';
+import { clearAuthSession, getAccessToken } from '@/lib/auth-storage';
 
 export class ApiError extends Error {
   readonly status: number;
@@ -54,6 +54,11 @@ export async function apiFetch<T>(path: string, options?: RequestInit): Promise<
   });
 
   if (!response.ok) {
+    if (response.status === 403) {
+      clearAuthSession();
+      window.location.href = '/login';
+      return new Promise(() => {});
+    }
     const errorBody = await parseErrorResponse(response);
     const message =
       errorBody?.message ??

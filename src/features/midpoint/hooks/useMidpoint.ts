@@ -6,7 +6,7 @@ import { shortenAddress } from '@/utils/shortenAddress';
 import type { DepartureWithLabel, MidpointPlace, MidpointResult } from '@/features/midpoint/types/midpoint';
 import type { DepartureEntry } from '@/features/departure/types/departure';
 
-export function useMidpoint(roomId: number) {
+export function useMidpoint(roomId: number, onConfirmed?: () => void) {
   const { showToast } = useToast();
   const [midpoint, setMidpoint] = useState<MidpointResult | null>(null);
   const [departures, setDepartures] = useState<DepartureEntry[]>([]);
@@ -39,6 +39,8 @@ export function useMidpoint(roomId: number) {
         userId: d.userId,
         latitude: d.latitude,
         longitude: d.longitude,
+        placeName: d.placeName,
+        address: d.address,
         nickname: t?.nickname,
         durationMinutes: t?.durationMinutes,
         transportType: t?.transportType,
@@ -111,12 +113,13 @@ export function useMidpoint(roomId: number) {
         longitude: selectedPlace.longitude,
       });
       showToast('장소가 확정되었습니다.');
+      onConfirmed?.();
     } catch {
       showToast('확정에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setIsConfirming(false);
     }
-  }, [roomId, selectedPlace, showToast]);
+  }, [roomId, selectedPlace, showToast, onConfirmed]);
 
   return {
     places,

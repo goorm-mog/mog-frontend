@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { confirmSchedule, fetchRoomMembers, fetchSlots, fetchSlotsIfExists, registerSlots, submitVotes } from '@/features/schedule/api/schedule';
+import { advanceRoomStep } from '@/api/room';
 import { getMyUserId } from '@/lib/auth-storage';
 import { useToast } from '@/hooks/useToast';
 import { useVoteStep } from '@/features/schedule/hooks/useVoteStep';
@@ -187,8 +188,9 @@ export function useHostReschedule(roomId: number) {
       try {
         setIsSubmitting(true);
         await confirmSchedule(roomId, slotToConfirm.date, slotToConfirm.time);
+        await advanceRoomStep(roomId, 'RECORDING');
         showToast('일정이 확정되었습니다.', 'success');
-        navigate(`/departure/host/${roomId}`);
+        navigate(`/${roomId}/meet-record`);
       } catch (e) {
         showToast(e instanceof Error ? e.message : '일정 확정에 실패했습니다.', 'error');
       } finally {
