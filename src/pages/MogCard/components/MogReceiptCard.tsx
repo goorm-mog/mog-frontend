@@ -132,10 +132,12 @@ function ReceiptTotal({ totalCost }: { totalCost: string }) {
 function ReceiptFooter({ receipt }: MogReceiptCardProps) {
   return (
     <section className="mt-14">
-      <PolaroidFrame
-        photoCount={receipt.photoCount}
-        photoUrl={receipt.representativePhotoUrl}
-      />
+      {receipt.representativePhotoUrl ? (
+        <PolaroidFrame
+          photoCount={receipt.photoCount}
+          photoUrl={receipt.representativePhotoUrl}
+        />
+      ) : null}
       <BrandFooter barcodeValue={receipt.barcodeValue} footer={receipt.footer} />
     </section>
   );

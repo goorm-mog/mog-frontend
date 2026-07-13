@@ -80,7 +80,9 @@ function measureReceipt(receipt: MogReceipt, width: number) {
     }
   });
 
-  contentHeight += 24 + 1 + 24 + 18 + 24 + 1 + 5 + 1 + 56 + 177 + 56 + 15 + 40 + 45 + 80 + 48 + 12;
+  const polaroidHeight = receipt.representativePhotoUrl ? 177 + 56 : 0;
+  contentHeight +=
+    24 + 1 + 24 + 18 + 24 + 1 + 5 + 1 + 56 + polaroidHeight + 15 + 40 + 45 + 80 + 48 + 12;
 
   return {
     width,
@@ -127,8 +129,10 @@ async function drawReceiptContent(
   drawDivider(context, layout.x, y, layout.contentWidth);
   y += 57;
 
-  await drawPolaroid(context, receipt.representativePhotoUrl, layout.width / 2 - 123, y);
-  y += 233;
+  if (receipt.representativePhotoUrl) {
+    await drawPolaroid(context, receipt.representativePhotoUrl, layout.width / 2 - 123, y);
+    y += 233;
+  }
 
   drawCenteredText(context, receipt.footer, layout.width / 2, y, {
     size: 12,
