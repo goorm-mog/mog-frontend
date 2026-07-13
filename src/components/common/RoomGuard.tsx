@@ -1,14 +1,10 @@
-import { createContext, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Navigate, useLocation, useParams } from 'react-router-dom';
+import { RoomStatusContext } from '@/components/common/room-status-context';
 import { fetchRoomMembers, fetchRoomProgress } from '@/features/schedule/api/schedule';
 import { getMyUserId, getRoomRole } from '@/lib/auth-storage';
 import type { GroupRole } from '@/types/group';
 import type { RoomPhase } from '@/features/schedule/types/schedule';
-
-export const RoomStatusContext = createContext<{ phase: RoomPhase | null; role: GroupRole | null }>({
-  phase: null,
-  role: null,
-});
 
 function toExpectedPath(roomId: number, phase: RoomPhase, role: GroupRole): string {
   const variant = role === 'LEADER' ? 'host' : 'participant';

@@ -18,6 +18,7 @@ type ArchivalCardProps = {
   size?: ComponentSize;
   className?: string;
   footer?: ReactNode;
+  action?: ReactNode;
   onClick?: () => void;
 };
 
@@ -45,6 +46,7 @@ function ArchivalCard({
   size = 'md',
   className,
   footer,
+  action,
   onClick,
 }: ArchivalCardProps) {
   const padding = resolveComponentSize(size, paddingMap);
@@ -88,21 +90,29 @@ function ArchivalCard({
         </div>
 
         <div
-          className="flex w-[120px] shrink-0 flex-col items-center justify-center border-l-2 border-dashed border-border px-2"
-          style={{ paddingTop: padding, paddingBottom: padding }}
+          className={cn(
+            'flex shrink-0 items-center border-l-2 border-dashed border-border',
+            action ? 'w-[152px]' : 'w-[120px]',
+          )}
         >
-          <span
-            className="font-dm-mono uppercase tracking-[0.5px] text-dark-border"
-            style={{ fontSize: metaSize, lineHeight: `${metaSize * 1.5}px` }}
+          <div
+            className="flex min-w-0 flex-1 flex-col items-center justify-center px-2"
+            style={{ paddingTop: padding, paddingBottom: padding }}
           >
-            총 금액
-          </span>
-          <span
-            className="mt-1 text-center font-dm-mono font-medium tracking-[-0.56px] text-point"
-            style={{ fontSize: amountSize, lineHeight: `${amountSize * 2.1}px` }}
-          >
-            {totalAmount}
-          </span>
+            <span
+              className="font-dm-mono uppercase tracking-[0.5px] text-dark-border"
+              style={{ fontSize: metaSize, lineHeight: `${metaSize * 1.5}px` }}
+            >
+              총 금액
+            </span>
+            <span
+              className="mt-1 text-center font-dm-mono font-medium tracking-[-0.56px] text-point"
+              style={{ fontSize: amountSize, lineHeight: `${amountSize * 2.1}px` }}
+            >
+              {totalAmount}
+            </span>
+          </div>
+          {action ? <div className="shrink-0 pr-1">{action}</div> : null}
         </div>
       </div>
 

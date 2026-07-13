@@ -70,6 +70,22 @@ export function writePendingRoom(groupId: number, room: RoomInfo) {
   }
 }
 
+export function removePendingRoom(roomId: number) {
+  try {
+    const raw = sessionStorage.getItem(PENDING_ROOMS_STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw) as Record<string, RoomInfo[]>;
+    Object.entries(parsed).forEach(([groupId, rooms]) => {
+      const remaining = rooms.filter((room) => room.roomId !== roomId);
+      if (remaining.length === 0) delete parsed[groupId];
+      else parsed[groupId] = remaining;
+    });
+    sessionStorage.setItem(PENDING_ROOMS_STORAGE_KEY, JSON.stringify(parsed));
+  } catch {
+    // ignore unavailable storage
+  }
+}
+
 export function clearResolvedPendingRooms(groupId: number, apiRooms: RoomInfo[]) {
   try {
     const raw = sessionStorage.getItem(PENDING_ROOMS_STORAGE_KEY);

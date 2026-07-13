@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
 import { format } from 'date-fns';
+import { ListChecks } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '@/api/auth';
+import { deleteRoom } from '@/api/room';
 import { ApiError } from '@/lib/apiFetch';
 import TopAppBar from '@/components/common/TopAppBar/TopAppBar';
 import Calendar from '@/components/common/Calendar/Calendar';
@@ -12,6 +14,8 @@ import HomeTabNav from '@/pages/Home/components/HomeTabNav';
 import CreateAppointmentSheet from '@/pages/Home/components/CreateAppointmentSheet';
 import CreateRoomSheet from '@/pages/Home/components/CreateRoomSheet';
 import DeleteGroupDialog from '@/pages/Home/components/DeleteGroupDialog';
+import DeleteAppointmentDialog from '@/pages/Home/components/DeleteAppointmentDialog';
+import AppointmentCardMenu from '@/pages/Home/components/AppointmentCardMenu';
 import LeaveGroupDialog from '@/pages/Home/components/LeaveGroupDialog';
 import InviteGroupSheet from '@/pages/Home/components/InviteGroupSheet';
 import JoinGroupSheet from '@/pages/Home/components/JoinGroupSheet';
@@ -19,11 +23,7 @@ import HomeSidebar from '@/pages/Home/components/HomeSidebar';
 import NotificationListSheet from '@/pages/Home/components/NotificationListSheet';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useToast } from '@/hooks/useToast';
-import {
-  HOME_DEFAULT_SELECTED,
-  HOME_INITIAL_MONTH,
-  type HomeTab,
-} from '@/pages/Home/constants/homeMockData';
+import { HOME_INITIAL_MONTH, type HomeTab } from '@/pages/Home/constants/homeMockData';
 import type { AppointmentIconId } from '@/pages/Home/constants/appointmentIcons';
 import {
   loadAppointmentIconMap,
@@ -33,6 +33,8 @@ import { useHomeRooms } from '@/pages/Home/hooks/useHomeRooms';
 import { useHomeGroups } from '@/pages/Home/hooks/useHomeGroups';
 import { useHomeOverlays } from '@/pages/Home/hooks/useHomeOverlays';
 import { useCreateAppointment } from '@/pages/Home/hooks/useCreateAppointment';
+import { removePendingRoom } from '@/pages/Home/utils/homeStorage';
+import type { RoomInfo } from '@/types/room';
 import {
   formatArchivalDatetime,
   formatCurrency,
@@ -53,13 +55,15 @@ function HomePage() {
     clearAllNotifications,
   } = useNotifications();
   const [activeTab, setActiveTab] = useState<HomeTab>('all');
-  const [selectedDate, setSelectedDate] = useState(HOME_DEFAULT_SELECTED);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [appointmentToDelete, setAppointmentToDelete] = useState<RoomInfo | null>(null);
+  const [isDeletingAppointment, setIsDeletingAppointment] = useState(false);
   const overlays = useHomeOverlays();
   const [appointmentIcons, setAppointmentIcons] = useState<Record<number, AppointmentIconId>>(() =>
     loadAppointmentIconMap(),
   );
 
-  const selectedDateKey = format(selectedDate, 'yyyy-MM-dd');
+  const selectedDateKey = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null;
 
   const homeGroups = useHomeGroups(showToast);
   const {
@@ -102,21 +106,36 @@ function HomePage() {
   const markedDates = useMemo(
     () =>
       rooms
-        .map((room) => parsePromiseDate(room.promiseDate))
+        .filter((room) => room.status !== 'VOTING')
+        .map((room) =>
+          parsePromiseDate(activeRoomSummaries[room.roomId]?.confirmedDate ?? room.promiseDate),
+        )
         .filter((date): date is Date => date !== null),
-    [rooms],
+    [rooms, activeRoomSummaries],
   );
-  const roomsForSelectedDate = useMemo(
-    () =>
-      rooms.filter((room) => {
-        const date = parsePromiseDate(room.promiseDate);
-        return date !== null && format(date, 'yyyy-MM-dd') === selectedDateKey;
-      }),
-    [rooms, selectedDateKey],
-  );
+  const roomsForSelectedDate = useMemo(() => {
+    if (selectedDateKey === null) {
+      return rooms.filter(
+        (room) =>
+          parsePromiseDate(activeRoomSummaries[room.roomId]?.confirmedDate ?? room.promiseDate) !==
+          null,
+      );
+    }
+    return rooms.filter((room) => {
+      const date = parsePromiseDate(
+        activeRoomSummaries[room.roomId]?.confirmedDate ?? room.promiseDate,
+      );
+      return date !== null && format(date, 'yyyy-MM-dd') === selectedDateKey;
+    });
+  }, [rooms, selectedDateKey, activeRoomSummaries]);
   const roomsWithoutDate = useMemo(
-    () => rooms.filter((room) => parsePromiseDate(room.promiseDate) === null),
-    [rooms],
+    () =>
+      rooms.filter(
+        (room) =>
+          parsePromiseDate(activeRoomSummaries[room.roomId]?.confirmedDate ?? room.promiseDate) ===
+          null,
+      ),
+    [rooms, activeRoomSummaries],
   );
   const inProgressRooms = useMemo(
     () => rooms.filter((room) => room.status !== 'COMPLETED'),
@@ -233,6 +252,31 @@ function HomePage() {
     }
   };
 
+  const handleDeleteAppointment = async () => {
+    if (!appointmentToDelete || isDeletingAppointment) return;
+
+    setIsDeletingAppointment(true);
+    try {
+      await deleteRoom(appointmentToDelete.roomId);
+      removePendingRoom(appointmentToDelete.roomId);
+      setRooms((current) => current.filter((room) => room.roomId !== appointmentToDelete.roomId));
+      setAppointmentToDelete(null);
+      showToast('약속을 삭제했어요');
+    } catch (error: unknown) {
+      const message = error instanceof ApiError ? error.message : '약속을 삭제하지 못했어요';
+      showToast(message);
+    } finally {
+      setIsDeletingAppointment(false);
+    }
+  };
+
+  const appointmentMenu = (room: RoomInfo) => (
+    <AppointmentCardMenu
+      appointmentName={room.roomName}
+      onDelete={() => setAppointmentToDelete(room)}
+    />
+  );
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <TopAppBar
@@ -254,10 +298,10 @@ function HomePage() {
               mode="single"
               appearance="home"
               initialMonth={HOME_INITIAL_MONTH}
-              defaultSelected={[selectedDate]}
+              allowDeselect
               markedDates={markedDates}
               onSelectionChange={(dates) => {
-                if (dates[0]) setSelectedDate(dates[0]);
+                setSelectedDate(dates[0] ?? null);
               }}
             />
           </div>
@@ -272,16 +316,21 @@ function HomePage() {
                     key={room.roomId || `selected-${index}`}
                     title={room.roomName}
                     icon={resolveAppointmentIcon(room, appointmentIcons)}
+                    location={`${roomStatusLabel(room.status)}`}
+                    locationIcon={ListChecks}
+                    action={appointmentMenu(room)}
                     onClick={() => navigate(roomDetailPath(room, selectedGroupRole))}
                   />
                 ))
-              ) : roomsWithoutDate.length === 0 ? (
+              ) : selectedDate !== null ? (
                 <p className="py-6 text-center text-caption text-dark-border">
                   선택한 날짜에 약속이 없어요
                 </p>
+              ) : roomsWithoutDate.length === 0 ? (
+                <p className="py-6 text-center text-caption text-dark-border">약속이 없어요</p>
               ) : null}
 
-              {roomsWithoutDate.length > 0 ? (
+              {selectedDate === null && roomsWithoutDate.length > 0 ? (
                 <div className="flex flex-col gap-3">
                   <p className="text-caption font-medium text-[#865300]">날짜 미정</p>
                   {roomsWithoutDate.map((room, index) => (
@@ -289,6 +338,9 @@ function HomePage() {
                       key={room.roomId || `undated-${index}`}
                       title={room.roomName}
                       icon={resolveAppointmentIcon(room, appointmentIcons)}
+                      location={`${roomStatusLabel(room.status)}`}
+                      locationIcon={ListChecks}
+                      action={appointmentMenu(room)}
                       onClick={() => navigate(roomDetailPath(room, selectedGroupRole))}
                     />
                   ))}
@@ -310,8 +362,10 @@ function HomePage() {
                       <ScheduleCard
                         key={room.roomId || `progress-${index}`}
                         title={room.roomName}
-                        location={roomStatusLabel(room.status)}
+                        location={`${roomStatusLabel(room.status)}`}
+                        locationIcon={ListChecks}
                         icon={resolveAppointmentIcon(room, appointmentIcons)}
+                        action={appointmentMenu(room)}
                         onClick={() => navigate(roomDetailPath(room, selectedGroupRole))}
                       />
                     ))}
@@ -327,9 +381,13 @@ function HomePage() {
                       datetime={formatArchivalDatetime(summary?.confirmedDate ?? room.promiseDate)}
                       location={summary?.confirmedPlace?.placeName ?? '장소 미정'}
                       totalAmount={formatCurrency(summary?.settlement?.totalCost)}
-                      meta={
-                        summary ? [{ label: '인원', value: `${summary.totalMemberCount}명` }] : []
-                      }
+                      meta={[
+                        { label: '단계', value: roomStatusLabel(room.status) },
+                        ...(summary
+                          ? [{ label: '인원', value: `${summary.totalMemberCount}명` }]
+                          : []),
+                      ]}
+                      action={appointmentMenu(room)}
                       onClick={() => navigate(roomDetailPath(room, selectedGroupRole))}
                     />
                   );
@@ -409,7 +467,10 @@ function HomePage() {
         />
       ) : null}
 
-      {overlays.isOpen('inviteGroup') && selectedGroup && selectedInviteCode && selectedKakaoShareUrl ? (
+      {overlays.isOpen('inviteGroup') &&
+      selectedGroup &&
+      selectedInviteCode &&
+      selectedKakaoShareUrl ? (
         <InviteGroupSheet
           groupName={selectedGroup.name}
           inviteCode={selectedInviteCode}
@@ -462,6 +523,17 @@ function HomePage() {
           onClose={overlays.close}
           onSubmit={(values) => {
             void handleCreateAppointment(values);
+          }}
+        />
+      ) : null}
+
+      {appointmentToDelete ? (
+        <DeleteAppointmentDialog
+          appointmentName={appointmentToDelete.roomName}
+          isLoading={isDeletingAppointment}
+          onClose={() => setAppointmentToDelete(null)}
+          onConfirm={() => {
+            void handleDeleteAppointment();
           }}
         />
       ) : null}

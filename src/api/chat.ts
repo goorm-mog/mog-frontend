@@ -1,10 +1,57 @@
 import { apiFetch } from '@/lib/apiFetch';
 import { getAccessToken } from '@/lib/auth-storage';
-import type { ListChatMessagesApiResponse, ListChatMessageResponse } from '@/types/chat';
+import { fetchRoomMembers, fetchConfirmedSchedule } from '@/features/schedule/api/schedule';
+import { fetchMidpoint } from '@/features/midpoint/api/midpoint';
+import { fetchRoomSummary } from '@/api/room';
+import type { ApiResponse } from '@/types/api';
+import type { RoomStatusResponse } from '@/features/schedule/types/schedule';
+import type {
+  ListChatMessagesApiResponse,
+  ListChatMessageResponse,
+  MeetChatContext,
+} from '@/types/chat';
 
 export async function fetchMeetChatMessages(roomId: number) {
   const response = await apiFetch<ListChatMessagesApiResponse>(`/api/v1/rooms/${roomId}/chat`);
   return response.data;
+}
+
+export async function fetchMeetChatContext(roomId: number): Promise<MeetChatContext> {
+  const [roomResponse, schedule, midpoint] = await Promise.all([
+    apiFetch<ApiResponse<RoomStatusResponse>>(`/api/v1/groups/rooms/${roomId}`),
+    fetchConfirmedSchedule(roomId).catch(() => null),
+    fetchMidpoint(roomId).catch(() => null),
+  ]);
+
+  const room = roomResponse.data;
+  const summary =
+    room?.status === 'COMPLETED' ? await fetchRoomSummary(roomId).catch(() => null) : null;
+  const members = room?.members ?? (await fetchRoomMembers(roomId)).members;
+  const promiseDate = schedule ? `${schedule.date}T${schedule.time}` : summary?.confirmedDate ?? null;
+
+  return {
+    room: {
+      roomId,
+      groupName: summary?.groupName ?? '',
+      roomName: room?.roomName ?? summary?.roomName ?? '',
+      promiseDate,
+      location:
+        summary?.confirmedPlace?.placeName ??
+        midpoint?.placeName ??
+        midpoint?.address ??
+        '',
+    },
+    participants: members.map((member) => ({
+      userId: member.userId,
+      nickname: member.nickname,
+      status:
+        member.role === 'LEADER'
+          ? 'host'
+          : member.isJoined === false
+            ? 'pending'
+            : 'joined',
+    })),
+  };
 }
 
 export function sendMeetChatMessageMock(roomId: number, message: string) {
