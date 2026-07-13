@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { Camera } from 'lucide-react';
 import Title from '@/components/common/Title/Title';
@@ -13,6 +14,7 @@ type ScheduleCardProps = {
   locationIcon?: LucideIcon;
   size?: ComponentSize;
   className?: string;
+  action?: ReactNode;
   onClick?: () => void;
 };
 
@@ -28,6 +30,7 @@ function ScheduleCard({
   locationIcon: LocationIcon = Camera,
   size = 'md',
   className,
+  action,
   onClick,
 }: ScheduleCardProps) {
   const padding = resolveComponentSize(size, paddingMap);
@@ -38,7 +41,7 @@ function ScheduleCard({
   return (
     <article
       className={cn(
-        'flex w-full items-stretch overflow-hidden rounded border border-border/30 bg-background',
+        'flex w-full items-stretch rounded border border-border/30 bg-background',
         onClick && 'cursor-pointer',
         className,
       )}
@@ -84,9 +87,13 @@ function ScheduleCard({
             {startTime}
           </span>
           <span className="my-1 h-3 w-px bg-border/50" />
-          <span className="font-dm-mono text-[10px] leading-[15px] text-dark-border">{endTime}</span>
+          <span className="font-dm-mono text-[10px] leading-[15px] text-dark-border">
+            {endTime}
+          </span>
         </div>
       ) : null}
+
+      {action ? <div className="flex shrink-0 items-center pr-2">{action}</div> : null}
     </article>
   );
 }

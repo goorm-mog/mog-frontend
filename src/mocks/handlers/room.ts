@@ -143,4 +143,26 @@ export const roomHandlers: HttpHandler[] = [
 
     return HttpResponse.json(response);
   }),
+
+  http.delete(`${BASE}/api/v1/groups/rooms/:roomId`, ({ params }) => {
+    const roomId = Number(params.roomId);
+    const groupId = Object.keys(roomsByGroup).find((key) =>
+      roomsByGroup[Number(key)]?.some((room) => room.roomId === roomId),
+    );
+
+    if (groupId === undefined) {
+      return HttpResponse.json({ message: '약속을 찾을 수 없습니다.' }, { status: 404 });
+    }
+
+    roomsByGroup[Number(groupId)] = roomsByGroup[Number(groupId)].filter(
+      (room) => room.roomId !== roomId,
+    );
+
+    return HttpResponse.json({
+      status: 200,
+      code: 'ROOM_CLOSE_SUCCESS',
+      message: '약속 방이 삭제되었습니다.',
+      data: { roomId },
+    });
+  }),
 ];

@@ -16,9 +16,7 @@ function toRoomId(value: unknown): number | null {
   return Number.isInteger(roomId) && roomId > 0 ? roomId : null;
 }
 
-function normalizeRoom(
-  room: RoomInfo & { id?: number; room_id?: number },
-): RoomInfo | null {
+function normalizeRoom(room: RoomInfo & { id?: number; room_id?: number }): RoomInfo | null {
   const roomId = toRoomId(room.roomId) ?? toRoomId(room.id) ?? toRoomId(room.room_id);
   if (roomId === null) return null;
 
@@ -64,13 +62,16 @@ export async function fetchRoomSummary(roomId: number) {
   return response.data;
 }
 
-export async function advanceRoomStep(
-  roomId: number,
-  nextStatus: RoomStatus,
-): Promise<void> {
+export async function advanceRoomStep(roomId: number, nextStatus: RoomStatus): Promise<void> {
   const body: RoomStepBody = { nextStatus };
   await apiFetch<RoomStepApiResponse>(`/api/v1/groups/rooms/${roomId}/step`, {
     method: 'PATCH',
     body: JSON.stringify(body),
+  });
+}
+
+export async function deleteRoom(roomId: number): Promise<void> {
+  await apiFetch(`/api/v1/groups/rooms/${roomId}`, {
+    method: 'DELETE',
   });
 }
