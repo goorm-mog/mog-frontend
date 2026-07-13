@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { CalendarClock, Clock } from 'lucide-react';
 import StepHeader from '@/components/common/Header/StepHeader/StepHeader';
@@ -12,29 +12,18 @@ import TimeSectionHeader from '@/features/schedule/components/TimeSectionHeader'
 import TopSlotsContent from '@/features/schedule/components/TopSlotsContent';
 import BottomSheet from '@/components/common/BottomSheet/BottomSheet';
 import Skeleton from '@/components/ui/Skeleton';
-import {
-  fetchRoomMembers,
-  fetchSlots,
-  fetchSlotsIfExists,
-  submitVotes,
-} from '@/features/schedule/api/schedule';
+import { fetchRoomMembers, fetchSlots, fetchSlotsIfExists, submitVotes } from '@/features/schedule/api/schedule';
 import { getMyUserId } from '@/lib/auth-storage';
 import { useToast } from '@/hooks/useToast';
 import { useVoteStep } from '@/features/schedule/hooks/useVoteStep';
 import { useConfirmStep } from '@/features/schedule/hooks/useConfirmStep';
 import type { RegisteredSlot, ScheduleSlot } from '@/features/schedule/types/schedule';
 import { countUniqueVoters } from '@/features/schedule/utils/slotUtils';
-import { RoomStatusContext } from '@/components/common/RoomGuard';
-import { useRoomStepNavigation } from '@/hooks/useRoomStepNavigation';
 
 function ParticipantReschedule() {
   const { roomId: roomIdStr } = useParams<{ roomId: string }>();
   const roomId = Number(roomIdStr);
   const { showToast } = useToast();
-  const { phase } = useContext(RoomStatusContext);
-  const stepNavigation = useRoomStepNavigation(1);
-  const isRevisitingSchedule =
-    phase === 'DEPARTURE_INPUT' || phase === 'MIDPOINT_FINDING' || phase === 'COMPLETED';
 
   const [registeredSlots, setRegisteredSlots] = useState<RegisteredSlot[]>([]);
   const [totalParticipants, setTotalParticipants] = useState(0);
@@ -42,7 +31,6 @@ function ParticipantReschedule() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasVoted, setHasVoted] = useState(false);
-  const [existingVotedSlotIds, setExistingVotedSlotIds] = useState<number[]>([]);
   const [slotsReady, setSlotsReady] = useState(false);
   const [bottomSheetExpanded, setBottomSheetExpanded] = useState(true);
 
@@ -73,7 +61,6 @@ function ParticipantReschedule() {
     handleVoteSelectSection,
     handleVoteClearSection,
     getVotedSlotIds,
-    initializeVotes,
   } = useVoteStep(registeredSlots);
 
   useEffect(() => {
@@ -91,9 +78,7 @@ function ParticipantReschedule() {
 
         setSlotsReady(true);
         const uniqueVoterCount = countUniqueVoters(data.slots);
-        setRegisteredSlots(
-          data.slots.map(({ slotId, date, time }) => ({ slotId, date, time: time.slice(0, 5) })),
-        );
+        setRegisteredSlots(data.slots.map(({ slotId, date, time }) => ({ slotId, date, time: time.slice(0, 5) })));
         setTotalParticipants(Math.max(roomData.members.length, uniqueVoterCount));
         setVotedCount(uniqueVoterCount);
 
@@ -101,20 +86,8 @@ function ParticipantReschedule() {
         const iVoted =
           myUserId !== null && data.slots.some((s) => s.votedUserIds.includes(myUserId));
         if (iVoted) {
-          const myVotedSlots = data.slots.filter((slot) => slot.votedUserIds.includes(myUserId));
-          setExistingVotedSlotIds(myVotedSlots.map((slot) => slot.slotId));
           setConfirmSlots(data.slots.map((slot) => ({ ...slot, time: slot.time.slice(0, 5) })));
-          if (isRevisitingSchedule) {
-            initializeVotes(
-              myVotedSlots.map(({ slotId, date, time }) => ({
-                slotId,
-                date,
-                time: time.slice(0, 5),
-              })),
-            );
-          } else {
-            setHasVoted(true);
-          }
+          setHasVoted(true);
         }
       } catch (e) {
         showToast(
@@ -126,18 +99,13 @@ function ParticipantReschedule() {
       }
     };
     init();
-  }, [initializeVotes, isRevisitingSchedule, roomId, showToast]);
+  }, [roomId, showToast]);
 
   const handleSubmit = async () => {
     const slotIds = getVotedSlotIds();
-    const idsToToggle = isRevisitingSchedule
-      ? [...new Set([...existingVotedSlotIds, ...slotIds])].filter(
-          (slotId) => existingVotedSlotIds.includes(slotId) !== slotIds.includes(slotId),
-        )
-      : slotIds;
     try {
       setIsSubmitting(true);
-      if (idsToToggle.length > 0) await submitVotes(roomId, idsToToggle);
+      await submitVotes(roomId, slotIds);
       const [slotsData, membersData] = await Promise.all([
         fetchSlots(roomId),
         fetchRoomMembers(roomId),
@@ -146,9 +114,7 @@ function ParticipantReschedule() {
       const uniqueVoterCount = countUniqueVoters(slotsData.slots);
       setTotalParticipants(Math.max(membersData.members.length, uniqueVoterCount));
       setVotedCount(uniqueVoterCount);
-      setExistingVotedSlotIds(slotIds);
-      setHasVoted(!isRevisitingSchedule);
-      if (isRevisitingSchedule) showToast('투표가 수정되었습니다.', 'success');
+      setHasVoted(true);
     } catch (e) {
       showToast(e instanceof Error ? e.message : '투표에 실패했습니다.', 'error');
     } finally {
@@ -181,7 +147,7 @@ function ParticipantReschedule() {
     <div
       className={`flex flex-col gap-4 ${hasVoted ? (bottomSheetExpanded ? 'pb-72' : 'pb-28') : 'pb-24'}`}
     >
-      <StepHeader currentStep={1} {...stepNavigation} />
+      <StepHeader />
 
       <div className="flex flex-col px-6 gap-5">
         <div className="flex items-center justify-between">
@@ -191,9 +157,7 @@ function ParticipantReschedule() {
             iconStrokeWidth={2}
             subtitle={{ text: voteSubtitle }}
           />
-          {!hasVoted && (
-            <VoteCountBadge votedCount={votedCount} totalParticipants={totalParticipants} />
-          )}
+          {!hasVoted && <VoteCountBadge votedCount={votedCount} totalParticipants={totalParticipants} />}
         </div>
 
         {isLoading ? (
@@ -322,7 +286,7 @@ function ParticipantReschedule() {
             disabled={!canSubmit || isSubmitting || isLoading}
             className="w-full py-3 rounded-md bg-point text-background font-pretendard font-semibold text-[14px] disabled:opacity-40"
           >
-            {isSubmitting ? '처리 중...' : isRevisitingSchedule ? '투표 수정 완료' : '투표 완료'}
+            {isSubmitting ? '처리 중...' : '투표 완료'}
           </button>
         </div>
       ) : null}

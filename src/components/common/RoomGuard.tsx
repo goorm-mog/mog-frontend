@@ -5,12 +5,10 @@ import { getMyUserId, getRoomRole } from '@/lib/auth-storage';
 import type { GroupRole } from '@/types/group';
 import type { RoomPhase } from '@/features/schedule/types/schedule';
 
-export const RoomStatusContext = createContext<{ phase: RoomPhase | null; role: GroupRole | null }>(
-  {
-    phase: null,
-    role: null,
-  },
-);
+export const RoomStatusContext = createContext<{ phase: RoomPhase | null; role: GroupRole | null }>({
+  phase: null,
+  role: null,
+});
 
 function toExpectedPath(roomId: number, phase: RoomPhase, role: GroupRole): string {
   const variant = role === 'LEADER' ? 'host' : 'participant';
@@ -34,25 +32,6 @@ function toExpectedPathByRole(currentPath: string, roomId: number, role: GroupRo
     : currentPath;
 }
 
-function pathStep(path: string): number | null {
-  if (path.includes('/reschedule/')) return 1;
-  if (path.includes('/departure/')) return 2;
-  if (path.includes('/midpoint/')) return 3;
-  return null;
-}
-
-function phaseStep(phase: RoomPhase): number {
-  switch (phase) {
-    case 'DEPARTURE_INPUT':
-    case 'MIDPOINT_FINDING':
-      return 2;
-    case 'COMPLETED':
-      return 3;
-    default:
-      return 1;
-  }
-}
-
 interface RoomGuardProps {
   children: React.ReactNode;
 }
@@ -74,14 +53,7 @@ function RoomGuard({ children }: RoomGuardProps) {
         const progress = await fetchRoomProgress(roomId);
         setResolvedPhase(progress.status);
         setResolvedRole(role);
-        const requestedStep = pathStep(currentPath);
-        const canVisitRequestedStep =
-          requestedStep !== null && requestedStep <= phaseStep(progress.status);
-        setExpectedPath(
-          canVisitRequestedStep
-            ? toExpectedPathByRole(currentPath, roomId, role)
-            : toExpectedPath(roomId, progress.status, role),
-        );
+        setExpectedPath(toExpectedPath(roomId, progress.status, role));
       } catch {
         setResolvedRole(role);
         setExpectedPath(toExpectedPathByRole(currentPath, roomId, role));

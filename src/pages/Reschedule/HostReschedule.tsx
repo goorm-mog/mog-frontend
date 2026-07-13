@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { CalendarClock, Clock } from 'lucide-react';
 import StepHeader from '@/components/common/Header/StepHeader/StepHeader';
@@ -14,8 +14,6 @@ import TopSlotsContent from '@/features/schedule/components/TopSlotsContent';
 import BottomSheet from '@/components/common/BottomSheet/BottomSheet';
 import Skeleton from '@/components/ui/Skeleton';
 import { useHostReschedule } from '@/features/schedule/hooks/useHostReschedule';
-import { RoomStatusContext } from '@/components/common/RoomGuard';
-import { useRoomStepNavigation } from '@/hooks/useRoomStepNavigation';
 
 const CTA_LABEL = {
   create: '슬롯 열기',
@@ -27,10 +25,6 @@ function HostReschedule() {
   const { roomId: roomIdStr } = useParams<{ roomId: string }>();
   const roomId = Number(roomIdStr);
   const [bottomSheetExpanded, setBottomSheetExpanded] = useState(true);
-  const { phase } = useContext(RoomStatusContext);
-  const stepNavigation = useRoomStepNavigation(1);
-  const isRevisitingSchedule =
-    phase === 'DEPARTURE_INPUT' || phase === 'MIDPOINT_FINDING' || phase === 'COMPLETED';
 
   const {
     step,
@@ -54,7 +48,7 @@ function HostReschedule() {
     handleTargetClearAll,
     handleApply,
     handleCTA,
-  } = useHostReschedule(roomId, { isRevisitingSchedule });
+  } = useHostReschedule(roomId);
 
   const {
     availableDates: voteAvailableDates,
@@ -83,7 +77,7 @@ function HostReschedule() {
   if (isLoading) {
     return (
       <div className="flex flex-col gap-4 pb-24">
-        <StepHeader currentStep={1} {...stepNavigation} />
+        <StepHeader />
         <div className="px-6">
           <Skeleton className="h-64" />
         </div>
@@ -97,7 +91,7 @@ function HostReschedule() {
     <div
       className={`flex flex-col gap-4 ${step === 'confirm' ? (bottomSheetExpanded ? 'pb-72' : 'pb-28') : 'pb-24'}`}
     >
-      <StepHeader currentStep={1} {...stepNavigation} />
+      <StepHeader />
 
       <div className="flex flex-col px-6 gap-5">
         {step === 'create' && (

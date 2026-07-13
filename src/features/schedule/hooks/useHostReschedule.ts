@@ -1,14 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import {
-  confirmSchedule,
-  fetchRoomMembers,
-  fetchSlots,
-  fetchSlotsIfExists,
-  registerSlots,
-  submitVotes,
-} from '@/features/schedule/api/schedule';
+import { confirmSchedule, fetchRoomMembers, fetchSlots, fetchSlotsIfExists, registerSlots, submitVotes } from '@/features/schedule/api/schedule';
 import { advanceRoomStep } from '@/api/room';
 import { getMyUserId } from '@/lib/auth-storage';
 import { useToast } from '@/hooks/useToast';
@@ -19,14 +12,7 @@ import { countUniqueVoters } from '@/features/schedule/utils/slotUtils';
 
 export type HostStep = 'create' | 'vote' | 'confirm';
 
-interface HostRescheduleOptions {
-  isRevisitingSchedule?: boolean;
-}
-
-export function useHostReschedule(
-  roomId: number,
-  { isRevisitingSchedule = false }: HostRescheduleOptions = {},
-) {
+export function useHostReschedule(roomId: number) {
   const { showToast } = useToast();
   const navigate = useNavigate();
 
@@ -61,13 +47,7 @@ export function useHostReschedule(
         if (!slotsData || slotsData.slots.length === 0) return; // create step 유지
 
         const uniqueVoterCount = countUniqueVoters(slotsData.slots);
-        setRegisteredSlots(
-          slotsData.slots.map(({ slotId, date, time }) => ({
-            slotId,
-            date,
-            time: time.slice(0, 5),
-          })),
-        );
+        setRegisteredSlots(slotsData.slots.map(({ slotId, date, time }) => ({ slotId, date, time: time.slice(0, 5) })));
         setTotalParticipants(Math.max(membersData.members.length, uniqueVoterCount));
         setVotedCount(uniqueVoterCount);
         setStep('vote');
@@ -78,15 +58,10 @@ export function useHostReschedule(
         if (!iVoted) return; // vote step 유지
 
         const slotsConfirm = await fetchSlots(roomId);
-        setConfirmSlots(
-          slotsConfirm.slots.map((slot) => ({ ...slot, time: slot.time.slice(0, 5) })),
-        );
+        setConfirmSlots(slotsConfirm.slots.map((slot) => ({ ...slot, time: slot.time.slice(0, 5) })));
         setStep('confirm');
       } catch (e) {
-        showToast(
-          e instanceof Error ? e.message : '초기 데이터를 불러오는 데 실패했습니다.',
-          'error',
-        );
+        showToast(e instanceof Error ? e.message : '초기 데이터를 불러오는 데 실패했습니다.', 'error');
       } finally {
         setIsLoading(false);
       }
@@ -180,11 +155,7 @@ export function useHostReschedule(
         ]);
         const uniqueVoterCount = countUniqueVoters(slotsData.slots);
         setRegisteredSlots(
-          slotsData.slots.map(({ slotId, date, time }) => ({
-            slotId,
-            date,
-            time: time.slice(0, 5),
-          })),
+          slotsData.slots.map(({ slotId, date, time }) => ({ slotId, date, time: time.slice(0, 5) })),
         );
         setTotalParticipants(Math.max(membersData.members.length, uniqueVoterCount));
         setVotedCount(uniqueVoterCount);
@@ -204,9 +175,7 @@ export function useHostReschedule(
           fetchRoomMembers(roomId),
         ]);
         setConfirmSlots(slotsData.slots.map((slot) => ({ ...slot, time: slot.time.slice(0, 5) })));
-        setTotalParticipants(
-          Math.max(membersData.members.length, countUniqueVoters(slotsData.slots)),
-        );
+        setTotalParticipants(Math.max(membersData.members.length, countUniqueVoters(slotsData.slots)));
         setStep('confirm');
       } catch (e) {
         showToast(e instanceof Error ? e.message : '투표 제출에 실패했습니다.', 'error');
@@ -219,13 +188,9 @@ export function useHostReschedule(
       try {
         setIsSubmitting(true);
         await confirmSchedule(roomId, slotToConfirm.date, slotToConfirm.time);
-        if (isRevisitingSchedule) {
-          showToast('일정이 수정되었습니다.', 'success');
-        } else {
-          await advanceRoomStep(roomId, 'RECORDING');
-          showToast('일정이 확정되었습니다.', 'success');
-          navigate(`/${roomId}/meet-record`);
-        }
+        await advanceRoomStep(roomId, 'RECORDING');
+        showToast('일정이 확정되었습니다.', 'success');
+        navigate(`/${roomId}/meet-record`);
       } catch (e) {
         showToast(e instanceof Error ? e.message : '일정 확정에 실패했습니다.', 'error');
       } finally {

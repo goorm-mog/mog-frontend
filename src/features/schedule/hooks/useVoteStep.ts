@@ -1,4 +1,4 @@
-import { useCallback, useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { format, parse } from 'date-fns';
 import { useSwipe } from '@/hooks/useSwipe';
 import type { RegisteredSlot } from '@/features/schedule/types/schedule';
@@ -26,7 +26,9 @@ export function useVoteStep(registeredSlots: RegisteredSlot[]) {
 
   // 달력 availableDates prop용 Date 배열
   const availableDates = useMemo<Date[]>(() => {
-    return Object.keys(timesByDate).map((dateStr) => parse(dateStr, 'yyyy-MM-dd', new Date()));
+    return Object.keys(timesByDate).map((dateStr) =>
+      parse(dateStr, 'yyyy-MM-dd', new Date()),
+    );
   }, [timesByDate]);
 
   // 이 방 슬롯에 있는 시간 전체 합집합 (기본 시간 선택 화면에서 사용)
@@ -59,19 +61,6 @@ export function useVoteStep(registeredSlots: RegisteredSlot[]) {
   // 서브스텝: 'base' = 기본 시간 선택, 'adjust' = 날짜별 조정
   const [voteSubStep, setVoteSubStep] = useState<'base' | 'adjust'>('base');
   const [baseTimes, setBaseTimes] = useState<string[]>([]);
-
-  const initializeVotes = useCallback((votedSlots: RegisteredSlot[]) => {
-    const selections: Record<string, string[]> = {};
-    votedSlots.forEach(({ date, time }) => {
-      if (!selections[date]) selections[date] = [];
-      selections[date].push(time);
-    });
-    const dateKeys = Object.keys(selections).sort();
-    setVoteSelectedDates(dateKeys.map((date) => parse(date, 'yyyy-MM-dd', new Date())));
-    setVoteByDate(selections);
-    setActiveDateKey(dateKeys[0] ?? '');
-    setVoteSubStep('adjust');
-  }, []);
 
   // 교집합이 없는 날짜 키 목록 (adjust 단계에서 ! 표시용)
   const datesWithNoMatch = useMemo<string[]>(() => {
@@ -191,6 +180,5 @@ export function useVoteStep(registeredSlots: RegisteredSlot[]) {
     handleVoteSelectSection,
     handleVoteClearSection,
     getVotedSlotIds,
-    initializeVotes,
   };
 }

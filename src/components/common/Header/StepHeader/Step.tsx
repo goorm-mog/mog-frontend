@@ -6,50 +6,36 @@ const STEPS = [
 
 interface StepProps {
   currentStep?: number;
-  maxStep?: number;
-  onStepClick?: (step: number) => void;
 }
 
-function Step({ currentStep = 1, maxStep = currentStep, onStepClick }: StepProps) {
+function Step({ currentStep = 1 }: StepProps) {
   return (
-    <div className="relative flex w-full">
-      <div className="absolute top-4 left-[calc(100%/6)] right-[calc(100%/6)] border-t border-dashed border-border" />
-      {STEPS.map((step) => {
-        const isCurrent = step.number === currentStep;
-        const isAvailable = step.number <= maxStep;
-        const isClickable = isAvailable && !isCurrent && Boolean(onStepClick);
-
-        return (
-          <button
+    <div className="w-full flex flex-col gap-2">
+      <div className="relative flex justify-around">
+        <div className="absolute top-1/2 -translate-y-1/2 left-[calc(100%/6)] right-[calc(100%/6)] border-t border-dashed border-border" />
+        {STEPS.map((step) => (
+          <div
             key={step.number}
-            type="button"
-            aria-current={isCurrent ? 'step' : undefined}
-            aria-label={`${step.number}단계 ${step.label}${isAvailable ? '' : ' (진행 전)'}`}
-            disabled={!isClickable}
-            onClick={() => onStepClick?.(step.number)}
-            className={`relative z-10 flex w-1/3 flex-col items-center gap-2 bg-transparent ${
-              isClickable ? 'cursor-pointer' : 'cursor-default'
-            }`}
+            className={
+              step.number === currentStep
+                ? 'relative z-10 bg-point size-8 rounded-full flex items-center justify-center text-background text-caption'
+                : 'relative z-10 bg-background border-[0.5px] border-dark-border size-8 rounded-full flex items-center justify-center text-dark-border text-caption'
+            }
           >
-            <span
-              className={
-                isCurrent
-                  ? 'flex size-8 items-center justify-center rounded-full bg-point text-caption text-background'
-                  : 'flex size-8 items-center justify-center rounded-full border-[0.5px] border-dark-border bg-background text-caption text-dark-border'
-              }
-            >
-              {step.number}
-            </span>
-            <span
-              className={`font-pretendard text-center text-[9px] font-normal ${
-                isAvailable ? 'text-dark-border' : 'text-border'
-              }`}
-            >
-              {step.label}
-            </span>
-          </button>
-        );
-      })}
+            {step.number}
+          </div>
+        ))}
+      </div>
+      <div className="flex justify-around">
+        {STEPS.map((step) => (
+          <div
+            key={step.number}
+            className="w-1/3 font-pretendard font-normal text-[9px] text-dark-border text-center"
+          >
+            {step.label}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

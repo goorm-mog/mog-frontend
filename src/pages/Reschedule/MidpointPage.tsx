@@ -9,7 +9,6 @@ import MidpointMap from '@/features/midpoint/components/MidpointMap';
 import { useMidpoint } from '@/features/midpoint/hooks/useMidpoint';
 import { shortenAddress } from '@/utils/shortenAddress';
 import type { MidpointPlace } from '@/features/midpoint/types/midpoint';
-import { useRoomStepNavigation } from '@/hooks/useRoomStepNavigation';
 
 function MidpointPage() {
   const { roomId } = useParams<{ roomId: string }>();
@@ -17,7 +16,6 @@ function MidpointPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const isHost = location.pathname.includes('/host/');
-  const stepNavigation = useRoomStepNavigation(3);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const {
@@ -54,7 +52,7 @@ function MidpointPage() {
   if (isLoading) {
     return (
       <div className="flex flex-col">
-        <StepHeader currentStep={3} {...stepNavigation} />
+        <StepHeader currentStep={3} />
         <div className="h-[60vh] min-h-75 bg-border animate-pulse" />
       </div>
     );
@@ -63,7 +61,7 @@ function MidpointPage() {
   if (!isCalculated) {
     return (
       <div className="flex flex-col gap-2">
-        <StepHeader currentStep={3} {...stepNavigation} />
+        <StepHeader currentStep={3} />
         <div className="px-3 pb-3">
           <div className="flex items-center gap-2">
             <MapPinCheck size={20} />
@@ -87,7 +85,7 @@ function MidpointPage() {
 
   return (
     <div className="flex-col flex gap-2">
-      <StepHeader currentStep={3} {...stepNavigation} />
+      <StepHeader currentStep={3} />
 
       <div className="px-3 pb-3">
         <div className="flex items-center gap-2">

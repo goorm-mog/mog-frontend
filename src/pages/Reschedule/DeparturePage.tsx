@@ -9,7 +9,6 @@ import { calculateMidpoint } from '@/features/midpoint/api/midpoint';
 import { useToast } from '@/hooks/useToast';
 import { RoomStatusContext } from '@/components/common/RoomGuard';
 import { getMyUserId } from '@/lib/auth-storage';
-import { useRoomStepNavigation } from '@/hooks/useRoomStepNavigation';
 
 function DeparturePage() {
   const { roomId } = useParams<{ roomId: string }>();
@@ -17,7 +16,6 @@ function DeparturePage() {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const { phase, role } = useContext(RoomStatusContext);
-  const stepNavigation = useRoomStepNavigation(2);
   const isMidpointFinding = phase === 'MIDPOINT_FINDING';
 
   const {
@@ -69,7 +67,7 @@ function DeparturePage() {
   if (isError) {
     return (
       <div className="flex flex-col min-h-screen">
-        <StepHeader currentStep={2} {...stepNavigation} />
+        <StepHeader currentStep={2} />
         <div className="flex-1 flex flex-col items-center justify-center gap-4">
           <p className="text-sm text-dark-border">데이터를 불러오지 못했습니다.</p>
           <button
@@ -85,7 +83,7 @@ function DeparturePage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <StepHeader currentStep={2} {...stepNavigation} />
+      <StepHeader currentStep={2} />
       <DepartureProfile
         members={members}
         departures={departures}
